@@ -65,9 +65,9 @@ data Control =
     Tempo       Rational                 --  scale the tempo
   | Transpose   AbsPitch                 --  transposition
   | Instrument  InstrumentName           --  instrument label
-  |  Phrase     (Array PhraseAttribute)  --  phrase attributes
-  |  KeySig     PitchClass Mode          --  key signature and mode
-  |  Custom     String			             --  for user-specified controls
+  | Phrase      (Array PhraseAttribute)  --  phrase attributes
+  | KeySig      PitchClass Mode          --  key signature and mode
+  | Custom      String			             --  for user-specified controls
 
 derive instance genericControl :: G.Generic Control _
 instance eqControl :: Eq Control where
