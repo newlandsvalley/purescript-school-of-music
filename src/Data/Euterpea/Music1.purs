@@ -5,7 +5,6 @@ import Prelude (id, mod, (-), (/))
 import Data.Euterpea.Music
 import Data.Array ((!!))
 import Data.Maybe ( fromMaybe)
-import Data.Tuple (Tuple(..))
 
 data Note1   = Note1 Pitch (Array NoteAttribute)
 type Music1  = Music Note1

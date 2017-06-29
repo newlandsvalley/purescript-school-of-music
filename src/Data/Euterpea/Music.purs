@@ -1,7 +1,7 @@
 module Data.Euterpea.Music where
 
 
-import Prelude (class Show, class Eq, class Ord, class Bounded, (<>), show)
+import Prelude (class Show, class Eq, class Ord, class Bounded, class Functor, (<>), show)
 import Data.Rational (Rational)
 import Data.Generic.Rep as G
 import Data.Generic.Rep.Eq as GEq

@@ -1,14 +1,14 @@
 module Data.Euterpea.Transform where
 
-import Prelude (const, flip, (+), (-), (*), (/), (>), (<>))
+import Prelude (const, flip, map, (+), (-), (*), (/), (>), (<), (<>), (<=))
 import Data.Euterpea.Music
 import Data.Euterpea.Music1 (mMap, pitch)
-import Data.Euterpea.Notes (absPitch, rest)
+import Data.Euterpea.Notes (absPitch, note, rest, tempo)
 import Data.Maybe (Maybe(..))
 import Data.Foldable (foldr)
 import Data.Rational (Rational, fromInt, toNumber)
 import Data.Tuple (Tuple(..))
-import Data.List (List(..), head, singleton, (:))
+import Data.List (List(..), head, last, singleton, (:))
 import Data.List.NonEmpty as Nel
 
 -- | utility functions that should probably belong in various Purescript libraries
@@ -28,7 +28,20 @@ rMax r1 r2 =
   else
     r2
 
+rMin :: Rational -> Rational -> Rational
+rMin r1 r2 =
+  if
+    toNumber r1 < toNumber r2
+  then
+    r1
+  else
+    r2
+
+
 -- | MoreMusic proper
+
+-- not sure what the fixity should be here
+infixl 5 cutm as /=:
 
 line :: ∀ a. List (Music a) -> Music a
 line = foldr (:+:) (rest (fromInt 0))
@@ -118,6 +131,120 @@ dur (m1 :+: m2)           = dur m1   +   dur m2
 dur (m1 :=: m2)           = dur m1 `rMax` dur m2
 dur (Modify (Tempo r) m)  = dur m / r
 dur (Modify _ m)          = dur m
+
+cut :: ∀ a. Dur -> Music a -> Music a
+cut d m | d <= (fromInt 0)  = rest (fromInt 0)
+cut d (Prim (Note oldD p))  = note (rMin oldD d) p
+cut d (Prim (Rest oldD))    = rest (rMin oldD d)
+cut d (m1 :=: m2)           = cut d m1 :=: cut d m2
+cut d (m1 :+: m2) =
+  let
+    m'1  = cut d m1
+    m'2  = cut (d - dur m'1) m2
+  in
+    m'1 :+: m'2
+cut d (Modify (Tempo r) m)  = tempo r (cut (d*r) m)
+cut d (Modify c m)          = Modify c (cut d m)
+
+remove :: ∀ a. Dur -> Music a -> Music a
+remove d m | d <= (fromInt 0)  = m
+remove d (Prim (Note oldD p))  = note (rMax (oldD-d) (fromInt 0)) p
+remove d (Prim (Rest oldD))    = rest (rMax (oldD-d) (fromInt 0))
+remove d (m1 :=: m2)           = remove d m1 :=: remove d m2
+remove d (m1 :+: m2) =
+  let
+    m'1  = remove d m1
+    m'2  = remove (d - dur m1) m2
+  in
+    m'1 :+: m'2
+remove d (Modify (Tempo r) m)  = tempo r (remove (d*r) m)
+remove d (Modify c m)          = Modify c (remove d m)
+
+removeZeros :: ∀ a. Music a -> Music a
+removeZeros (Prim p)      = Prim p
+removeZeros (ml :+: mr)   =
+  let
+    m'1  = removeZeros ml
+    m'2  = removeZeros mr
+  in
+    case (Tuple m'1 m'2) of
+       Tuple (Prim (Note d p)) m | d <= (fromInt 0)  -> m
+       Tuple (Prim (Rest d)) m | d <= (fromInt 0)    -> m
+       Tuple m (Prim (Note d p)) | d <= (fromInt 0)  -> m
+       Tuple m (Prim (Rest d)) |  d <= (fromInt 0)   -> m
+       Tuple m1 m2                          -> m1 :+: m2
+removeZeros (ml :=: mr)   =
+  let
+    m'1  = removeZeros ml
+    m'2  = removeZeros mr
+  in
+    case (Tuple m'1 m'2) of
+       Tuple (Prim (Note d p)) m | d <= (fromInt 0) -> m
+       Tuple (Prim (Rest d)) m   | d <= (fromInt 0) -> m
+       Tuple m (Prim (Note d p)) | d <= (fromInt 0) -> m
+       Tuple m (Prim (Rest d))   | d <= (fromInt 0) -> m
+       Tuple m1 m2                -> m1 :=: m2
+removeZeros (Modify c m)  = Modify c (removeZeros m)
+
+type LazyDur = List Dur
+durL :: ∀ a. Music a -> LazyDur
+durL m@(Prim _)  =  singleton (dur m)
+durL (m1 :+: m2) =
+  let
+    d1 = durL m1
+    f = case (last d1) of
+      Just lastd -> (+) lastd
+      _ -> (+) (fromInt 0)
+  in
+    d1 <> map f (durL m2)
+durL (m1 :=: m2) =
+  mergeLD (durL m1) (durL m2)
+durL (Modify (Tempo r) m)  =
+  let
+    f = (/) r
+  in
+    map f (durL m)
+durL (Modify _ m) =  durL m
+
+mergeLD :: LazyDur -> LazyDur -> LazyDur
+mergeLD Nil ld = ld
+mergeLD ld Nil = ld
+mergeLD ld1@(d1:ds1) ld2@(d2:ds2) =
+  if d1<d2 then
+    d1 : mergeLD ds1 ld2
+  else
+    d2 : mergeLD ld1 ds2
+
+minL :: LazyDur -> Dur -> Dur
+minL Nil d' = d'
+minL (d:Nil) d' = rMin d d'
+minL (d:ds) d' =
+  if d < d' then
+    minL ds d'
+  else
+    d'
+
+cutL :: ∀ a. LazyDur -> Music a -> Music a
+cutL Nil m                       = rest (fromInt 0)
+cutL (d:ds) m | d <= (fromInt 0) = cutL ds m
+cutL ld (Prim (Note oldD p))     = note (minL ld oldD) p
+cutL ld (Prim (Rest oldD))       = rest (minL ld oldD)
+cutL ld (m1 :=: m2)              = cutL ld m1 :=: cutL ld m2
+cutL ld (m1 :+: m2) =
+   let
+     m'1 = cutL ld m1
+     m'2 = cutL (map (\d -> d - dur m'1) ld) m2
+   in
+     m'1 :+: m'2
+cutL ld (Modify (Tempo r) m)  =
+  let
+    f = (*) r
+  in
+    tempo r (cutL (map f ld) m)
+cutL ld (Modify c m)              = Modify c (cutL ld m)
+
+cutm :: ∀ a. Music a -> Music a -> Music a
+cutm m1 m2 = cutL (durL m2) m1 :=: cutL (durL m1) m2
 
 
 
