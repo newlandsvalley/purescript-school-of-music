@@ -36,6 +36,12 @@ line = foldr (:+:) (rest (fromInt 0))
 chord :: ∀ a. List (Music a) -> Music a
 chord = foldr (:=:) (rest (fromInt 0))
 
+line1 :: ∀ a. Nel.NonEmptyList (Music a) -> Music a
+line1 = foldr1 (:+:)
+
+chord1 :: ∀ a. Nel.NonEmptyList (Music a) -> Music a
+chord1 = foldr1 (:=:)
+
 offset :: ∀ a. Dur -> Music a -> Music a
 offset du m  = rest du :+: m
 
@@ -43,7 +49,7 @@ times :: ∀ a. Int -> Music a -> Music a
 times 0 m  = rest (fromInt 0)
 times n m  = m :+: times (n-1) m
 
-{-
+{- can we do this with Lazy?
 forever :: ∀ a . Music a -> Music a
 forever m  = m :+: forever m
 -}
