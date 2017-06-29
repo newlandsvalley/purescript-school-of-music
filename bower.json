@@ -13,6 +13,8 @@
     "purescript-rationals": "^3.1.1",
     "purescript-tuples": "^4.1.0",
     "purescript-arrays": "^4.1.1",
+    "purescript-lists": "^4.7.0",
+    "purescript-foldable-traversable": "^3.3.0",
     "purescript-maybe": "^3.0.0",
     "purescript-math": "^2.0.0"
   },

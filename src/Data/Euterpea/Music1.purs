@@ -5,6 +5,7 @@ import Prelude (id, mod, (-), (/))
 import Data.Euterpea.Music
 import Data.Array ((!!))
 import Data.Maybe ( fromMaybe)
+import Data.Tuple (Tuple(..))
 
 data Note1   = Note1 Pitch (Array NoteAttribute)
 type Music1  = Music Note1
@@ -13,10 +14,7 @@ type Music1  = Music Note1
 -- | must be converted to Music1 to be converted to MIDI format through
 -- | the MEvent framework.
 
-data PV = PV
-  { pitch  :: Pitch
-  , volume :: Volume
-  }
+data PV = PV Pitch Volume
 
 class ToMusic1 a where
   toMusic1 :: Music a -> Music1
@@ -27,7 +25,7 @@ instance p2m1 :: ToMusic1 Pitch where
 
 instance pv2m1 :: ToMusic1 PV where
   toMusic1 =
-    mMap (\(PV pv) -> Note1 pv.pitch [Volume pv.volume] )
+    mMap (\(PV p v) -> Note1 p [Volume v] )
 
 instance m12m1 :: ToMusic1 (Note1) where
   toMusic1 = id
@@ -46,7 +44,6 @@ mMap f (Prim p)      = Prim (pMap f p)
 mMap f (m1 :+: m2)   = mMap f m1 :+: mMap f m2
 mMap f (m1 :=: m2)   = mMap f m1 :=: mMap f m2
 mMap f (Modify c m)  = Modify c (mMap f m)
-
 
 pitch :: AbsPitch -> Pitch
 pitch ap  =
