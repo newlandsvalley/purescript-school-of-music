@@ -1,9 +1,9 @@
 module Data.Euterpea.Transform where
 
-import Prelude (const, flip, map, (+), (-), (*), (/), (>), (<), (<>), (<=))
+import Prelude (const, flip, map, (+), (-), (*), (/), (>), (<), (<>), (<=), ($))
 import Data.Euterpea.Music
-import Data.Euterpea.Music1 (mMap, pitch)
-import Data.Euterpea.Notes (absPitch, note, rest, tempo)
+import Data.Euterpea.Music1 (Note1(..), mMap, pitch)
+import Data.Euterpea.Notes (absPitch, note, rest, tempo, trans)
 import Data.Maybe (Maybe(..))
 import Data.Foldable (foldr)
 import Data.Rational (Rational, fromInt, toNumber)
@@ -61,6 +61,7 @@ offset du m  = rest du :+: m
 times :: ∀ a. Int -> Music a -> Music a
 times 0 m  = rest (fromInt 0)
 times n m  = m :+: times (n-1) m
+
 
 {- can we do this with Lazy?
 forever :: ∀ a . Music a -> Music a
@@ -259,3 +260,33 @@ mFold f seqf parf g m =
       m1 :+: m2   -> seqf (rec m1)  (rec m2)
       m1 :=: m2   -> parf (rec m1)  (rec m2)
       Modify c mus  -> g c (rec mus)
+
+-- | Sometimes we may wish to alter the internal structure of a Music value
+-- | rather than wrapping it with Modify. The following functions allow this.
+
+shiftPitches :: AbsPitch -> Music Pitch -> Music Pitch
+shiftPitches k = mMap (trans k)
+
+shiftPitches2 :: AbsPitch -> Music Note1 -> Music Note1
+shiftPitches2 k = mMap (\(Note1 p xs) -> Note1 (trans k p) xs)
+
+-- | shiftPitches2 is useless unless we model Note1 as a Tuple
+shiftPitches1 :: ∀ a. AbsPitch -> Music (Tuple Pitch a) -> Music (Tuple Pitch a)
+shiftPitches1 k = mMap (\(Tuple p xs) -> Tuple (trans k p) xs)
+
+scaleDurations :: ∀ a. Rational -> Music a -> Music a
+scaleDurations r (Prim (Note d p)) = note (d/r) p
+scaleDurations r (Prim (Rest d)) = rest (d/r)
+scaleDurations r (m1 :+: m2) = scaleDurations r m1 :+: scaleDurations r m2
+scaleDurations r (m1 :=: m2) = scaleDurations r m1 :=: scaleDurations r m2
+scaleDurations r (Modify c m) = Modify c (scaleDurations r m)
+
+changeInstrument :: ∀ a. InstrumentName -> Music a -> Music a
+changeInstrument i m = Modify (Instrument i) $ removeInstruments m
+
+removeInstruments :: ∀ a. Music a -> Music a
+removeInstruments (Modify (Instrument i) m) = removeInstruments m
+removeInstruments (Modify c m) = Modify c $ removeInstruments m
+removeInstruments (m1 :+: m2) = removeInstruments m1 :+: removeInstruments m2
+removeInstruments (m1 :=: m2) = removeInstruments m1 :=: removeInstruments m2
+removeInstruments m = m

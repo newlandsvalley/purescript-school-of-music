@@ -3,10 +3,16 @@ module Data.Euterpea.Music1 where
 
 import Prelude (id, mod, (-), (/))
 import Data.Euterpea.Music
+import Data.List (List(..), (:))
 import Data.Array ((!!))
 import Data.Maybe ( fromMaybe)
 
-data Note1   = Note1 Pitch (Array NoteAttribute)
+-- | We have difficulty with polymorphism in Music here
+-- | Euterpea uses a Tuple as the means of expressing
+-- | polymorphic values with the second element indicating the polymorphic value
+-- | However Purescript disallows type classes for Type Synonyms such as Tuples
+-- | Instead we use a data definition for Note1 which is not extensible polymorphically
+data Note1   = Note1 Pitch (List NoteAttribute)
 type Music1  = Music Note1
 
 -- | A new type class to allow for musical polymorphism that ultimately
@@ -20,11 +26,11 @@ class ToMusic1 a where
 
 instance p2m1 :: ToMusic1 Pitch where
   toMusic1 =
-    mMap (\p -> Note1 p [])
+    mMap (\p -> Note1 p Nil)
 
 instance pv2m1 :: ToMusic1 PV where
   toMusic1 =
-    mMap (\(PV p v) -> Note1 p [Volume v] )
+    mMap (\(PV p v) -> Note1 p ((Volume v) : Nil) )
 
 instance m12m1 :: ToMusic1 (Note1) where
   toMusic1 = id
@@ -32,7 +38,7 @@ instance m12m1 :: ToMusic1 (Note1) where
 -- Int is AbsPitch but type classes for synonyms are disallowed
 instance absp2m1 :: ToMusic1 (Int) where
   toMusic1 =
-    mMap (\a -> Note1 (pitch a) [])
+    mMap (\a -> Note1 (pitch a) Nil)
 
 pMap :: forall a b. (a -> b) -> Primitive a -> Primitive b
 pMap f (Note d x)  = Note d (f x)

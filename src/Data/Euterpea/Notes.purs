@@ -4,6 +4,7 @@ import Prelude (negate, (*), (+))
 import Data.Euterpea.Music
 import Data.Euterpea.Music1 (pitch)
 import Data.Rational (fromInt, (%))
+import Data.List (List)
 
 note :: forall a. Dur -> a -> Music a
 note du p = Prim (Note du p)
@@ -20,7 +21,7 @@ transpose i m = Modify (Transpose i) m
 instrument :: forall a. InstrumentName -> Music a -> Music a
 instrument i m = Modify (Instrument i) m
 
-phrase :: forall a. (Array PhraseAttribute) -> Music a -> Music a
+phrase :: forall a. (List PhraseAttribute) -> Music a -> Music a
 phrase pa m = Modify (Phrase pa) m
 
 keysig :: forall a. PitchClass -> Mode -> Music a -> Music a

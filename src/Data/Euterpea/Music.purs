@@ -3,6 +3,7 @@ module Data.Euterpea.Music where
 
 import Prelude (class Show, class Eq, class Ord, class Bounded, class Functor, (<>), show)
 import Data.Rational (Rational)
+import Data.List (List)
 import Data.Generic.Rep as G
 import Data.Generic.Rep.Eq as GEq
 import Data.Generic.Rep.Ord as GOrd
@@ -65,7 +66,7 @@ data Control =
     Tempo       Rational                 --  scale the tempo
   | Transpose   AbsPitch                 --  transposition
   | Instrument  InstrumentName           --  instrument label
-  | Phrase      (Array PhraseAttribute)  --  phrase attributes
+  | Phrase      (List PhraseAttribute)   --  phrase attributes
   | KeySig      PitchClass Mode          --  key signature and mode
   | Custom      String			             --  for user-specified controls
 
@@ -239,7 +240,7 @@ data NoteAttribute =
     Volume  Int   --  MIDI convention: 0=min, 127=max
  |  Fingering Int
  |  Dynamics String
- |  Params (Array Number)
+ |  Params (List Number)
 
 derive instance genericNoteAttribute :: G.Generic NoteAttribute _
 instance eqNoteAttribute :: Eq NoteAttribute where
