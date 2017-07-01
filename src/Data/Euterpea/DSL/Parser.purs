@@ -1,0 +1,97 @@
+module Data.Euterpea.DSL.Parser where
+
+import Prelude (($), (<$>), (<$), (<*>), (<*), (*>), (<<<))
+import Control.Alt ((<|>))
+import Data.String as S
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Int (fromString)
+import Data.List (List(..))
+import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try)
+import Text.Parsing.StringParser.String (anyDigit, string)
+import Text.Parsing.StringParser.Combinators (between, choice, many, many1, manyTill, option, optionMaybe, sepBy, (<?>))
+import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), NoteAttribute) as Eut
+import Data.Euterpea.Music1 as Eut1
+import Data.Euterpea.Notes as Eutn
+
+
+-- note1 :: Parser (Eut.Primitive (Eut.Pitch (List Eut.NoteAttribute)))
+{-}
+note1 =
+  Eut1.Note1 <$> (string "Note" *> duration <*> pitch)
+-}
+
+
+rest :: ∀ a. Parser (Eut.Primitive a)
+rest =
+  Eut.Rest <$> (string "Rest" *> duration)
+
+
+pitch :: Parser Eut.Pitch
+pitch =
+  Eut.Pitch <$> pitchClass <*> octave
+
+duration :: Parser Eut.Dur
+duration =
+  choice
+    [
+      bn   -- brevis note
+    , wn   -- whole note
+    , hn   -- half note
+    , qn   -- quarter note
+    , sn   -- sixteenth note
+    , tn   -- thirtysecond note etc.
+    ]
+
+bn :: Parser Eut.Dur
+bn = Eutn.bn <$ string "bn"
+
+wn :: Parser Eut.Dur
+wn = Eutn.wn <$ string "wn"
+
+hn :: Parser Eut.Dur
+hn = Eutn.hn <$ string "hn"
+
+qn :: Parser Eut.Dur
+qn = Eutn.qn <$ string "qn"
+
+sn :: Parser Eut.Dur
+sn = Eutn.sn <$ string "sn"
+
+tn :: Parser Eut.Dur
+tn = Eutn.tn <$ string "tn"
+
+pitchClass :: Parser Eut.PitchClass
+pitchClass =
+  choice
+    [
+      css
+    , cs
+    , c
+    , cf
+    , cff  -- etc.
+    ]
+
+css :: Parser Eut.PitchClass
+css = Eut.Css <$ string "Css"
+
+cs :: Parser Eut.PitchClass
+cs = Eut.Cs <$ string "Cs"
+
+c :: Parser Eut.PitchClass
+c = Eut.C <$ string "C"
+
+cf :: Parser Eut.PitchClass
+cf = Eut.Cf <$ string "Cf"
+
+cff :: Parser Eut.PitchClass
+cff = Eut.Cff <$ string "Cff"
+
+octave :: Parser Eut.Octave
+octave =
+  digit <|> ten
+
+digit :: Parser Int
+digit = (fromMaybe 0 <<< fromString <<< S.singleton) <$> anyDigit
+
+ten :: Parser Int
+ten = 10 <$ string "10"

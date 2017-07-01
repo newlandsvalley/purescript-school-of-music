@@ -17,7 +17,8 @@
     "purescript-foldable-traversable": "^3.3.0",
     "purescript-maybe": "^3.0.0",
     "purescript-integers": "^3.0.0",
-    "purescript-math": "^2.0.0"
+    "purescript-math": "^2.0.0",
+    "purescript-string-parsers": "^3.0.1"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"
