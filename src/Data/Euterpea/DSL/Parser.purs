@@ -7,22 +7,33 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Int (fromString)
 import Data.List (List(..), singleton)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try)
-import Text.Parsing.StringParser.String (anyDigit, string, regex)
-import Text.Parsing.StringParser.Combinators (between, choice, many, many1, manyTill, option, optionMaybe, sepBy, (<?>))
-import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), NoteAttribute(..)) as Eut
+import Text.Parsing.StringParser.String (anyDigit, char, string, regex, skipSpaces)
+import Text.Parsing.StringParser.Combinators (between, choice, many, many1, manyTill, option, optionMaybe, sepBy1, (<?>))
+import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..)) as Eut
 import Data.Euterpea.Music1 as Eut1
 import Data.Euterpea.Notes as Eutn
+import Data.Euterpea.Transform as Eutt
 
-primitive :: Parser (Eut.Primitive Eut1.Note1)
-primitive =  note1 <|> rest
+chordOrPrim :: Parser (Eut1.Music1)
+chordOrPrim = chord <|> prim
+
+chord :: Parser (Eut1.Music1)
+chord =
+  Eutt.chord <$> ((keyWord "Chord") *> sepBy1 primNote1 (char ','))
+
+prim :: Parser (Eut1.Music1)
+prim =  Eut.Prim <$> (note1 <|> rest)
+
+primNote1 :: Parser (Eut1.Music1)
+primNote1 = Eut.Prim <$> note1
 
 note1 :: Parser (Eut.Primitive Eut1.Note1)
 note1 =
-  buildNote1 <$> string "Note" <*> duration <*> pitch <*> volume
+  buildNote1 <$> keyWord "Note" <*> duration <*> pitch <*> volume
 
 rest :: ∀ a. Parser (Eut.Primitive a)
 rest =
-  Eut.Rest <$> (string "Rest" *> duration)
+  Eut.Rest <$> (keyWord "Rest" *> duration)
 
 pitch :: Parser Eut.Pitch
 pitch =
@@ -30,7 +41,7 @@ pitch =
 
 duration :: Parser Eut.Dur
 duration =
-  choice
+  (choice
     [
       bn   -- brevis note
     , wn   -- whole note
@@ -39,6 +50,7 @@ duration =
     , sn   -- sixteenth note
     , tn   -- thirtysecond note etc.
     ]
+   ) <* skipSpaces
 
 bn :: Parser Eut.Dur
 bn = Eutn.bn <$ string "bn"
@@ -60,7 +72,7 @@ tn = Eutn.tn <$ string "tn"
 
 pitchClass :: Parser Eut.PitchClass
 pitchClass =
-  choice
+  (choice
     [
       css
     , cs
@@ -68,6 +80,7 @@ pitchClass =
     , cf
     , cff  -- etc.
     ]
+   ) <* skipSpaces
 
 css :: Parser Eut.PitchClass
 css = Eut.Css <$ string "Css"
@@ -86,10 +99,14 @@ cff = Eut.Cff <$ string "Cff"
 
 octave :: Parser Eut.Octave
 octave =
-  digit <|> ten
+  (digit <|> ten) <* skipSpaces
 
 volume :: Parser Int
-volume = anyInt
+volume = anyInt <* skipSpaces
+
+keyWord :: String -> Parser String
+keyWord target =
+  (string target) <* skipSpaces
 
 digit :: Parser Int
 digit = (fromMaybe 0 <<< fromString <<< S.singleton) <$> anyDigit
