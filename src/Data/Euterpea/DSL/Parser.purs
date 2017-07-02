@@ -1,16 +1,21 @@
-module Data.Euterpea.DSL.Parser where
+module Data.Euterpea.DSL.Parser
+        ( PositionedParseError(..)
+        , parse
+        ) where
 
-import Prelude (($), (<$>), (<$), (<*>), (<*), (*>), (<<<), (<>))
+import Prelude (class Show, show, ($), (<$>), (<$), (<*>), (<*), (*>), (<<<), (<>))
 import Control.Alt ((<|>))
-import Control.Lazy (fix)
+-- import Control.Lazy (fix)
 import Data.String as S
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (fromMaybe)
+import Data.Bifunctor (bimap)
 import Data.Int (fromString)
-import Data.List (List(..), singleton, (:))
+import Data.Either (Either(..))
+import Data.List (List, singleton)
 import Data.Array (fromFoldable)
-import Data.Foldable (class Foldable, foldr)
+import Data.Foldable (class Foldable)
 import Data.Rational (fromInt)
-import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try)
+import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces)
 import Text.Parsing.StringParser.Combinators (choice, sepBy1, many1, (<?>))
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..)) as Eut
@@ -164,11 +169,8 @@ ten :: Parser Int
 ten = 10 <$ string "10"
 
 buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
-buildNote1 _ dur pitch vol =
-  let
-    note1 = Eut1.Note1 pitch $ singleton (Eut.Volume vol)
-  in
-    Eut.Note dur note1
+buildNote1 _ dur p vol =
+  Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume vol)
 
 -- | Euterpea requires that all lines end in a zero rest as a marker
 -- | which is not how the parser will build naturally lines
@@ -176,3 +178,33 @@ buildNote1 _ dur pitch vol =
 lineToMusic :: List Eut1.Music1 -> Eut1.Music1
 lineToMusic ms =
   Eutt.line $ ms <> (singleton <<< Eut.Prim <<< Eut.Rest <<< fromInt) 0
+
+-- | a parse error and its accompanying position in the text
+newtype PositionedParseError = PositionedParseError
+  { pos :: Int
+  , error :: String
+  }
+
+instance showKeyPositionedParseError :: Show PositionedParseError where
+  show (PositionedParseError e) = e.error <> " at position " <> show e.pos
+
+
+-- | Run a parser for an input string, returning either a positioned error or a result.
+runParser1 :: forall a. Parser a -> String -> Either PositionedParseError a
+runParser1 (Parser p) s =
+  let
+    formatErr :: { pos :: Pos, error :: ParseError } -> PositionedParseError
+    formatErr { pos : pos, error : ParseError e } =
+      PositionedParseError { pos : pos, error : e}
+  in
+    bimap formatErr _.result (p { str: s, pos: 0 })
+
+-- | Entry point - Parse an ABC tune image.
+parse :: String -> Either PositionedParseError Eut1.Music1
+parse s =
+  case runParser1 polyphony s of
+    Right n ->
+      Right n
+
+    Left e ->
+      Left e
