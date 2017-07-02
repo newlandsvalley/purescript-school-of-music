@@ -5,26 +5,24 @@ import Control.Alt ((<|>))
 import Data.String as S
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Int (fromString)
-import Data.List (List(..))
+import Data.List (List(..), singleton)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try)
-import Text.Parsing.StringParser.String (anyDigit, string)
+import Text.Parsing.StringParser.String (anyDigit, string, regex)
 import Text.Parsing.StringParser.Combinators (between, choice, many, many1, manyTill, option, optionMaybe, sepBy, (<?>))
-import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), NoteAttribute) as Eut
+import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), NoteAttribute(..)) as Eut
 import Data.Euterpea.Music1 as Eut1
 import Data.Euterpea.Notes as Eutn
 
+primitive :: Parser (Eut.Primitive Eut1.Note1)
+primitive =  note1 <|> rest
 
--- note1 :: Parser (Eut.Primitive (Eut.Pitch (List Eut.NoteAttribute)))
-{-}
+note1 :: Parser (Eut.Primitive Eut1.Note1)
 note1 =
-  Eut1.Note1 <$> (string "Note" *> duration <*> pitch)
--}
-
+  buildNote1 <$> string "Note" <*> duration <*> pitch <*> volume
 
 rest :: ∀ a. Parser (Eut.Primitive a)
 rest =
   Eut.Rest <$> (string "Rest" *> duration)
-
 
 pitch :: Parser Eut.Pitch
 pitch =
@@ -90,8 +88,23 @@ octave :: Parser Eut.Octave
 octave =
   digit <|> ten
 
+volume :: Parser Int
+volume = anyInt
+
 digit :: Parser Int
 digit = (fromMaybe 0 <<< fromString <<< S.singleton) <$> anyDigit
 
+anyInt :: Parser Int
+anyInt =
+  (fromMaybe 0 <<< fromString) <$> regex "(0|[1-9][0-9]*)"
+
 ten :: Parser Int
 ten = 10 <$ string "10"
+
+
+buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
+buildNote1 _ dur pitch vol =
+  let
+    note1 = Eut1.Note1 pitch $ singleton (Eut.Volume vol)
+  in
+    Eut.Note dur note1
