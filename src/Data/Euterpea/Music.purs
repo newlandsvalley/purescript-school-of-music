@@ -17,6 +17,15 @@ infixr 5 MPar as :=:
 type AbsPitch = Int
 type Octave = Int
 data Pitch = Pitch PitchClass Octave
+
+derive instance genericPitch :: G.Generic Pitch _
+instance eqPitch :: Eq Pitch where
+  eq x y = GEq.genericEq x y
+instance ordPitch :: Ord Pitch where
+  compare x y = GOrd.genericCompare x y
+instance showPitch :: Show Pitch where
+  show x = GShow.genericShow x
+
 type Dur   = Rational
 data PitchClass  =  Cff | Cf | C | Dff | Cs | Df | Css | D | Eff | Ds
                  |  Ef | Fff | Dss | E | Ff | Es | F | Gff | Ess | Fs

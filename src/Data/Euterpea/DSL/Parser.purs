@@ -29,7 +29,7 @@ polyphony =
 
 voices :: Parser Eut1.Music1
 voices =
-  lineToMusic  <$> ((keyWord "Par") *> sepBy1 music (char ','))
+  lineToM  <$> ((keyWord "Par") *> sepBy1 music (char ','))
 
 {-}
 control :: Parser (Eut1.Music1)
@@ -43,18 +43,19 @@ music :: Parser Eut1.Music1
 music =
   choice
     [
-      line
+      prim
+    , line
     , lines
     , chord
     ]
 
 lines :: Parser Eut1.Music1
 lines =
-  lineToMusic <$> ((keyWord "Seq") *> sepBy1 line (char ','))
+  lineToM <$> ((keyWord "Seq") *> sepBy1 line (char ','))
 
 line :: Parser Eut1.Music1
 line =
-  lineToMusic <$> ((keyWord "Line") *> sepBy1 chordOrPrim (char ','))
+  lineToM <$> ((keyWord "Line") *> sepBy1 chordOrPrim (char ','))
 
 chordOrPrim :: Parser (Eut1.Music1)
 chordOrPrim = chord <|> prim
@@ -150,7 +151,7 @@ volume = anyInt <* skipSpaces
 
 anyInt :: Parser Int
 anyInt =
-  (fromMaybe 0 <<< fromString) <$> regex "(0|[1-9][0-9]*)"
+  (fromMaybe 10 <<< fromString) <$> regex "(0|[1-9][0-9]*)"
 
 anyString :: Parser String
 anyString = fromCharList <$> many1 anyChar
@@ -172,12 +173,12 @@ buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
 buildNote1 _ dur p vol =
   Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume vol)
 
--- | Euterpea requires that all lines end in a zero rest as a marker
--- | which is not how the parser will build naturally lines
--- | so make sure it's terminated properly
-lineToMusic :: List Eut1.Music1 -> Eut1.Music1
-lineToMusic ms =
-  Eutt.line $ ms <> (singleton <<< Eut.Prim <<< Eut.Rest <<< fromInt) 0
+
+
+-- | convert a line to music
+lineToM :: List Eut1.Music1 -> Eut1.Music1
+lineToM ms =
+  Eutt.line ms
 
 -- | a parse error and its accompanying position in the text
 newtype PositionedParseError = PositionedParseError

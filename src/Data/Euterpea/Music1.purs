@@ -1,11 +1,17 @@
 module Data.Euterpea.Music1 where
 
 
-import Prelude (id, mod, (-), (/))
+import Prelude (class Show, id, mod, show, (-), (/))
 import Data.Euterpea.Music
 import Data.List (List(..), (:))
 import Data.Array ((!!))
 import Data.Maybe ( fromMaybe)
+import Data.Generic.Rep as G
+import Data.Generic.Rep.Eq as GEq
+import Data.Generic.Rep.Ord as GOrd
+import Data.Generic.Rep.Show as GShow
+import Data.Generic.Rep.Bounded as GBounded
+
 
 -- | We have difficulty with polymorphism in Music here
 -- | Euterpea uses a Tuple as the means of expressing
@@ -18,6 +24,16 @@ type Music1  = Music Note1
 -- | A new type class to allow for musical polymorphism that ultimately
 -- | must be converted to Music1 to be converted to MIDI format through
 -- | the MEvent framework.
+
+derive instance genericMode :: G.Generic Note1  _
+{-}
+instance eqNote1  :: Eq Note1 where
+  eq x y = GEq.genericEq x y
+instance ordNote1  :: Ord Note1  where
+  compare x y = GOrd.genericCompare x y
+-}
+instance showNote1  :: Show Note1  where
+  show x = GShow.genericShow x
 
 data PV = PV Pitch Volume
 

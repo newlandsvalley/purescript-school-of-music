@@ -2,8 +2,22 @@ module Test.Main where
 
 import Prelude
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Aff.AVar (AVAR)
 
-main :: forall e. Eff (console :: CONSOLE | e) Unit
-main = do
-  log "You should add some tests."
+import Test.Unit (suite)
+import Test.Unit.Main (runTest)
+import Test.Unit.Console (TESTOUTPUT)
+import Test.DSL (dslSuite)
+
+main :: forall t.
+        Eff
+          ( console :: CONSOLE
+          , testOutput :: TESTOUTPUT
+          , avar :: AVAR
+          | t
+          )
+          Unit
+main = runTest do
+  suite "euterpea" do
+    dslSuite
