@@ -11,8 +11,8 @@ import Data.Generic.Rep.Show as GShow
 import Data.Generic.Rep.Bounded as GBounded
 
 
-infixr 5 MSeq as :+:
-infixr 5 MPar as :=:
+infixr 5 Seq as :+:
+infixr 5 Par as :=:
 
 type AbsPitch = Int
 type Octave = Int
@@ -58,8 +58,8 @@ instance showPrimitive :: Show a => Show (Primitive a) where
 
 data Music a  =
      Prim (Primitive a)               --  primitive value
-   | MSeq (Music a) (Music a)         --  sequential composition
-   | MPar (Music a) (Music a)         --  parallel composition
+   | Seq (Music a) (Music a)          --  sequential composition
+   | Par (Music a) (Music a)          --  parallel composition
    | Modify Control (Music a)         --  modifier
 
 derive instance genericMusic :: G.Generic (Music a) _

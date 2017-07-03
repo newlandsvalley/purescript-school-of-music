@@ -16,7 +16,7 @@ import Data.Array (fromFoldable)
 import Data.Foldable (class Foldable)
 import Data.Rational (fromInt)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos)
-import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces)
+import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces, eof)
 import Text.Parsing.StringParser.Combinators (choice, sepBy1, many1, (<?>))
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..)) as Eut
 import Data.Euterpea.Music1 as Eut1
@@ -25,11 +25,11 @@ import Data.Euterpea.Transform as Eutt
 
 polyphony :: Parser Eut1.Music1
 polyphony =
-  music <|> voices
+  ( music <|> voices ) <* eof
 
 voices :: Parser Eut1.Music1
 voices =
-  lineToM  <$> ((keyWord "Par") *> sepBy1 music (char ','))
+  Eutt.line  <$> ((keyWord "Par") *> sepBy1 music separator)
 
 {-}
 control :: Parser (Eut1.Music1)
@@ -51,19 +51,18 @@ music =
 
 lines :: Parser Eut1.Music1
 lines =
-  lineToM <$> ((keyWord "Seq") *> sepBy1 line (char ','))
+  Eutt.line <$> ((keyWord "Seq") *> sepBy1 line separator)
 
 line :: Parser Eut1.Music1
 line =
-  lineToM <$> ((keyWord "Line") *> sepBy1 chordOrPrim (char ','))
+  Eutt.line <$> ((keyWord "Line") *> sepBy1 chordOrPrim separator)
 
 chordOrPrim :: Parser (Eut1.Music1)
 chordOrPrim = chord <|> prim
 
 chord :: Parser (Eut1.Music1)
 chord =
-  Eutt.chord <$> ((keyWord "Chord") *> sepBy1 primNote1 (char ','))
-
+  Eutt.chord <$> ((keyWord "Chord") *> sepBy1 primNote1 separator)
 
 prim :: Parser (Eut1.Music1)
 prim =  Eut.Prim <$> (note1 <|> rest)
@@ -122,9 +121,15 @@ pitchClass =
     , cs
     , c
     , cf
-    , cff  -- etc.
+    , cff
+    , dss
+    , ds
+    , d
+    , df
+    , dff  -- etc.
     ]
    ) <* skipSpaces
+     <?> "pitch class"
 
 
 css :: Parser Eut.PitchClass
@@ -142,16 +147,41 @@ cf = Eut.Cf <$ string "Cf"
 cff :: Parser Eut.PitchClass
 cff = Eut.Cff <$ string "Cff"
 
+dss :: Parser Eut.PitchClass
+dss = Eut.Dss <$ string "Dss"
+
+ds :: Parser Eut.PitchClass
+ds = Eut.Ds <$ string "Ds"
+
+d :: Parser Eut.PitchClass
+d = Eut.D <$ string "D"
+
+df :: Parser Eut.PitchClass
+df = Eut.Df <$ string "Df"
+
+dff :: Parser Eut.PitchClass
+dff = Eut.Dff <$ string "Dff"
+
 octave :: Parser Eut.Octave
 octave =
   (digit <|> ten) <* skipSpaces
 
 volume :: Parser Int
-volume = anyInt <* skipSpaces
+volume = int <* skipSpaces
 
-anyInt :: Parser Int
+separator :: Parser Char
+separator =
+  (char ',') <* skipSpaces
+
+-- | Parse a positive integer (with no sign).
+int :: Parser Int
+int =
+  (fromMaybe 0 <<< fromString) <$> anyInt
+    <?> "expected a positive integer"
+
+anyInt :: Parser String
 anyInt =
-  (fromMaybe 10 <<< fromString) <$> regex "(0|[1-9][0-9]*)"
+  regex "0|[1-9][0-9]*"
 
 anyString :: Parser String
 anyString = fromCharList <$> many1 anyChar
@@ -173,12 +203,6 @@ buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
 buildNote1 _ dur p vol =
   Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume vol)
 
-
-
--- | convert a line to music
-lineToM :: List Eut1.Music1 -> Eut1.Music1
-lineToM ms =
-  Eutt.line ms
 
 -- | a parse error and its accompanying position in the text
 newtype PositionedParseError = PositionedParseError

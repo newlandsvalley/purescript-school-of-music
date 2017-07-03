@@ -8,6 +8,7 @@ import Data.Euterpea.DSL.Parser (parse)
 
 import Data.Euterpea.Music
 import Data.Euterpea.Music1
+import Data.Euterpea.Transform (line) as Transform
 import Data.Rational ((%))
 import Data.List (List(..), (:))
 
@@ -31,18 +32,20 @@ noteSuite :: forall t. Free (TestF t) Unit
 noteSuite =
   suite "notes" do
     test "note" do
-      assertMusic  "Note qn C 100" cq
+      assertMusic  "Note qn C 1 100" cq
     test "rest" do
       assertMusic  "Rest qn" rq
-    -- this test fails
     test "line" do
-      assertMusic  "Line Note qn C 100, Note qn D 100, Rest qn" line
+      assertMusic  "Line Note qn C 1 100, Note qn D 1 100, Rest qn" line
+    test "chord" do
+      assertMusic  "Chord Note qn C 1 100, Note qn D 1 100" chord
+
 
 cq :: Music1
-cq = Prim (Note (1 % 4) (Note1 (Pitch C 1) ((Volume 0) : Nil)))
+cq = Prim (Note (1 % 4) (Note1 (Pitch C 1) ((Volume 100) : Nil)))
 
 dq :: Music1
-dq = Prim (Note (1 % 4) (Note1 (Pitch D 1) ((Volume 0) : Nil)))
+dq = Prim (Note (1 % 4) (Note1 (Pitch D 1) ((Volume 100) : Nil)))
 
 rq :: Music1
 rq = Prim (Rest (1 % 4))
@@ -51,4 +54,7 @@ eol :: Music1
 eol = Prim (Rest (0 % 1))
 
 line :: Music1
-line = MSeq cq (MSeq dq eol)
+line = Seq cq (Seq dq (Seq rq eol))
+
+chord :: Music1
+chord = Par cq (Par dq eol)
