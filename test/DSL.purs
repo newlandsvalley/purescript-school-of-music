@@ -39,6 +39,8 @@ noteSuite =
       assertMusic  "Line Note qn C 1 100, Note qn D 1 100, Rest qn" line
     test "chord" do
       assertMusic  "Chord Note qn C 1 100, Note qn D 1 100" chord
+    test "lines" do
+      assertMusic  "Seq Line Note qn C 1 100, Note qn D 1 100, Rest qn Line Note qn C 1 100, Note qn D 1 100, Rest qn;" lines
 
 
 cq :: Music1
@@ -55,6 +57,10 @@ eol = Prim (Rest (0 % 1))
 
 line :: Music1
 line = Seq cq (Seq dq rq)
+
+lines :: Music1
+lines = 
+  Seq line line
 
 chord :: Music1
 chord = Par cq dq

@@ -14,10 +14,10 @@ import Data.Either (Either(..))
 import Data.List (singleton)
 import Data.Array (fromFoldable)
 import Data.Foldable (class Foldable)
-import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos)
+import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces, eof)
 import Text.Parsing.StringParser.Combinators (choice, sepBy1, many1, (<?>))
-import Data.Euterpea.DSL.ParserExtensins (many1Nel, sepBy1Nel)
+import Data.Euterpea.DSL.ParserExtensins (many1Nel, many1TillNel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..)) as Eut
 import Data.Euterpea.Music1 as Eut1
 import Data.Euterpea.Notes as Eutn
@@ -36,16 +36,14 @@ music =
   choice
     [
       prim
-    , line
     , lines
+    , line
     , chord
     ]
 
 lines :: Parser Eut1.Music1
 lines =
-  Eutt.line <$> ((keyWord "Seq") *> sepBy1 line separator)
-
-
+  Eutt.line1 <$> ((keyWord "Seq") *> many1TillNel line endSeq)
 
 line :: Parser Eut1.Music1
 line =
@@ -148,6 +146,7 @@ ds :: Parser Eut.PitchClass
 ds = Eut.Ds <$ string "Ds"
 
 d :: Parser Eut.PitchClass
+-- import Data.List.NonEmpty as Nel
 d = Eut.D <$ string "D"
 
 df :: Parser Eut.PitchClass
@@ -166,6 +165,12 @@ volume = int <* skipSpaces
 separator :: Parser Char
 separator =
   (char ',') <* skipSpaces
+
+-- | not sure if this is the best way to end a sequence, but I am concerned at the moment
+-- | about avoiding ambiguity
+endSeq :: Parser Char
+endSeq =
+  (char ';') <* skipSpaces
 
 -- | Parse a positive integer (with no sign).
 int :: Parser Int
