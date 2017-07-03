@@ -16,7 +16,7 @@ import Data.Array (fromFoldable)
 import Data.Foldable (class Foldable)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces, eof)
-import Text.Parsing.StringParser.Combinators (choice, sepBy1, many1, (<?>))
+import Text.Parsing.StringParser.Combinators (choice, many1, (<?>))
 import Data.Euterpea.DSL.ParserExtensins (many1Nel, many1TillNel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..)) as Eut
 import Data.Euterpea.Music1 as Eut1
@@ -29,7 +29,7 @@ polyphony =
 
 voices :: Parser Eut1.Music1
 voices =
-  Eutt.line  <$> ((keyWord "Par") *> sepBy1 music separator)
+  Eutt.chord1  <$> ((keyWord "Par") *> many1Nel music)
 
 music :: Parser Eut1.Music1
 music =
@@ -39,11 +39,13 @@ music =
     , lines
     , line
     , chord
+    -- , control music
     ]
 
 lines :: Parser Eut1.Music1
 lines =
-  Eutt.line1 <$> ((keyWord "Seq") *> many1TillNel line endSeq)
+  -- Eutt.line1 <$> ((keyWord "Seq") *> many1TillNel line endSeq)
+  Eutt.line1 <$> ((keyWord "Seq") *> many1Nel line)
 
 line :: Parser Eut1.Music1
 line =
@@ -54,7 +56,7 @@ chordOrPrim = chord <|> prim
 
 chord :: Parser (Eut1.Music1)
 chord =
-  Eutt.chord1 <$> ((keyWord "Chord") *> sepBy1Nel primNote1 separator)
+  Eutt.chord1 <$> ((keyWord "Chord") *> (keyWord "[") *> sepBy1Nel primNote1 separator <* (keyWord "]"))
 
 prim :: Parser (Eut1.Music1)
 prim =  Eut.Prim <$> (note1 <|> rest)

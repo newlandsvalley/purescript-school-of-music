@@ -15,13 +15,13 @@ How should we input HSoM melodies to the browser?  It seems to me the best way w
 ```
     polyphony = music | voices
 
-    voices = 'Par' '[' music, { music } ']'
+    voices = 'Par' music, { music }
 
     music = prim | line | lines | chord | control music
 
-    lines = 'Seq' '[' line, { line } ']'
+    lines = 'Seq' 'line, { line }
 
-    line = 'Line' '[' chordorprim, { chordorprim } ']'
+    line = 'Line' chordorprim, { chordorprim }
 
     chordorprim = chord | prim
 
@@ -41,8 +41,10 @@ How should we input HSoM melodies to the browser?  It seems to me the best way w
 
     octave = int
 
-    control = 'Control' 'Instrument' String 
+    control = 'Control' 'Instrument' String
 ```
+
+See the DSL tests for example usage.
 
 This attempts to give a convenient representation for lines of music and chords, whilst still retaining the ability to control whole phrases (however built). If this works out, we can then build in the further control mechanisms that are supported by the API.
 

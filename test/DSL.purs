@@ -1,6 +1,6 @@
 module Test.DSL (dslSuite) where
 
-import Prelude
+import Prelude (Unit, discard, show, (<>))
 import Control.Monad.Free (Free)
 
 import Data.Either (Either(..))
@@ -8,11 +8,10 @@ import Data.Euterpea.DSL.Parser (parse)
 
 import Data.Euterpea.Music
 import Data.Euterpea.Music1
-import Data.Euterpea.Transform (line) as Transform
 import Data.Rational ((%))
 import Data.List (List(..), (:))
 
-import Test.Unit (Test, TestF, suite, test, success, failure)
+import Test.Unit (Test, TestF, suite, test, failure)
 import Test.Unit.Assert as Assert
 
 assertMusic :: forall e. String -> Music1 -> Test e
@@ -38,9 +37,25 @@ noteSuite =
     test "line" do
       assertMusic  "Line Note qn C 1 100, Note qn D 1 100, Rest qn" line
     test "chord" do
-      assertMusic  "Chord Note qn C 1 100, Note qn D 1 100" chord
+      assertMusic  "Chord [ Note qn C 1 100, Note qn D 1 100 ]" chord
+    test "line with chord" do
+      assertMusic  "Line Note qn C 1 100, Note qn D 1 100, Chord [ Note qn C 1 100, Note qn D 1 100 ], Rest qn" lineWithChord
     test "lines" do
-      assertMusic  "Seq Line Note qn C 1 100, Note qn D 1 100, Rest qn Line Note qn C 1 100, Note qn D 1 100, Rest qn;" lines
+      assertMusic  "Seq Line Note qn C 1 100, Note qn D 1 100, Rest qn Line Note qn C 1 100, Note qn D 1 100, Rest qn" lines
+    test "simple voices" do
+      assertMusic "Par Line Note qn C 1 100, Note qn D 1 100, Rest qn Line Note qn C 1 100, Note qn D 1 100, Rest qn" simpleVoices
+    test "complex voices" do
+      assertMusic complexVoicesSource complexVoices
+
+complexVoicesSource :: String
+complexVoicesSource =
+   "Par " <>
+     "Seq " <>
+       "Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
+       "Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
+     "Seq " <>
+       "Line Note qn C 1 100, Note qn D 1 100, Rest qn" <>
+       "Line Note qn C 1 100, Note qn D 1 100, Chord [ Note qn C 1 100, Note qn D 1 100 ], Rest qn"
 
 
 cq :: Music1
@@ -58,9 +73,18 @@ eol = Prim (Rest (0 % 1))
 line :: Music1
 line = Seq cq (Seq dq rq)
 
+lineWithChord :: Music1
+lineWithChord = Seq cq (Seq dq (Seq chord rq))
+
 lines :: Music1
-lines = 
+lines =
   Seq line line
 
 chord :: Music1
 chord = Par cq dq
+
+simpleVoices :: Music1
+simpleVoices = Par line line
+
+complexVoices :: Music1
+complexVoices = Par (Seq line line) (Seq line lineWithChord)
