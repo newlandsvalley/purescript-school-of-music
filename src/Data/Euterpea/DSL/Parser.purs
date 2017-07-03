@@ -82,8 +82,18 @@ duration =
     , wn   -- whole note
     , hn   -- half note
     , qn   -- quarter note
+    , en   -- eighth note
     , sn   -- sixteenth note
     , tn   -- thirtysecond note etc.
+    , sfn  -- sixtyfourth note etc.
+    , dwn  -- dotted whole note
+    , dhn  -- dotted half note
+    , dqn  -- dotted quarter note
+    , den  -- dotted eighth note
+    , dsn  -- dotted sixteenth note
+    , ddhn -- double-dotted half note
+    , ddqn -- double-dotted quarter note
+    , dden -- double-dotted eighth note
     ]
    ) <* skipSpaces
 
@@ -99,11 +109,42 @@ hn = Eutn.hn <$ string "hn"
 qn :: Parser Eut.Dur
 qn = Eutn.qn <$ string "qn"
 
+en :: Parser Eut.Dur
+en = Eutn.en <$ string "en"
+
 sn :: Parser Eut.Dur
 sn = Eutn.sn <$ string "sn"
 
 tn :: Parser Eut.Dur
 tn = Eutn.tn <$ string "tn"
+
+sfn :: Parser Eut.Dur
+sfn = Eutn.sfn <$ string "sfn"
+
+dwn :: Parser Eut.Dur
+dwn = Eutn.dwn <$ string "dwn"
+
+dhn :: Parser Eut.Dur
+dhn = Eutn.dhn <$ string "dhn"
+
+dqn :: Parser Eut.Dur
+dqn = Eutn.dqn <$ string "dqn"
+
+den :: Parser Eut.Dur
+den = Eutn.den <$ string "den"
+
+dsn :: Parser Eut.Dur
+dsn = Eutn.dsn <$ string "dsn"
+
+ddhn :: Parser Eut.Dur
+ddhn = Eutn.ddhn <$ string "ddhn"
+
+ddqn :: Parser Eut.Dur
+ddqn = Eutn.ddqn <$ string "ddqn"
+
+dden :: Parser Eut.Dur
+dden = Eutn.dden <$ string "dden"
+
 
 pitchClass :: Parser Eut.PitchClass
 pitchClass =
@@ -118,11 +159,28 @@ pitchClass =
     , ds
     , d
     , df
-    , dff  -- etc.
+    , dff  --
+    , ess
+    , es
+    , e
+    , ef
+    , eff
+    , fss
+    , fs
+    , f
+    , ff
+    , fff
+    , gss
+    , gs
+    , g
+    , gf
+    , gff
     ]
    ) <* skipSpaces
      <?> "pitch class"
 
+-- |  This boilerplate is tedious, but in the absence of any generic Read
+-- |  behaviour, is probably as straightforward as it gets at the moment
 
 css :: Parser Eut.PitchClass
 css = Eut.Css <$ string "Css"
@@ -146,7 +204,6 @@ ds :: Parser Eut.PitchClass
 ds = Eut.Ds <$ string "Ds"
 
 d :: Parser Eut.PitchClass
--- import Data.List.NonEmpty as Nel
 d = Eut.D <$ string "D"
 
 df :: Parser Eut.PitchClass
@@ -154,6 +211,52 @@ df = Eut.Df <$ string "Df"
 
 dff :: Parser Eut.PitchClass
 dff = Eut.Dff <$ string "Dff"
+
+ess :: Parser Eut.PitchClass
+ess = Eut.Ess <$ string "Ess"
+
+es :: Parser Eut.PitchClass
+es = Eut.Es <$ string "Es"
+
+e :: Parser Eut.PitchClass
+e = Eut.E <$ string "E"
+
+ef :: Parser Eut.PitchClass
+ef = Eut.Ef <$ string "Cf"
+
+eff :: Parser Eut.PitchClass
+eff = Eut.Eff <$ string "Fff"
+
+fss :: Parser Eut.PitchClass
+fss = Eut.Fss <$ string "Fss"
+
+fs :: Parser Eut.PitchClass
+fs = Eut.Fs <$ string "Fs"
+
+f :: Parser Eut.PitchClass
+f = Eut.F <$ string "F"
+
+ff :: Parser Eut.PitchClass
+ff = Eut.Ff <$ string "Ff"
+
+fff :: Parser Eut.PitchClass
+fff = Eut.Fff <$ string "Fff"
+
+gss :: Parser Eut.PitchClass
+gss = Eut.Gss <$ string "Gss"
+
+gs :: Parser Eut.PitchClass
+gs = Eut.Gs <$ string "Gs"
+
+g :: Parser Eut.PitchClass
+g = Eut.G <$ string "G"
+
+gf :: Parser Eut.PitchClass
+gf = Eut.Gf <$ string "Gf"
+
+gff :: Parser Eut.PitchClass
+gff = Eut.Gff <$ string "Gff"
+
 
 octave :: Parser Eut.Octave
 octave =
