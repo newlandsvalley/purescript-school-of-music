@@ -11,13 +11,13 @@ import Data.Maybe (fromMaybe)
 import Data.Bifunctor (bimap)
 import Data.Int (fromString)
 import Data.Either (Either(..))
-import Data.List (List, singleton)
+import Data.List (singleton)
 import Data.Array (fromFoldable)
 import Data.Foldable (class Foldable)
-import Data.Rational (fromInt)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces, eof)
 import Text.Parsing.StringParser.Combinators (choice, sepBy1, many1, (<?>))
+import Data.Euterpea.DSL.ParserExtensins (many1Nel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..)) as Eut
 import Data.Euterpea.Music1 as Eut1
 import Data.Euterpea.Notes as Eutn
@@ -30,14 +30,6 @@ polyphony =
 voices :: Parser Eut1.Music1
 voices =
   Eutt.line  <$> ((keyWord "Par") *> sepBy1 music separator)
-
-{-}
-control :: Parser (Eut1.Music1)
-control =
-  fix $
-    (keyWord "Control") *> (keyWord "Instrument") *> (many1 anyChar)
--}
-
 
 music :: Parser Eut1.Music1
 music =
@@ -53,16 +45,18 @@ lines :: Parser Eut1.Music1
 lines =
   Eutt.line <$> ((keyWord "Seq") *> sepBy1 line separator)
 
+
+
 line :: Parser Eut1.Music1
 line =
-  Eutt.line <$> ((keyWord "Line") *> sepBy1 chordOrPrim separator)
+  Eutt.line1 <$> ((keyWord "Line") *> sepBy1Nel chordOrPrim separator)
 
 chordOrPrim :: Parser (Eut1.Music1)
 chordOrPrim = chord <|> prim
 
 chord :: Parser (Eut1.Music1)
 chord =
-  Eutt.chord <$> ((keyWord "Chord") *> sepBy1 primNote1 separator)
+  Eutt.chord1 <$> ((keyWord "Chord") *> sepBy1Nel primNote1 separator)
 
 prim :: Parser (Eut1.Music1)
 prim =  Eut.Prim <$> (note1 <|> rest)
@@ -203,7 +197,6 @@ buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
 buildNote1 _ dur p vol =
   Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume vol)
 
-
 -- | a parse error and its accompanying position in the text
 newtype PositionedParseError = PositionedParseError
   { pos :: Int
@@ -212,7 +205,6 @@ newtype PositionedParseError = PositionedParseError
 
 instance showKeyPositionedParseError :: Show PositionedParseError where
   show (PositionedParseError e) = e.error <> " at position " <> show e.pos
-
 
 -- | Run a parser for an input string, returning either a positioned error or a result.
 runParser1 :: forall a. Parser a -> String -> Either PositionedParseError a

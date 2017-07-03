@@ -54,7 +54,7 @@ eol :: Music1
 eol = Prim (Rest (0 % 1))
 
 line :: Music1
-line = Seq cq (Seq dq (Seq rq eol))
+line = Seq cq (Seq dq rq)
 
 chord :: Music1
-chord = Par cq (Par dq eol)
+chord = Par cq dq
