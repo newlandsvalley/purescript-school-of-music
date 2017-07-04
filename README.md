@@ -41,7 +41,7 @@ How should we input HSoM melodies to the browser?  It seems to me the best way w
 
     octave = int
 
-    control = 'Control' 'Instrument' String
+    control = Instrument' instrumentName
 ```
 
 See the DSL tests for example usage.

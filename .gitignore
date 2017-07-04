@@ -4,6 +4,7 @@
 /output/
 /generated-docs/
 /deprecated/
+/player/
 /.psc*
 /.purs*
 /.psa*
