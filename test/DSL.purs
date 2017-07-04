@@ -7,7 +7,7 @@ import Data.Either (Either(..))
 import Data.Euterpea.DSL.Parser (parse)
 
 import Data.Euterpea.Music
-import Data.Euterpea.Music1
+import Data.Euterpea.Music1 (Music1, Note1(..))
 import Data.Rational ((%))
 import Data.List (List(..), (:))
 
@@ -46,6 +46,8 @@ noteSuite =
       assertMusic "Par Line Note qn C 1 100, Note qn D 1 100, Rest qn Line Note qn C 1 100, Note qn D 1 100, Rest qn" simpleVoices
     test "complex voices" do
       assertMusic complexVoicesSource complexVoices
+    test "instruments" do
+      assertMusic instrumentsSource instruments
 
 complexVoicesSource :: String
 complexVoicesSource =
@@ -57,6 +59,13 @@ complexVoicesSource =
        "Line Note qn C 1 100, Note qn D 1 100, Rest qn" <>
        "Line Note qn C 1 100, Note qn D 1 100, Chord [ Note qn C 1 100, Note qn D 1 100 ], Rest qn"
 
+instrumentsSource :: String
+instrumentsSource =
+   "Par " <>
+     "Instrument violin " <>
+       "Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
+     "Instrument viola " <>
+       "Line Note qn C 1 100, Note qn D 1 100, Rest qn"
 
 cq :: Music1
 cq = Prim (Note (1 % 4) (Note1 (Pitch C 1) ((Volume 100) : Nil)))
@@ -66,9 +75,6 @@ dq = Prim (Note (1 % 4) (Note1 (Pitch D 1) ((Volume 100) : Nil)))
 
 rq :: Music1
 rq = Prim (Rest (1 % 4))
-
-eol :: Music1
-eol = Prim (Rest (0 % 1))
 
 line :: Music1
 line = Seq cq (Seq dq rq)
@@ -83,8 +89,17 @@ lines =
 chord :: Music1
 chord = Par cq dq
 
+violin :: Music1 -> Music1
+violin mus = Modify (Instrument Violin) mus
+
+viola :: Music1 -> Music1
+viola mus = Modify (Instrument Viola) mus
+
 simpleVoices :: Music1
 simpleVoices = Par line line
 
 complexVoices :: Music1
 complexVoices = Par (Seq line line) (Seq line lineWithChord)
+
+instruments :: Music1
+instruments = Par (violin line) (viola line)

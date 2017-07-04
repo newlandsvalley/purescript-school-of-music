@@ -5,7 +5,7 @@ module Data.Euterpea.DSL.Parser
 
 import Prelude (class Show, show, ($), (<$>), (<$), (<*>), (<*), (*>), (<<<), (<>))
 import Control.Alt ((<|>))
--- import Control.Lazy (fix)
+import Control.Lazy (fix)
 import Data.String as S
 import Data.Maybe (fromMaybe)
 import Data.Bifunctor (bimap)
@@ -14,12 +14,12 @@ import Data.Either (Either(..))
 import Data.List (singleton)
 import Data.Array (fromFoldable)
 import Data.Foldable (class Foldable)
-import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try)
+import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces, eof)
 import Text.Parsing.StringParser.Combinators (choice, many1, (<?>))
-import Data.Euterpea.DSL.ParserExtensins (many1Nel, many1TillNel, sepBy1Nel)
-import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..)) as Eut
-import Data.Euterpea.Music1 as Eut1
+import Data.Euterpea.DSL.ParserExtensins (many1Nel, sepBy1Nel)
+import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..), Control(..), InstrumentName(..)) as Eut
+import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
 import Data.Euterpea.Notes as Eutn
 import Data.Euterpea.Transform as Eutt
 
@@ -33,14 +33,81 @@ voices =
 
 music :: Parser Eut1.Music1
 music =
-  choice
+  fix \unit ->
+    (choice
+      [
+        prim
+      , lines
+      , line
+      , chord
+      , control
+      ]
+    ) <?> "music"
+
+-- | for the initial version of the DSL parser, we'll restrict control to just
+-- | setting the instrument name.
+-- | we can then extend control once we have basic polyphony working
+control :: Parser (Eut1.Music1)
+control =
+  fix \unit -> instrumentName
+
+instrumentName :: Parser (Eut1.Music1)
+instrumentName =
+  fix \unit -> buildInstrument <$> keyWord "Instrument" <*> instrument <*> music
+
+-- | for the time being we'll restrict ourselves to the common MIDI instruments (plus cello and violin)
+-- | that are defined as defaults here: https://github.com/Euterpea/Euterpea2/blob/master/Euterpea/IO/MIDI/ToMidi.lhs
+instrument :: Parser Eut.InstrumentName
+instrument =
+  (choice
     [
-      prim
-    , lines
-    , line
-    , chord
-    -- , control music
+      piano
+    , marimba
+    , vibraphone
+    , bass
+    , flute
+    , tenorSax
+    , steelGuitar
+    , violin
+    , viola
+    , cello
+    , stringEnsemble
     ]
+  ) <* skipSpaces
+    <?> "instrument"
+
+piano :: Parser Eut.InstrumentName
+piano = Eut.AcousticGrandPiano <$ keyWord "piano"
+
+marimba :: Parser Eut.InstrumentName
+marimba = Eut.Marimba <$ keyWord "marimba"
+
+vibraphone :: Parser Eut.InstrumentName
+vibraphone = Eut.Vibraphone <$ keyWord "vibraphone"
+
+bass :: Parser Eut.InstrumentName
+bass = Eut.AcousticBass <$ keyWord "bass"
+
+flute :: Parser Eut.InstrumentName
+flute = Eut.Flute <$ keyWord "flute"
+
+tenorSax :: Parser Eut.InstrumentName
+tenorSax = Eut.TenorSax <$ keyWord "tenor sax"
+
+steelGuitar :: Parser Eut.InstrumentName
+steelGuitar = Eut.AcousticGuitarSteel <$ keyWord "steel guitar"
+
+violin :: Parser Eut.InstrumentName
+violin = Eut.Violin <$ keyWord "violin"
+
+viola :: Parser Eut.InstrumentName
+viola = Eut.Viola <$ keyWord "viola"
+
+cello :: Parser Eut.InstrumentName
+cello = Eut.Cello <$ keyWord "cello"
+
+stringEnsemble :: Parser Eut.InstrumentName
+stringEnsemble = Eut.StringEnsemble1 <$ keyWord "string ensemble"
 
 lines :: Parser Eut1.Music1
 lines =
@@ -271,12 +338,6 @@ separator :: Parser Char
 separator =
   (char ',') <* skipSpaces
 
--- | not sure if this is the best way to end a sequence, but I am concerned at the moment
--- | about avoiding ambiguity
-endSeq :: Parser Char
-endSeq =
-  (char ';') <* skipSpaces
-
 -- | Parse a positive integer (with no sign).
 int :: Parser Int
 int =
@@ -307,6 +368,10 @@ buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
 buildNote1 _ dur p vol =
   Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume vol)
 
+buildInstrument :: String -> Eut.InstrumentName -> Eut1.Music1 -> Eut1.Music1
+buildInstrument _ inst mus =
+  Eut.Modify (Eut.Instrument inst) mus
+
 -- | a parse error and its accompanying position in the text
 newtype PositionedParseError = PositionedParseError
   { pos :: Int
@@ -314,24 +379,24 @@ newtype PositionedParseError = PositionedParseError
   }
 
 instance showKeyPositionedParseError :: Show PositionedParseError where
-  show (PositionedParseError e) = e.error <> " at position " <> show e.pos
+  show (PositionedParseError err) = err.error <> " at position " <> show err.pos
 
 -- | Run a parser for an input string, returning either a positioned error or a result.
 runParser1 :: forall a. Parser a -> String -> Either PositionedParseError a
 runParser1 (Parser p) s =
   let
     formatErr :: { pos :: Pos, error :: ParseError } -> PositionedParseError
-    formatErr { pos : pos, error : ParseError e } =
-      PositionedParseError { pos : pos, error : e}
+    formatErr { pos : pos, error : ParseError err } =
+      PositionedParseError { pos : pos, error : err}
   in
     bimap formatErr _.result (p { str: s, pos: 0 })
 
--- | Entry point - Parse an ABC tune image.
+-- | Entry point - Parse a Euterpea DSL score.
 parse :: String -> Either PositionedParseError Eut1.Music1
 parse s =
   case runParser1 polyphony s of
     Right n ->
       Right n
 
-    Left e ->
-      Left e
+    Left err ->
+      Left err
