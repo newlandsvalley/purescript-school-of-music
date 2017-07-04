@@ -52,3 +52,8 @@ Back End
 --------
 
 HSoM melodies will be converted (via HSoM's __MEvent__) into [Midi](https://github.com/newlandsvalley/purescript-midi). This supports up to 10 channels, each of which can be dedicated to a MIDI instrument.  It should then be possible to play the midi using [purescript-soundfonts](https://github.com/newlandsvalley/purescript-soundfonts) although this will need to be extended (together with the MIDI processing capabilities) in order to cater for more than one instrument.
+
+Editor
+------
+
+The __editor__ sub-project is an editor for music written with the Euterpea DSL.  At the moment, this parses any DSL text and either displays an error or else the results of converting it to an HSoM Performance.  Gradually I intend to improve this so that eventually it will include a player for polyphonic performances.
