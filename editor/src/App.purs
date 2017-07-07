@@ -2,6 +2,7 @@ module App where
 
 
 import Audio.SoundFont (AUDIO)
+import Data.Midi.Player as MidiPlayer
 import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
@@ -26,6 +27,8 @@ import Data.Euterpea.Music1 (Music1, Note1(..))
 import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, MEvent(..), perform1)
 
+import Temp (perf2melody)
+
 
 -- import Debug.Trace (trace, traceShow, traceShowM)
 
@@ -35,7 +38,8 @@ data Event
     -- | RequestFileUpload
     -- | RequestFileDownload
     -- | FileLoaded Filespec
-    -- | PlayerEvent MidiPlayer.Event
+    | PlayerEvent MidiPlayer.Event
+    | Example1
     | Clear
 
 type State = {
@@ -43,7 +47,7 @@ type State = {
   -- , fileName :: Maybe String
   , tuneResult :: Either PositionedParseError Music1
   , performance :: Performance
-  -- , playerState :: Maybe MidiPlayer.State
+  , playerState :: Maybe MidiPlayer.State
 }
 
 
@@ -58,13 +62,14 @@ initialState = {
   -- , fileName : Nothing
   , tuneResult : nullTune
   , performance : List.Nil
-  -- , playerState : Nothing
+  , playerState : Nothing
   }
 
 
 foldp :: Event -> State -> EffModel State Event (fileio :: FILEIO, au :: AUDIO)
 foldp NoOp state =  noEffects $ state
 foldp (Euterpea s) state =  onChangedEuterpea s state
+foldp (Example1) state =  onChangedEuterpea example1 state
 {-}
 foldp RequestFileUpload state =
  { state: state
@@ -96,7 +101,6 @@ foldp Clear state =
                     , performance = List.Nil
                     -- , playerState = Nothing
                     }
-{-}
 foldp (PlayerEvent e) state =
   case state.playerState of
     Just pstate ->
@@ -105,7 +109,7 @@ foldp (PlayerEvent e) state =
         # mapState \pst -> state { playerState = Just pst }
     _ ->
       noEffects state
--}
+
 
 -- | make sure everything is notified if the Euterpea Music changes for any reason
 -- | we'll eventually have to add effects
@@ -124,16 +128,16 @@ onChangedEuterpea polyphony state =
   in
     case tuneResult of
       Right tune ->
-        noEffects newState
-        {-}
-         state
-          , effects:
-            [
-              do
-                pure $ Just (PlayerEvent (MidiPlayer.SetAbc tune))
-            ]
-
-        -}
+        let
+           melody = perf2melody performance
+        in
+          { state: newState { playerState = Just MidiPlayer.initialState}
+             , effects:
+               [
+                do
+                  pure $ Just (PlayerEvent (MidiPlayer.SetMelody melody))
+              ]
+          }
       Left err ->
         noEffects newState
 
@@ -222,8 +226,7 @@ viewPerformance state =
   do
     text $ show state.performance
 
--- | only display the player if we have a MIDI recording
-{-}
+-- | only display the player if we have a Melody
 viewPlayer :: State -> HTML Event
 viewPlayer state =
   case state.playerState of
@@ -231,16 +234,15 @@ viewPlayer state =
       child PlayerEvent MidiPlayer.view $ pstate
     _ ->
       mempty
--}
+
 
 -- | is the player playing ?
-{-}
 isPlaying :: State -> Boolean
 isPlaying state =
   case state.playerState of
     Just ps -> ps.playing
     _ -> false
--}
+
 
 view :: State -> HTML Event
 view state =
@@ -269,10 +271,13 @@ view state =
             text  "clear Euterpea:"
           -- button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const RequestFileDownload) $ text "save"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const Clear) $ text "clear"
-        {-}
+          label ! labelAlignmentStyle $ do
+              text  "examples:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const Example1) $ text "example 1"
+
         div ! leftPanelComponentStyle $ do
           viewPlayer state
-        -}
+
 
       -- the editable text on the right
       div ! rightPaneStyle $ do
@@ -284,3 +289,8 @@ view state =
 
       div! rightPaneStyle $ do
         viewPerformance state
+
+
+-- | some examples
+example1 :: String
+example1 = "Line Note qn C 3 100, Note qn D 3 100, Note hn E 3 100, Note hn F 3 100"

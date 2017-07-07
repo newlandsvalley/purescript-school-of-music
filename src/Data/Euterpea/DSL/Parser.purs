@@ -249,6 +249,16 @@ pitchClass =
     , g
     , gf
     , gff
+    , ass
+    , as
+    , a
+    , af
+    , aff
+    , bss
+    , bs
+    , b
+    , bf
+    , bff
     ]
    ) <* skipSpaces
      <?> "pitch class"
@@ -330,6 +340,37 @@ gf = Eut.Gf <$ string "Gf"
 
 gff :: Parser Eut.PitchClass
 gff = Eut.Gff <$ string "Gff"
+
+ass :: Parser Eut.PitchClass
+ass = Eut.Ass <$ string "Ass"
+
+as :: Parser Eut.PitchClass
+as = Eut.As <$ string "As"
+
+a :: Parser Eut.PitchClass
+a = Eut.A <$ string "A"
+
+af :: Parser Eut.PitchClass
+af = Eut.Af <$ string "Af"
+
+aff :: Parser Eut.PitchClass
+aff = Eut.Aff <$ string "Aff"
+
+bss :: Parser Eut.PitchClass
+bss = Eut.Bss <$ string "Bss"
+
+bs :: Parser Eut.PitchClass
+bs = Eut.Bs <$ string "Bs"
+
+b :: Parser Eut.PitchClass
+b = Eut.B <$ string "B"
+
+bf :: Parser Eut.PitchClass
+bf = Eut.Bf <$ string "Bf"
+
+bff :: Parser Eut.PitchClass
+bff = Eut.Bff <$ string "Bff"
+
 
 
 octave :: Parser Eut.Octave

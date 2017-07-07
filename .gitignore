@@ -4,6 +4,7 @@
 /output/
 /generated-docs/
 /deprecated/
+/editor/examples/
 /.psc*
 /.purs*
 /.psa*
