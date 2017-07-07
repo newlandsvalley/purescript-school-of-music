@@ -226,39 +226,39 @@ pitchClass =
     [
       css
     , cs
-    , c
-    , cf
     , cff
+    , cf
+    , c
     , dss
     , ds
-    , d
+    , dff
     , df
-    , dff  --
+    , d
     , ess
     , es
-    , e
-    , ef
     , eff
+    , ef
+    , e
     , fss
     , fs
-    , f
-    , ff
     , fff
+    , ff
+    , f
     , gss
     , gs
-    , g
-    , gf
     , gff
+    , gf
+    , g
     , ass
     , as
-    , a
-    , af
     , aff
+    , af
+    , a
     , bss
     , bs
-    , b
-    , bf
     , bff
+    , bf
+    , b
     ]
    ) <* skipSpaces
      <?> "pitch class"
