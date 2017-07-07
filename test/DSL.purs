@@ -48,6 +48,8 @@ noteSuite =
       assertMusic complexVoicesSource complexVoices
     test "instruments" do
       assertMusic instrumentsSource instruments
+    test "repeats" do
+      assertMusic repeatsSource lines
 
 complexVoicesSource :: String
 complexVoicesSource =
@@ -66,6 +68,13 @@ instrumentsSource =
        "Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
      "Instrument viola " <>
        "Line Note qn C 1 100, Note qn D 1 100, Rest qn"
+
+repeatsSource :: String
+repeatsSource =
+  "Repeat ( " <>
+    "Seq " <>
+      "Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
+  " )"
 
 cq :: Music1
 cq = Prim (Note (1 % 4) (Note1 (Pitch C 1) ((Volume 100) : Nil)))
@@ -90,10 +99,10 @@ chord :: Music1
 chord = Par cq dq
 
 violin :: Music1 -> Music1
-violin mus = Modify (Instrument Violin) mus
+violin = Modify (Instrument Violin)
 
 viola :: Music1 -> Music1
-viola mus = Modify (Instrument Viola) mus
+viola = Modify (Instrument Viola)
 
 simpleVoices :: Music1
 simpleVoices = Par line line

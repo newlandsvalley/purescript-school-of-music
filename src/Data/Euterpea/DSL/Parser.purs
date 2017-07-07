@@ -39,6 +39,7 @@ music =
         prim
       , lines
       , line
+      , repeat
       , chord
       , control
       ]
@@ -108,6 +109,10 @@ cello = Eut.Cello <$ keyWord "cello"
 
 stringEnsemble :: Parser Eut.InstrumentName
 stringEnsemble = Eut.StringEnsemble1 <$ keyWord "string ensemble"
+
+repeat :: Parser Eut1.Music1
+repeat =
+  buildRepeat <$> ((keyWord "Repeat") *> (keyWord "(") *>  lines  <* (keyWord ")"))
 
 lines :: Parser Eut1.Music1
 lines =
@@ -363,6 +368,10 @@ digit = (fromMaybe 0 <<< fromString <<< S.singleton) <$> anyDigit
 
 ten :: Parser Int
 ten = 10 <$ string "10"
+
+buildRepeat :: Eut1.Music1 -> Eut1.Music1
+buildRepeat l =
+  Eut.Seq l l
 
 buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
 buildNote1 _ dur p vol =
