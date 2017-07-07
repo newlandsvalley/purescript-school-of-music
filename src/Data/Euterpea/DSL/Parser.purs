@@ -306,10 +306,10 @@ e :: Parser Eut.PitchClass
 e = Eut.E <$ string "E"
 
 ef :: Parser Eut.PitchClass
-ef = Eut.Ef <$ string "Cf"
+ef = Eut.Ef <$ string "Ef"
 
 eff :: Parser Eut.PitchClass
-eff = Eut.Eff <$ string "Fff"
+eff = Eut.Eff <$ string "Eff"
 
 fss :: Parser Eut.PitchClass
 fss = Eut.Fss <$ string "Fss"
