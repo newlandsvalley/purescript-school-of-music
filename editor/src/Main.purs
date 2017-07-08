@@ -13,7 +13,7 @@ import Pux.Renderer.React (renderToDOM)
 initialiseApp :: forall e. Eff (exception :: EXCEPTION | e) (Canceler e)
 initialiseApp = do
   -- launchAff (loadRemoteSoundFonts [ "violin", "viola" ])
-  launchAff (loadRemoteSoundFont "violin")
+  launchAff (loadRemoteSoundFont "harpsichord")
 
 -- | Start and render the app
 -- main :: ∀ fx. Eff (CoreEffects (fileio :: FILEIO, au :: AUDIO, vt :: VexScore.VEXTAB| fx)) Unit

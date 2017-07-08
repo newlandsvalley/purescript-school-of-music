@@ -16154,12 +16154,14 @@ var PS = {};
       };
       return PlayerEvent;
   })();
-  var Example1 = (function () {
-      function Example1() {
-
+  var Example = (function () {
+      function Example(value0) {
+          this.value0 = value0;
       };
-      Example1.value = new Example1();
-      return Example1;
+      Example.create = function (value0) {
+          return new Example(value0);
+      };
+      return Example;
   })();
   var Clear = (function () {
       function Clear() {
@@ -16195,28 +16197,6 @@ var PS = {};
           }));
       };
       return Data_Monoid.mempty(Text_Smolder_Markup.monoidMarkup);
-  };
-  var view = function (state) {
-      var isEnabled = Data_Either.isRight(state.tuneResult);
-      return Text_Smolder_HTML.div(Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.h1)(View_CSS.centreStyle)(Text_Smolder_Markup.text("Euterpea DSL Editor")))(function () {
-          return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.div)(View_CSS.leftPaneStyle)(Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.div)(View_CSS.leftPanelComponentStyle)(Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.label)(View_CSS.labelAlignmentStyle)(Text_Smolder_Markup.text("clear Euterpea:")))(function () {
-              return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.button)(View_CSS.buttonStyle(true)))(Text_Smolder_HTML_Attributes.className("hoverable")))(Pux_DOM_Events.onClick(Data_Function["const"](Clear.value)))(Text_Smolder_Markup.text("clear")))(function () {
-                  return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.label)(View_CSS.labelAlignmentStyle)(Text_Smolder_Markup.text("examples:")))(function () {
-                      return Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.button)(View_CSS.buttonStyle(true)))(Text_Smolder_HTML_Attributes.className("hoverable")))(Pux_DOM_Events.onClick(Data_Function["const"](Example1.value)))(Text_Smolder_Markup.text("example 1"));
-                  });
-              });
-          })))(function () {
-              return Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.div)(View_CSS.leftPanelComponentStyle)(viewPlayer(state));
-          })))(function () {
-              return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.div)(View_CSS.rightPaneStyle)(Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.textarea)(View_CSS.taStyle))(Text_Smolder_HTML_Attributes.cols("70")))(Text_Smolder_HTML_Attributes.rows("15")))(Text_Smolder_HTML_Attributes.value(state.polyphony)))(Text_Smolder_HTML_Attributes.spellcheck("false")))(Text_Smolder_HTML_Attributes.autocomplete("false")))(Text_Smolder_HTML_Attributes.autofocus("true")))(Pux_DOM_Events.onInput(function (e) {
-                  return new Euterpea(Pux_DOM_Events.targetValue(e));
-              }))(Data_Monoid.mempty(Text_Smolder_Markup.monoidMarkup)))(function () {
-                  return viewParseError(state);
-              })))(function () {
-                  return Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.div)(View_CSS.rightPaneStyle)(viewPerformance(state));
-              });
-          });
-      }));
   };
   var onChangedEuterpea = function (polyphony) {
       return function (state) {
@@ -16271,7 +16251,6 @@ var PS = {};
       performance: Data_List_Types.Nil.value, 
       playerState: Data_Maybe.Nothing.value
   };
-  var example1 = "Line Note qn C 3 100, Note qn D 3 100, Note hn E 3 100, Note hn F 3 100";
   var foldp = function (v) {
       return function (state) {
           if (v instanceof NoOp) {
@@ -16280,34 +16259,34 @@ var PS = {};
           if (v instanceof Euterpea) {
               return onChangedEuterpea(v.value0)(state);
           };
-          if (v instanceof Example1) {
-              return onChangedEuterpea(example1)(state);
+          if (v instanceof Example) {
+              return onChangedEuterpea(v.value0)(state);
           };
           if (v instanceof Clear) {
               return Pux.noEffects((function () {
-                  var $25 = {};
-                  for (var $26 in state) {
-                      if ({}.hasOwnProperty.call(state, $26)) {
-                          $25[$26] = state[$26];
+                  var $26 = {};
+                  for (var $27 in state) {
+                      if ({}.hasOwnProperty.call(state, $27)) {
+                          $26[$27] = state[$27];
                       };
                   };
-                  $25.polyphony = "";
-                  $25.tuneResult = nullTune;
-                  $25.performance = Data_List_Types.Nil.value;
-                  return $25;
+                  $26.polyphony = "";
+                  $26.tuneResult = nullTune;
+                  $26.performance = Data_List_Types.Nil.value;
+                  return $26;
               })());
           };
           if (v instanceof PlayerEvent) {
               if (state.playerState instanceof Data_Maybe.Just) {
                   return Pux.mapState(function (pst) {
-                      var $29 = {};
-                      for (var $30 in state) {
-                          if ({}.hasOwnProperty.call(state, $30)) {
-                              $29[$30] = state[$30];
+                      var $30 = {};
+                      for (var $31 in state) {
+                          if ({}.hasOwnProperty.call(state, $31)) {
+                              $30[$31] = state[$31];
                           };
                       };
-                      $29.playerState = new Data_Maybe.Just(pst);
-                      return $29;
+                      $30.playerState = new Data_Maybe.Just(pst);
+                      return $30;
                   })(Pux.mapEffects(PlayerEvent.create)(Data_Midi_Player.foldp(v.value0)(state.playerState.value0)));
               };
               return Pux.noEffects(state);
@@ -16315,12 +16294,59 @@ var PS = {};
           throw new Error("Failed pattern match at App line 70, column 1 - line 70, column 38: " + [ v.constructor.name, state.constructor.name ]);
       };
   };
+  var example4 = "Repeat ( \x0d\x0a" + (" Seq \x0d\x0a" + ("  Line Note en G 4 100, Note qn G 5 100, Note qn Fs 5 100, Note qn D 5 100, \x0d\x0a" + ("     Note en A 4 100, Note en D 5 100, Note en Fs 5 100, \x0d\x0a" + ("     Note sn Fs 5 100, Note sn A 5 100, Note en G 5 100, Note en Fs 5 100, \x0d\x0a" + ("     Note en D 5 100, Note sn C 6 100, Note sn Bf 5 100, Note en A 5 100, Note en G 5 100, \x0d\x0a" + ("     Note en Fs 5 100, Note en D 5 100, \x0d\x0a" + ("     Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn D 5 100, Note en D 5 100, \x0d\x0a" + ("     Note en Fs 5 100, Note en D 5 100 \x0d\x0a" + " ) \x0d\x0a"))))))));
+  var example3 = "Repeat ( \x0d\x0a" + (" Seq \x0d\x0a" + ("   Line Note en G 4 100, Note qn Bf 5 100, Note qn A 5 100, Note qn G 5 100, \x0d\x0a" + ("     Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn G 5 100, Note en A 5 100, \x0d\x0a" + ("     Note sn A 5 100, Note sn C 6 100, Note en Bf 5 100, Note en A 5 100, \x0d\x0a" + ("     Note en G 5 100, Note sn Ef 6 100, Note sn D 6 100, Note en C 6 100, Note en Bf 5 100, \x0d\x0a" + ("     Note en A 5   100, Note en G 5 100, \x0d\x0a" + ("     Note sn Fs 5 100, Note sn G 5 100, Note sn A 5 100, Note sn G 5 100, Note en Fs 5 100, \x0d\x0a" + ("     Note en A 5 100, Note en G 5 100 \x0d\x0a" + " ) \x0d\x0a"))))))));
+  var example5 = "Par \x0d\x0a" + (example3 + example4);
+  var example2 = "Line Chord [ Note dhn A 4 100, Note dhn C 4 100, Note dhn E 3 100 ], Note qn B 4 100, Note hn A 4 100,\x0d\x0a" + "    Note hn G 4 100, Chord [ Note wn E 5 100, Note wn B 4 100, Note wn G 4 100, Note wn E 4 100 ]\x0d\x0a";
+  var example1 = "Line Note qn C 3 100, Note qn D 3 100, Note hn E 3 100, Note hn F 3 100";
+  var view = function (state) {
+      var isEnabled = Data_Either.isRight(state.tuneResult);
+      return Text_Smolder_HTML.div(Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.h1)(View_CSS.centreStyle)(Text_Smolder_Markup.text("Euterpea DSL Editor")))(function () {
+          return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.div)(View_CSS.leftPaneStyle)(Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.div)(View_CSS.leftPanelComponentStyle)(Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.label)(View_CSS.labelAlignmentStyle)(Text_Smolder_Markup.text("clear Euterpea:")))(function () {
+              return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.button)(View_CSS.buttonStyle(true)))(Text_Smolder_HTML_Attributes.className("hoverable")))(Pux_DOM_Events.onClick(Data_Function["const"](Clear.value)))(Text_Smolder_Markup.text("clear")))(function () {
+                  return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.label)(View_CSS.labelAlignmentStyle)(Text_Smolder_Markup.text("simple line:")))(function () {
+                      return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.button)(View_CSS.buttonStyle(true)))(Text_Smolder_HTML_Attributes.className("hoverable")))(Pux_DOM_Events.onClick(Data_Function["const"](new Example(example1))))(Text_Smolder_Markup.text("example 1")))(function () {
+                          return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.label)(View_CSS.labelAlignmentStyle)(Text_Smolder_Markup.text("simple chords:")))(function () {
+                              return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.button)(View_CSS.buttonStyle(true)))(Text_Smolder_HTML_Attributes.className("hoverable")))(Pux_DOM_Events.onClick(Data_Function["const"](new Example(example2))))(Text_Smolder_Markup.text("example 2")))(function () {
+                                  return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.label)(View_CSS.labelAlignmentStyle)(Text_Smolder_Markup.text("polska voice 1:")))(function () {
+                                      return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.button)(View_CSS.buttonStyle(true)))(Text_Smolder_HTML_Attributes.className("hoverable")))(Pux_DOM_Events.onClick(Data_Function["const"](new Example(example3))))(Text_Smolder_Markup.text("example 3")))(function () {
+                                          return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.label)(View_CSS.labelAlignmentStyle)(Text_Smolder_Markup.text("polska voice 2:")))(function () {
+                                              return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.button)(View_CSS.buttonStyle(true)))(Text_Smolder_HTML_Attributes.className("hoverable")))(Pux_DOM_Events.onClick(Data_Function["const"](new Example(example4))))(Text_Smolder_Markup.text("example 4")))(function () {
+                                                  return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.label)(View_CSS.labelAlignmentStyle)(Text_Smolder_Markup.text("polska polyphony:")))(function () {
+                                                      return Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.button)(View_CSS.buttonStyle(true)))(Text_Smolder_HTML_Attributes.className("hoverable")))(Pux_DOM_Events.onClick(Data_Function["const"](new Example(example5))))(Text_Smolder_Markup.text("example 5"));
+                                                  });
+                                              });
+                                          });
+                                      });
+                                  });
+                              });
+                          });
+                      });
+                  });
+              });
+          })))(function () {
+              return Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.div)(View_CSS.leftPanelComponentStyle)(viewPlayer(state));
+          })))(function () {
+              return Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.div)(View_CSS.rightPaneStyle)(Control_Bind.discard(Control_Bind.discardUnit)(Text_Smolder_Markup.bindMarkupM)(Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.textarea)(View_CSS.taStyle))(Text_Smolder_HTML_Attributes.cols("70")))(Text_Smolder_HTML_Attributes.rows("15")))(Text_Smolder_HTML_Attributes.value(state.polyphony)))(Text_Smolder_HTML_Attributes.spellcheck("false")))(Text_Smolder_HTML_Attributes.autocomplete("false")))(Text_Smolder_HTML_Attributes.autofocus("true")))(Pux_DOM_Events.onInput(function (e) {
+                  return new Euterpea(Pux_DOM_Events.targetValue(e));
+              }))(Data_Monoid.mempty(Text_Smolder_Markup.monoidMarkup)))(function () {
+                  return viewParseError(state);
+              })))(function () {
+                  return Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupMF)(Text_Smolder_HTML.div)(View_CSS.rightPaneStyle)(viewPerformance(state));
+              });
+          });
+      }));
+  };
   exports["NoOp"] = NoOp;
   exports["Euterpea"] = Euterpea;
   exports["PlayerEvent"] = PlayerEvent;
-  exports["Example1"] = Example1;
+  exports["Example"] = Example;
   exports["Clear"] = Clear;
   exports["example1"] = example1;
+  exports["example2"] = example2;
+  exports["example3"] = example3;
+  exports["example4"] = example4;
+  exports["example5"] = example5;
   exports["foldp"] = foldp;
   exports["initialState"] = initialState;
   exports["nullTune"] = nullTune;
@@ -16762,7 +16788,7 @@ var PS = {};
   var Prelude = PS["Prelude"];
   var Pux = PS["Pux"];
   var Pux_Renderer_React = PS["Pux.Renderer.React"];        
-  var initialiseApp = Control_Monad_Aff.launchAff(Audio_SoundFont.loadRemoteSoundFont("violin"));
+  var initialiseApp = Control_Monad_Aff.launchAff(Audio_SoundFont.loadRemoteSoundFont("harpsichord"));
   var main = function __do() {
       var v = initialiseApp();
       var v1 = Pux.start({

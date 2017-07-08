@@ -39,7 +39,7 @@ data Event
     -- | RequestFileDownload
     -- | FileLoaded Filespec
     | PlayerEvent MidiPlayer.Event
-    | Example1
+    | Example String
     | Clear
 
 type State = {
@@ -69,7 +69,7 @@ initialState = {
 foldp :: Event -> State -> EffModel State Event (fileio :: FILEIO, au :: AUDIO)
 foldp NoOp state =  noEffects $ state
 foldp (Euterpea s) state =  onChangedEuterpea s state
-foldp (Example1) state =  onChangedEuterpea example1 state
+foldp (Example example) state =  onChangedEuterpea example state
 {-}
 foldp RequestFileUpload state =
  { state: state
@@ -272,8 +272,20 @@ view state =
           -- button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const RequestFileDownload) $ text "save"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const Clear) $ text "clear"
           label ! labelAlignmentStyle $ do
-              text  "examples:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const Example1) $ text "example 1"
+              text  "simple line:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example1) $ text "example 1"
+          label ! labelAlignmentStyle $ do
+              text  "simple chords:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example2) $ text "example 2"
+          label ! labelAlignmentStyle $ do
+              text  "polska voice 1:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example3) $ text "example 3"
+          label ! labelAlignmentStyle $ do
+              text  "polska voice 2:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example4) $ text "example 4"
+          label ! labelAlignmentStyle $ do
+              text  "polska polyphony:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example5) $ text "example 5"
 
         div ! leftPanelComponentStyle $ do
           viewPlayer state
@@ -294,3 +306,39 @@ view state =
 -- | some examples
 example1 :: String
 example1 = "Line Note qn C 3 100, Note qn D 3 100, Note hn E 3 100, Note hn F 3 100"
+
+example2 :: String
+example2 = "Line Chord [ Note dhn A 4 100, Note dhn C 4 100, Note dhn E 3 100 ], Note qn B 4 100, Note hn A 4 100,\r\n" <>
+           "    Note hn G 4 100, Chord [ Note wn E 5 100, Note wn B 4 100, Note wn G 4 100, Note wn E 4 100 ]\r\n"
+
+example3 :: String
+example3 =
+  "Repeat ( \r\n" <>
+  " Seq \r\n" <>
+  "   Line Note en G 4 100, Note qn Bf 5 100, Note qn A 5 100, Note qn G 5 100, \r\n" <>
+  "     Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn G 5 100, Note en A 5 100, \r\n" <>
+  "     Note sn A 5 100, Note sn C 6 100, Note en Bf 5 100, Note en A 5 100, \r\n" <>
+  "     Note en G 5 100, Note sn Ef 6 100, Note sn D 6 100, Note en C 6 100, Note en Bf 5 100, \r\n" <>
+  "     Note en A 5   100, Note en G 5 100, \r\n" <>
+  "     Note sn Fs 5 100, Note sn G 5 100, Note sn A 5 100, Note sn G 5 100, Note en Fs 5 100, \r\n" <>
+  "     Note en A 5 100, Note en G 5 100 \r\n" <>
+  " ) \r\n"
+
+example4 :: String
+example4 =
+  "Repeat ( \r\n" <>
+  " Seq \r\n" <>
+  "  Line Note en G 4 100, Note qn G 5 100, Note qn Fs 5 100, Note qn D 5 100, \r\n" <>
+  "     Note en A 4 100, Note en D 5 100, Note en Fs 5 100, \r\n" <>
+  "     Note sn Fs 5 100, Note sn A 5 100, Note en G 5 100, Note en Fs 5 100, \r\n" <>
+  "     Note en D 5 100, Note sn C 6 100, Note sn Bf 5 100, Note en A 5 100, Note en G 5 100, \r\n" <>
+  "     Note en Fs 5 100, Note en D 5 100, \r\n" <>
+  "     Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn D 5 100, Note en D 5 100, \r\n" <>
+  "     Note en Fs 5 100, Note en D 5 100 \r\n" <>
+  " ) \r\n"
+
+example5 :: String
+example5 =
+  "Par \r\n" <>
+    example3 <>
+    example4

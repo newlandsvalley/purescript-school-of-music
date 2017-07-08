@@ -36,10 +36,10 @@ music =
   fix \unit ->
     (choice
       [
-        prim
+        repeat
+      , prim
       , lines
       , line
-      , repeat
       , chord
       , control
       ]
@@ -116,7 +116,6 @@ repeat =
 
 lines :: Parser Eut1.Music1
 lines =
-  -- Eutt.line1 <$> ((keyWord "Seq") *> many1TillNel line endSeq)
   Eutt.line1 <$> ((keyWord "Seq") *> many1Nel line)
 
 line :: Parser Eut1.Music1
