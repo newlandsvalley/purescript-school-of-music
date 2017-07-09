@@ -43,7 +43,7 @@ noteSuite =
     test "lines" do
       assertMusic  "Seq Line Note qn C 1 100, Note qn D 1 100, Rest qn Line Note qn C 1 100, Note qn D 1 100, Rest qn" lines
     test "simple voices" do
-      assertMusic "Par Line Note qn C 1 100, Note qn D 1 100, Rest qn Line Note qn C 1 100, Note qn D 1 100, Rest qn" simpleVoices
+      assertMusic "Par Seq Line Note qn C 1 100, Note qn D 1 100, Rest qn Seq Line Note qn C 1 100, Note qn D 1 100, Rest qn" simpleVoices
     test "complex voices" do
       assertMusic complexVoicesSource complexVoices
     test "instruments" do

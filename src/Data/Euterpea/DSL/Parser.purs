@@ -12,6 +12,7 @@ import Data.Bifunctor (bimap)
 import Data.Int (fromString)
 import Data.Either (Either(..))
 import Data.List (singleton)
+import Data.List.NonEmpty as Nel
 import Data.Array (fromFoldable)
 import Data.Foldable (class Foldable)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos)
@@ -23,14 +24,6 @@ import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
 import Data.Euterpea.Notes as Eutn
 import Data.Euterpea.Transform as Eutt
 
-polyphony :: Parser Eut1.Music1
-polyphony =
-  ( music <|> voices ) <* eof
-
-voices :: Parser Eut1.Music1
-voices =
-  Eutt.chord1  <$> ((keyWord "Par") *> many1Nel music)
-
 music :: Parser Eut1.Music1
 music =
   fix \unit ->
@@ -41,14 +34,22 @@ music =
       , lines
       , line
       , chord
+      , voices
       , control
       ]
     ) <?> "music"
 
+
+voices :: Parser Eut1.Music1
+voices =
+  fix \unit ->
+     buildVoices <$> (keyWord "Par") <*> many1Nel music
+
+
 -- | for the initial version of the DSL parser, we'll restrict control to just
 -- | setting the instrument name.
 -- | we can then extend control once we have basic polyphony working
-control :: Parser (Eut1.Music1)
+control :: Parser Eut1.Music1
 control =
   fix \unit -> instrumentName
 
@@ -413,6 +414,10 @@ buildRepeat :: Eut1.Music1 -> Eut1.Music1
 buildRepeat l =
   Eut.Seq l l
 
+buildVoices :: String -> Nel.NonEmptyList Eut1.Music1 -> Eut1.Music1
+buildVoices _ vs =
+  Eutt.chord1 vs
+
 buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
 buildNote1 _ dur p vol =
   Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume vol)
@@ -443,7 +448,7 @@ runParser1 (Parser p) s =
 -- | Entry point - Parse a Euterpea DSL score.
 parse :: String -> Either PositionedParseError Eut1.Music1
 parse s =
-  case runParser1 polyphony s of
+  case runParser1 music s of
     Right n ->
       Right n
 

@@ -16,12 +16,10 @@ Front End
 
 How should we input PSoM melodies to the browser?  It seems to me the best way would be to construct a DSL with syntax similar to the following:
 
-```
-    polyphony = music | voices
+```    
+    music = voices | lines | line | repeat | chord | prim | control music
 
     voices = 'Par' music, { music }
-
-    music = prim | line | lines | repeat | chord | control music
 
     lines = 'Seq' 'line, { line }
 
