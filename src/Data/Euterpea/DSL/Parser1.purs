@@ -1,4 +1,4 @@
-module Data.Euterpea.DSL.Parser
+module Data.Euterpea.DSL.Parser1
         ( PositionedParseError(..)
         , parse
         ) where

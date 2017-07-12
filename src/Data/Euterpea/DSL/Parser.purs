@@ -1,4 +1,4 @@
-module Data.Euterpea.DSL.Parser1
+module Data.Euterpea.DSL.Parser
         ( PositionedParseError(..)
         , Binding
         , BindingMap

@@ -314,7 +314,7 @@ example2 = "Line Chord [ Note dhn A 4 100, Note dhn C 4 100, Note dhn E 3 100 ],
 example3 :: String
 example3 =
   "Let \r\n" <>
-  " v1 = \r\n"
+  " v1 = \r\n" <>
   "   Line Note en G 4 100, Note qn Bf 5 100, Note qn A 5 100, Note qn G 5 100, \r\n" <>
   "     Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn G 5 100, Note en A 5 100, \r\n" <>
   "     Note sn A 5 100, Note sn C 6 100, Note en Bf 5 100, Note en A 5 100, \r\n" <>
