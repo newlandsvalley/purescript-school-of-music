@@ -11,8 +11,17 @@ import Data.Euterpea.Music1 (Music1, Note1(..))
 import Data.Rational ((%))
 import Data.List (List(..), (:))
 
-import Test.Unit (Test, TestF, suite, test, failure)
+import Test.Unit (Test, TestF, suite, test, failure, success)
 import Test.Unit.Assert as Assert
+
+assertParses :: forall e. String -> Test e
+assertParses s =
+  case parse s of
+    Right music ->
+      success
+
+    Left err ->
+      failure ("parse failed: " <> (show err))
 
 assertMusic :: forall e. String -> Music1 -> Test e
 assertMusic s target =
@@ -50,6 +59,8 @@ noteSuite =
       assertMusic instrumentsSource instruments
     test "repeats" do
       assertMusic repeatsSource lines
+    test "round" do
+      assertParses roundSource 
 
 complexVoicesSource :: String
 complexVoicesSource =
@@ -75,6 +86,17 @@ repeatsSource =
     "ln = Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
   "In " <>
     "Seq ln ln"
+
+roundSource :: String
+roundSource =
+  "Let " <>
+    "ln1 = Line Note hn G 3 100, Note hn A 3 100, Note hn B 3 100, Note hn G 3 100" <>
+    "ln2 = Line Note hn A 3 100, Note hn A 3 100, Note wn C 4 100 " <>
+    "rest = Line Rest wn, Rest wn" <>
+  "In " <>
+    "Par " <>
+      "Seq ln1 ln1 ln2 ln2 " <>
+      "Seq rest rest ln1 ln1 "
 
 
 

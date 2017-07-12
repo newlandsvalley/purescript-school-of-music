@@ -85,7 +85,12 @@ music bnds =
 voices :: BindingMap -> Parser Eut1.Music1
 voices bnds =
   fix \unit ->
-     buildVoices <$> (keyWord "Par") <*> many1Nel (musicProcedure bnds)
+     -- buildVoices <$> (keyWord "Par") <*> many1Nel (musicProcedure bnds)
+     buildVoices <$> (keyWord "Par") <*> many1Nel (procedureOrVariable bnds)
+
+procedureOrVariable :: BindingMap -> Parser Eut1.Music1
+procedureOrVariable bnds =
+  (musicProcedure bnds) <|> (variable bnds)
 
 -- | for the initial version of the DSL parser, we'll restrict control to just
 -- | setting the instrument name
