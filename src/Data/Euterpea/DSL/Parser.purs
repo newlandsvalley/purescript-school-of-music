@@ -56,7 +56,8 @@ simpleMusic bnds =
 
 bindings :: Parser BindingMap
 bindings =
-  (buildBindings <$>
+  (fix \unit ->
+    buildBindings <$>
       keyWord("Let") <*> (many1Nel bind) <*> keyWord("In")
   ) <?> "bindings"
 
@@ -84,7 +85,7 @@ music bnds =
 voices :: BindingMap -> Parser Eut1.Music1
 voices bnds =
   fix \unit ->
-     buildVoices <$> (keyWord "Par") <*> many1Nel (music bnds)
+     buildVoices <$> (keyWord "Par") <*> many1Nel (musicProcedure bnds)
 
 -- | for the initial version of the DSL parser, we'll restrict control to just
 -- | setting the instrument name

@@ -4,7 +4,7 @@ import Prelude (Unit, discard, show, (<>))
 import Control.Monad.Free (Free)
 
 import Data.Either (Either(..))
-import Data.Euterpea.DSL.Parser1 (parse)
+import Data.Euterpea.DSL.Parser (parse)
 
 import Data.Euterpea.Music
 import Data.Euterpea.Music1 (Music1, Note1(..))
