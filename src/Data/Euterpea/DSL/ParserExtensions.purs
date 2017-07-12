@@ -1,4 +1,4 @@
-module Data.Euterpea.DSL.ParserExtensins
+module Data.Euterpea.DSL.ParserExtensions
         ( many1Nel
         , many1TillNel
         , sepBy1Nel

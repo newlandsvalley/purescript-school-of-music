@@ -1,26 +1,21 @@
-module Data.Euterpea.DSL.Parser1
+module Data.Euterpea.DSL.Parser
         ( PositionedParseError(..)
-        , Binding
-        , BindingMap
         , parse
         ) where
 
-import Prelude (class Show, pure, show, ($), (<$>), (<$), (<*>), (<*), (*>), (<<<), (<>), (>>=))
+import Prelude (class Show, show, ($), (<$>), (<$), (<*>), (<*), (*>), (<<<), (<>))
 import Control.Alt ((<|>))
 import Control.Lazy (fix)
 import Data.String as S
+import Data.Maybe (fromMaybe)
 import Data.Bifunctor (bimap)
 import Data.Int (fromString)
 import Data.Either (Either(..))
 import Data.List (singleton)
 import Data.List.NonEmpty as Nel
-import Data.Map (Map, empty, fromFoldable, lookup, union) as Map
-import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.Array (fromFoldable)
-import Data.Tuple (Tuple(..))
 import Data.Foldable (class Foldable)
-import Data.Rational (fromInt)
-import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, fail)
+import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces)
 import Text.Parsing.StringParser.Combinators (choice, many1, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
@@ -29,79 +24,41 @@ import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
 import Data.Euterpea.Notes as Eutn
 import Data.Euterpea.Transform as Eutt
 
--- | investigation of a Parser DSL that includes let bindings
--- | that define 'variables' holding music sequences which can be placed
--- | int the body of the score by using a 'call'
-type Binding = Tuple String Eut1.Music1
+-- |  first iteration of the DSL with no variables
+-- | but with an Explicit 'Repeat' keyword
 
-type BindingMap =
-  Map.Map String Eut1.Music1
-
--- | top level production
-musicProcedure :: BindingMap -> Parser Eut1.Music1
-musicProcedure bnds =
-  complexMusic bnds <|> simpleMusic bnds
-    <?> "music procedure"
-
--- | a complex score with let bindings to music 'functions' preceding the score
--- | which are added to (and take precedence over) bindings from the outer scope
-complexMusic :: BindingMap -> Parser Eut1.Music1
-complexMusic outerBnds =
-  bindings >>= ( \bnds -> music $ Map.union bnds outerBnds)
-
--- | a simple score, with no functions
-simpleMusic :: BindingMap -> Parser Eut1.Music1
-simpleMusic bnds =
-  music bnds
-
-bindings :: Parser BindingMap
-bindings =
-  (buildBindings <$>
-      keyWord("Let") <*> (many1Nel bind) <*> keyWord("In")
-  ) <?> "bindings"
-
-bind :: Parser Binding
-bind =
-  (fix \unit ->
-    buildBinding <$>
-      identifier <*> (keyWord "=") <*> (music Map.empty)
-  )  <?> "bind"
-
-music :: BindingMap -> Parser Eut1.Music1
-music bnds =
+music :: Parser Eut1.Music1
+music =
   fix \unit ->
     (choice
       [
-        prim
-      , lines bnds
+        repeat
+      , prim
+      , lines
       , line
       , chord
-      , voices bnds
-      , control bnds
+      , voices
+      , control
       ]
     ) <?> "music"
 
-voices :: BindingMap -> Parser Eut1.Music1
-voices bnds =
+
+voices :: Parser Eut1.Music1
+voices =
   fix \unit ->
-     buildVoices <$> (keyWord "Par") <*> many1Nel (music bnds)
+     buildVoices <$> (keyWord "Par") <*> many1Nel music
+
 
 -- | for the initial version of the DSL parser, we'll restrict control to just
--- | setting the instrument name
-control :: BindingMap -> Parser Eut1.Music1
-control bnds =
-  fix \unit ->
-    instrumentName bnds
+-- | setting the instrument name.
+-- | we can then extend control once we have basic polyphony working
+control :: Parser Eut1.Music1
+control =
+  fix \unit -> instrumentName
 
--- | expand a variable as a Music tree
-variable :: BindingMap -> Parser Eut1.Music1
-variable bnds =
-  identifier >>= (\name ->
-    macroExpand name bnds)
-
-instrumentName :: BindingMap -> Parser Eut1.Music1
-instrumentName bnds =
-  fix \unit -> buildInstrument <$> keyWord "Instrument" <*> instrument <*> (music bnds)
+instrumentName :: Parser (Eut1.Music1)
+instrumentName =
+  fix \unit -> buildInstrument <$> keyWord "Instrument" <*> instrument <*> music
 
 -- | for the time being we'll restrict ourselves to the common MIDI instruments (plus cello and violin)
 -- | that are defined as defaults here: https://github.com/Euterpea/Euterpea2/blob/master/Euterpea/IO/MIDI/ToMidi.lhs
@@ -157,26 +114,26 @@ cello = Eut.Cello <$ keyWord "cello"
 stringEnsemble :: Parser Eut.InstrumentName
 stringEnsemble = Eut.StringEnsemble1 <$ keyWord "string ensemble"
 
-lines :: BindingMap ->  Parser Eut1.Music1
-lines bnds =
-  Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (lineOrVariable bnds))
+repeat :: Parser Eut1.Music1
+repeat =
+  buildRepeat <$> ((keyWord "Repeat") *> (keyWord "(") *>  lines  <* (keyWord ")"))
 
-lineOrVariable :: BindingMap -> Parser Eut1.Music1
-lineOrVariable bnds =
-  line <|> (variable bnds)
+lines :: Parser Eut1.Music1
+lines =
+  Eutt.line1 <$> ((keyWord "Seq") *> many1Nel line)
 
 line :: Parser Eut1.Music1
 line =
   Eutt.line1 <$> ((keyWord "Line") *> sepBy1Nel chordOrPrim separator)
 
-chordOrPrim :: Parser Eut1.Music1
+chordOrPrim :: Parser (Eut1.Music1)
 chordOrPrim = chord <|> prim
 
 chord :: Parser (Eut1.Music1)
 chord =
   Eutt.chord1 <$> ((keyWord "Chord") *> (keyWord "[") *> sepBy1Nel primNote1 separator <* (keyWord "]"))
 
-prim :: Parser Eut1.Music1
+prim :: Parser (Eut1.Music1)
 prim =  Eut.Prim <$> (note1 <|> rest)
 
 primNote1 :: Parser Eut1.Music1
@@ -450,22 +407,15 @@ keyWord :: String -> Parser String
 keyWord target =
   (string target) <* skipSpaces
 
-identifier :: Parser String
-identifier = regex "[a-z][a-zA-Z0-9]*" <* skipSpaces
-
 digit :: Parser Int
 digit = (fromMaybe 0 <<< fromString <<< S.singleton) <$> anyDigit
 
 ten :: Parser Int
 ten = 10 <$ string "10"
 
-buildBinding :: String -> String -> Eut1.Music1 -> Binding
-buildBinding name _ mus =
-  Tuple name mus
-
-buildBindings :: String -> Nel.NonEmptyList Binding -> String -> BindingMap
-buildBindings  _ bnds _ =
-  Map.fromFoldable bnds
+buildRepeat :: Eut1.Music1 -> Eut1.Music1
+buildRepeat l =
+  Eut.Seq l l
 
 buildVoices :: String -> Nel.NonEmptyList Eut1.Music1 -> Eut1.Music1
 buildVoices _ vs =
@@ -479,21 +429,6 @@ buildInstrument :: String -> Eut.InstrumentName -> Eut1.Music1 -> Eut1.Music1
 buildInstrument _ inst mus =
   Eut.Modify (Eut.Instrument inst) mus
 
--- | we're using the HSoM Custom attribute for defining function calls
--- | this requies a Music parameter which we don't need so we just
--- | fill it in with a Rest 0
-buildFunctionCall :: String -> String -> Eut1.Music1
-buildFunctionCall _ name =
-  Eut.Modify (Eut.Custom name) (Eut.Prim $ Eut.Rest $ fromInt 0)
-
--- | macro expand a 'function' name to give the function
--- | contents (which is Music).  Fail if the name is unknown
-macroExpand :: String -> BindingMap -> Parser Eut1.Music1
-macroExpand name bmap =
-  case Map.lookup name bmap of
-    Just m -> pure m
-    _ -> fail $ "function " <> name <> ": not found"
-
 -- | a parse error and its accompanying position in the text
 newtype PositionedParseError = PositionedParseError
   { pos :: Int
@@ -502,8 +437,6 @@ newtype PositionedParseError = PositionedParseError
 
 instance showKeyPositionedParseError :: Show PositionedParseError where
   show (PositionedParseError err) = err.error <> " at position " <> show err.pos
-
-
 
 -- | Run a parser for an input string, returning either a positioned error or a result.
 runParser1 :: forall a. Parser a -> String -> Either PositionedParseError a
@@ -518,7 +451,7 @@ runParser1 (Parser p) s =
 -- | Entry point - Parse a Euterpea DSL score.
 parse :: String -> Either PositionedParseError Eut1.Music1
 parse s =
-  case runParser1 (musicProcedure Map.empty) s of
+  case runParser1 music s of
     Right n ->
       Right n
 

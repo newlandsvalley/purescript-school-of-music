@@ -1,10 +1,10 @@
-module Test.DSL (dslSuite) where
+module Test.DSL1 (dsl1Suite) where
 
 import Prelude (Unit, discard, show, (<>))
 import Control.Monad.Free (Free)
 
 import Data.Either (Either(..))
-import Data.Euterpea.DSL.Parser1 (parse)
+import Data.Euterpea.DSL.Parser (parse)
 
 import Data.Euterpea.Music
 import Data.Euterpea.Music1 (Music1, Note1(..))
@@ -23,8 +23,8 @@ assertMusic s target =
     Left err ->
       failure ("parse failed: " <> (show err))
 
-dslSuite :: forall t. Free (TestF t) Unit
-dslSuite = do
+dsl1Suite :: forall t. Free (TestF t) Unit
+dsl1Suite = do
   noteSuite
 
 noteSuite :: forall t. Free (TestF t) Unit
@@ -71,12 +71,10 @@ instrumentsSource =
 
 repeatsSource :: String
 repeatsSource =
-  "Let " <>
-    "ln = Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
-  "In " <>
-    "Seq ln ln"
-
-
+  "Repeat ( " <>
+    "Seq " <>
+      "Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
+  " )"
 
 cq :: Music1
 cq = Prim (Note (1 % 4) (Note1 (Pitch C 1) ((Volume 100) : Nil)))
