@@ -60,7 +60,7 @@ noteSuite =
     test "repeats" do
       assertMusic repeatsSource lines
     test "round" do
-      assertParses roundSource 
+      assertParses roundSource
 
 complexVoicesSource :: String
 complexVoicesSource =
@@ -90,9 +90,9 @@ repeatsSource =
 roundSource :: String
 roundSource =
   "Let " <>
-    "ln1 = Line Note hn G 3 100, Note hn A 3 100, Note hn B 3 100, Note hn G 3 100" <>
-    "ln2 = Line Note hn A 3 100, Note hn A 3 100, Note wn C 4 100 " <>
-    "rest = Line Rest wn, Rest wn" <>
+    "ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100" <>
+    "ln2 = Line Note qn B 3 100, Note qn C 4 100, Note hn D 4 100 " <>
+    "rest = Line Rest wn" <>
   "In " <>
     "Par " <>
       "Seq ln1 ln1 ln2 ln2 " <>

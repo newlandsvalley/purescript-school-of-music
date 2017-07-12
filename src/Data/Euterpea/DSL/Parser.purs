@@ -498,7 +498,7 @@ macroExpand :: String -> BindingMap -> Parser Eut1.Music1
 macroExpand name bmap =
   case Map.lookup name bmap of
     Just m -> pure m
-    _ -> fail $ "function " <> name <> ": not found"
+    _ -> fail $ "variable " <> name <> ": not found"
 
 -- | a parse error and its accompanying position in the text
 newtype PositionedParseError = PositionedParseError
@@ -508,7 +508,6 @@ newtype PositionedParseError = PositionedParseError
 
 instance showKeyPositionedParseError :: Show PositionedParseError where
   show (PositionedParseError err) = err.error <> " at position " <> show err.pos
-
 
 
 -- | Run a parser for an input string, returning either a positioned error or a result.

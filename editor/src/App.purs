@@ -286,6 +286,10 @@ view state =
           label ! labelAlignmentStyle $ do
               text  "polska polyphony:"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example5) $ text "example 5"
+          label ! labelAlignmentStyle $ do
+              text  "frere Jacques:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example6) $ text "example 6"
+
 
         div ! leftPanelComponentStyle $ do
           viewPlayer state
@@ -345,3 +349,17 @@ example5 :: String
 example5 =
   "Par \r\n" <>
     example3 <> "\r\n" <> example4
+
+example6 :: String
+example6 =
+  "Let \r\n" <>
+  "    ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100  \r\n" <>
+  "    ln2 = Line Note qn B 3 100, Note qn C 4 100, Note hn D 4 100 \r\n" <>
+  "    ln3 = Line Note en D 4 100, Note en E 4 100, Note en D 4 100, Note en C 4 100, Note qn B 3 100, Note qn G 3 100 \r\n" <>
+  "    ln4 = Line Note qn G 3 100, Note qn D 3 100, Note hn G 3 100 \r\n" <>
+  "    rest = Line Rest wn \r\n" <>
+  "In \r\n" <>
+  "  Par \r\n" <>
+  "     Seq ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 \r\n" <>
+  "     Seq rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 \r\n" <>
+  "     Seq rest rest rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 "
