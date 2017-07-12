@@ -17,15 +17,21 @@ Front End
 How should we input PSoM melodies to the browser?  It seems to me the best way would be to construct a DSL with syntax similar to the following:
 
 ```    
-    music = voices | lines | line | repeat | chord | prim | control music
+    musicProcedure = complexMusic | music
+    
+    complexMusic = 'Let' bindings 'In' music
+    
+    bindings = binding, { binding }
+    
+    binding = identifier '=' music
 
-    voices = 'Par' music, { music }
+    music = voices | lines | line | chord | prim | control music
 
-    lines = 'Seq' 'line, { line }
+    voices = 'Par' musicProcedure, { musicProcedure }
+
+    lines = 'Seq' 'lineOrVariable, { lineOrVariable }
 
     line = 'Line' chordorprim, { chordorprim }
-    
-    repeat = 'Repeat' '(' lines ')'
 
     chordorprim = chord | prim
 
@@ -34,6 +40,8 @@ How should we input PSoM melodies to the browser?  It seems to me the best way w
     prim = note | rest
 
     note = 'Note' dur pitch vol
+    
+    variable = identifier
 
     rest = 'Rest' dur
 
@@ -50,11 +58,13 @@ How should we input PSoM melodies to the browser?  It seems to me the best way w
     instrumentName = 'violin' | 'viola' ....
 ```
 
+All keywords start with an upper-case letter.  Variables (which represent a repeatable section of music) start with a lower-case letter.
+
 See the DSL tests for example usage.
 
 This attempts to give a convenient representation for lines of music and chords, whilst still retaining the ability to control whole phrases (however built). If this works out, we can then build in the further control mechanisms that are supported by the API.
 
-The DSL is very experimental and likely to change.  There are all sorts of directions where we might take it - for example to define music 'functions' which would then be called later in the body of the tune.
+The DSL is very experimental and likely to change.  
 
 Back End
 --------

@@ -369,4 +369,4 @@ example4 =
 example5 :: String
 example5 =
   "Par \r\n" <>
-    "Seq \r\n" <> example3 <> "Seq \r\n" <> example4
+    example3 <> example4
