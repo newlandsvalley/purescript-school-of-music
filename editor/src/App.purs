@@ -313,7 +313,7 @@ example2 = "Line Chord [ Note dhn A 4 100, Note dhn C 4 100, Note dhn E 3 100 ],
 
 example3 :: String
 example3 =
-  "  Let \r\n" <>
+  "Let \r\n" <>
   "    v1 = \r\n" <>
   "       Line Note en G 4 100, Note qn Bf 5 100, Note qn A 5 100, Note qn G 5 100, \r\n" <>
   "         Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn G 5 100, Note en A 5 100, \r\n" <>
@@ -328,7 +328,7 @@ example3 =
 
 example4 :: String
 example4 =
-  "  Let \r\n" <>
+  "Let \r\n" <>
   "    v2 = \r\n" <>
   "      Line Note en G 4 100, Note qn G 5 100, Note qn Fs 5 100, Note qn D 5 100, \r\n" <>
   "        Note en A 4 100, Note en D 5 100, Note en Fs 5 100, \r\n" <>
@@ -344,4 +344,4 @@ example4 =
 example5 :: String
 example5 =
   "Par \r\n" <>
-    example3 <> example4
+    example3 <> "\r\n" <> example4
