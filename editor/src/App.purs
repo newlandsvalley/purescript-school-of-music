@@ -319,30 +319,35 @@ example3 :: String
 example3 =
   "Let \r\n" <>
   "    v1 = \r\n" <>
-  "       Line Note en G 4 100, Note qn Bf 5 100, Note qn A 5 100, Note qn G 5 100, \r\n" <>
+  "       Line Note qn Bf 5 100, Note qn A 5 100, Note qn G 5 100, \r\n" <>
   "         Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn G 5 100, Note en A 5 100, \r\n" <>
   "         Note sn A 5 100, Note sn C 6 100, Note en Bf 5 100, Note en A 5 100, \r\n" <>
   "         Note en G 5 100, Note sn Ef 6 100, Note sn D 6 100, Note en C 6 100, Note en Bf 5 100, \r\n" <>
   "         Note en A 5   100, Note en G 5 100, \r\n" <>
-  "         Note sn Fs 5 100, Note sn G 5 100, Note sn A 5 100, Note sn G 5 100, Note en Fs 5 100, \r\n" <>
-  "         Note en A 5 100, Note en G 5 100 \r\n" <>
-  "  In \r\n" <>
-  "    Seq v1 v1"
-
+  "         Note sn Fs 5 100, Note sn G 5 100, Note sn A 5 100 \r\n" <>
+  "    end1 = \r\n" <>
+  "         Line Note sn G 5 100, Note en Fs 5 100, Note en A 5 100, Note en G 5 100,  Note en A 5 100 \r\n" <>
+  "    end2 = \r\n" <>
+  "         Line Note sn Fs 5 100, Note qn G 5 100, Note qn G 4 100 \r\n" <>
+  " In \r\n" <>
+  "    Seq v1 end1 v1 end2 v1 end1 v1 end2"
 
 example4 :: String
 example4 =
   "Let \r\n" <>
   "    v2 = \r\n" <>
-  "      Line Note en G 4 100, Note qn G 5 100, Note qn Fs 5 100, Note qn D 5 100, \r\n" <>
+  "      Line Note qn G 5 100, Note qn Fs 5 100, Note qn D 5 100, \r\n" <>
   "        Note en A 4 100, Note en D 5 100, Note en Fs 5 100, \r\n" <>
   "        Note sn Fs 5 100, Note sn A 5 100, Note en G 5 100, Note en Fs 5 100, \r\n" <>
   "        Note en D 5 100, Note sn C 6 100, Note sn Bf 5 100, Note en A 5 100, Note en G 5 100, \r\n" <>
   "        Note en Fs 5 100, Note en D 5 100, \r\n" <>
-  "        Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn D 5 100, Note en D 5 100, \r\n" <>
-  "        Note en Fs 5 100, Note en D 5 100 \r\n" <>
+  "        Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn D 5 100 \r\n" <>
+  "    end1 = \r\n" <>
+  "     Line Note en D 5 100, Note en Fs 5 100, Note en D 5 100, Note en Fs 5 100 \r\n" <>
+  "    end2 = \r\n" <>
+  "     Line Note qn Bf 4 100, Note qn G 4 100 \r\n" <>
   "  In \r\n" <>
-  "    Seq v2 v2"
+  "    Seq v2 end1 v2 end2 v2 end1 v2 end2"
 
 
 example5 :: String
