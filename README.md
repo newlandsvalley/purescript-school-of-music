@@ -8,7 +8,7 @@ This is another attempt at porting the music notation part of the [Haskell Schoo
 Current State of Progress
 -------------------------
 
-The editor is built using the monophonic version of soundfonts.  There is a quick-and-dirty translation from a PSoM Performance to a Melody as required by the MIDI player which doesn't allow interruption when playing back.  However, it is now possible to write music using the DSL and to hear the result.
+The editor is built using the monophonic version of soundfonts.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. We need somehow to disable the stop/start button until the phrase finishes to prevent confusing the user.
 
 
 Front End

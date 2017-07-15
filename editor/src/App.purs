@@ -27,7 +27,8 @@ import Data.Euterpea.Music1 (Music1, Note1(..))
 import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, MEvent(..), perform1)
 
-import Temp (perf2melody)
+-- import Temp (perf2melody)
+import ToMelody (perf2melody)
 
 
 -- import Debug.Trace (trace, traceShow, traceShowM)
