@@ -5,6 +5,7 @@
 /generated-docs/
 /deprecated/
 /editor/examples/
+/editor/dist/psom-editor.js
 /.psc*
 /.purs*
 /.psa*

@@ -85,6 +85,6 @@ What features would make the DSL pleasant and convenient to use?
 
 ### Instruments
 
-If we are running in the browser, we no longer have a comprehensive set of instrument soundfonts automatically at hand.  Instead, we must explicitly load the soundfonts that we need and this takes time.  Whereas HSoM allows each voice to be labelled with an instrument (as indicated by the DSL above) perhaps this is not a good approach to carry over into PSoM.  Instead, a browser application might first load a set of (up to ten) instrument soundfonts and these would be implicitly associated with each channel (as indicated by each top-level Par voice). A user could then alter the instrumentation by loading a different set of soundfonts.
+Both HSoM and The Gleitzman sound font server support a comprehensive set of MIDI instruments which are tabulated [here](https://github.com/newlandsvalley/purescript-school-of-music/blob/master/INSTRUMENTS.md).  It seems sensible to support most, if not all, of the Gleitzman instruments. How this is best achieved is still an open question. Only 10 will be available vis MIDI at any given time.
 
 
