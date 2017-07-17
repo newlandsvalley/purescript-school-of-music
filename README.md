@@ -8,8 +8,12 @@ This is another attempt at porting the music notation part of the [Haskell Schoo
 Current State of Progress
 -------------------------
 
-The editor is built using the monophonic version of soundfonts.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. We need somehow to disable the stop/start button until the phrase finishes to prevent confusing the user.
+The editor is built using the monophonic version of soundfonts.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. 
 
+Supported Instruments
+---------------------
+
+PSoM uses instruments from [Benjamin Gleitzman's soundfont library](https://github.com/gleitz/midi-js-soundfonts).  It recognizes all the instrument names as listed [here](http://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/names.json).  These differ slightly from the names originally used by HSoM - the mapping between the two is shown [here](https://github.com/newlandsvalley/purescript-school-of-music/blob/master/HSoM_INSTRUMENTS.md).
 
 Front End
 ---------
@@ -82,9 +86,5 @@ Design Questions
 ### DSL
 
 What features would make the DSL pleasant and convenient to use?
-
-### Instruments
-
-Both HSoM and The Gleitzman sound font server support a comprehensive set of MIDI instruments which are tabulated [here](https://github.com/newlandsvalley/purescript-school-of-music/blob/master/INSTRUMENTS.md).  It seems sensible to support most, if not all, of the Gleitzman instruments. How this is best achieved is still an open question. Only 10 will be available vis MIDI at any given time.
 
 
