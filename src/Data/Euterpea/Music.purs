@@ -100,64 +100,6 @@ instance ordMode :: Ord Mode where
 instance showMode :: Show Mode where
   show x = GShow.genericShow x
 
-{- now in Instruments
-data InstrumentName =
-     AcousticGrandPiano     | BrightAcousticPiano    | ElectricGrandPiano
-  |  HonkyTonkPiano         | RhodesPiano            | ChorusedPiano
-  |  Harpsichord            | Clavinet               | Celesta
-  |  Glockenspiel           | MusicBox               | Vibraphone
-  |  Marimba                | Xylophone              | TubularBells
-  |  Dulcimer               | HammondOrgan           | PercussiveOrgan
-  |  RockOrgan              | ChurchOrgan            | ReedOrgan
-  |  Accordion              | Harmonica              | TangoAccordion
-  |  AcousticGuitarNylon    | AcousticGuitarSteel    | ElectricGuitarJazz
-  |  ElectricGuitarClean    | ElectricGuitarMuted    | OverdrivenGuitar
-  |  DistortionGuitar       | GuitarHarmonics        | AcousticBass
-  |  ElectricBassFingered   | ElectricBassPicked     | FretlessBass
-  |  SlapBass1              | SlapBass2              | SynthBass1
-  |  SynthBass2             | Violin                 | Viola
-  |  Cello                  | Contrabass             | TremoloStrings
-  |  PizzicatoStrings       | OrchestralHarp         | Timpani
-  |  StringEnsemble1        | StringEnsemble2        | SynthStrings1
-  |  SynthStrings2          | ChoirAahs              | VoiceOohs
-  |  SynthVoice             | OrchestraHit           | Trumpet
-  |  Trombone               | Tuba                   | MutedTrumpet
-  |  FrenchHorn             | BrassSection           | SynthBrass1
-  |  SynthBrass2            | SopranoSax             | AltoSax
-  |  TenorSax               | BaritoneSax            | Oboe
-  |  Bassoon                | EnglishHorn            | Clarinet
-  |  Piccolo                | Flute                  | Recorder
-  |  PanFlute               | BlownBottle            | Shakuhachi
-  |  Whistle                | Ocarina                | Lead1Square
-  |  Lead2Sawtooth          | Lead3Calliope          | Lead4Chiff
-  |  Lead5Charang           | Lead6Voice             | Lead7Fifths
-  |  Lead8BassLead          | Pad1NewAge             | Pad2Warm
-  |  Pad3Polysynth          | Pad4Choir              | Pad5Bowed
-  |  Pad6Metallic           | Pad7Halo               | Pad8Sweep
-  |  FX1Train               | FX2Soundtrack          | FX3Crystal
-  |  FX4Atmosphere          | FX5Brightness          | FX6Goblins
-  |  FX7Echoes              | FX8SciFi               | Sitar
-  |  Banjo                  | Shamisen               | Koto
-  |  Kalimba                | Bagpipe                | Fiddle
-  |  Shanai                 | TinkleBell             | Agogo
-  |  SteelDrums             | Woodblock              | TaikoDrum
-  |  MelodicDrum            | SynthDrum              | ReverseCymbal
-  |  GuitarFretNoise        | BreathNoise            | Seashore
-  |  BirdTweet              | TelephoneRing          | Helicopter
-  |  Applause               | Gunshot                | Percussion
-  |  CustomInstrument String
-
-derive instance genericInstrumentName :: G.Generic InstrumentName _
-instance eqInstrumentName :: Eq InstrumentName where
-  eq x y = GEq.genericEq x y
-instance ordInstrumentName :: Ord InstrumentName where
-  compare x y = GOrd.genericCompare x y
-instance showInstrumentName :: Show InstrumentName where
-  show x = GShow.genericShow x
-
-
--}  
-
 data PhraseAttribute  =
     Dyn Dynamic
   | Tmp Tempo

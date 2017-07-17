@@ -87,4 +87,10 @@ Design Questions
 
 What features would make the DSL pleasant and convenient to use?
 
+## Soundfonts
+
+What options should we give the user for (re-)loading soundfonts?
+
+What should be the behaviour if the melody description mentions a soundfont which is not currently loaded?  Perhaps default to the first soundfont (channel 0)?
+
 

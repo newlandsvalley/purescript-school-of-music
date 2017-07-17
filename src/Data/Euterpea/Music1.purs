@@ -1,7 +1,7 @@
 module Data.Euterpea.Music1 where
 
 
-import Prelude (class Show, id, mod, show, (-), (/))
+import Prelude (class Show, id, mod, (-), (/))
 import Data.Euterpea.Music
 import Data.List (List(..), (:))
 import Data.Array ((!!))
