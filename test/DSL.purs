@@ -4,7 +4,7 @@ import Prelude (Unit, discard, show, (<>))
 import Control.Monad.Free (Free)
 
 import Data.Either (Either(..))
-import Data.Euterpea.DSL.Parser (parse)
+import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
 import Data.Euterpea.Instrument (InstrumentName(..))
 
 import Data.Euterpea.Music
@@ -23,6 +23,14 @@ assertParses s =
 
     Left err ->
       failure ("parse failed: " <> (show err))
+
+assertFails :: forall e. String -> String -> Test e
+assertFails s msg =
+  case parse s of
+    Right music ->
+      failure ("parse should have failed")
+    Left (PositionedParseError err) ->
+      Assert.equal msg err.error
 
 assertMusic :: forall e. String -> Music1 -> Test e
 assertMusic s target =
@@ -56,12 +64,18 @@ noteSuite =
       assertMusic "Par Seq Line Note qn C 1 100, Note qn D 1 100, Rest qn Seq Line Note qn C 1 100, Note qn D 1 100, Rest qn" simpleVoices
     test "complex voices" do
       assertMusic complexVoicesSource complexVoices
-    test "instruments" do
-      assertMusic instrumentsSource instruments
     test "repeats" do
       assertMusic repeatsSource lines
     test "round" do
       assertParses roundSource
+    test "instruments" do
+      assertMusic instrumentsSource instruments
+    test "set marimba" do
+      assertParses "Instrument marimba Note qn C 1 100"
+    test "set acoustic_grand_piano" do
+      assertParses "Instrument acoustic_grand_piano Note qn C 1 100"
+    test "set unknown instrument" do
+      assertFails "Instrument foobar Note qn C 1 100" "instrument: foobar not known"
 
 complexVoicesSource :: String
 complexVoicesSource =

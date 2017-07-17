@@ -26,7 +26,7 @@ import Text.Parsing.StringParser.Combinators (choice, many1, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..), Control(..)) as Eut
 import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
-import Data.Euterpea.Instrument (InstrumentName(..))
+import Data.Euterpea.Instrument (InstrumentName, read)
 import Data.Euterpea.Notes as Eutn
 import Data.Euterpea.Transform as Eutt
 
@@ -110,59 +110,11 @@ instrumentName :: BindingMap -> Parser Eut1.Music1
 instrumentName bnds =
   fix \unit -> buildInstrument <$> keyWord "Instrument" <*> instrument <*> (music bnds)
 
--- | for the time being we'll restrict ourselves to the common MIDI instruments (plus cello and violin)
--- | that are defined as defaults here: https://github.com/Euterpea/Euterpea2/blob/master/Euterpea/IO/MIDI/ToMidi.lhs
 instrument :: Parser InstrumentName
 instrument =
-  (choice
-    [
-      piano
-    , marimba
-    , vibraphone
-    , bass
-    , flute
-    , tenorSax
-    , steelGuitar
-    , violin
-    , viola
-    , cello
-    , stringEnsemble
-    ]
-  ) <* skipSpaces
-    <?> "instrument"
-
-piano :: Parser InstrumentName
-piano = AcousticGrandPiano <$ keyWord "piano"
-
-marimba :: Parser InstrumentName
-marimba = Marimba <$ keyWord "marimba"
-
-vibraphone :: Parser InstrumentName
-vibraphone = Vibraphone <$ keyWord "vibraphone"
-
-bass :: Parser InstrumentName
-bass = AcousticBass <$ keyWord "bass"
-
-flute :: Parser InstrumentName
-flute = Flute <$ keyWord "flute"
-
-tenorSax :: Parser InstrumentName
-tenorSax = TenorSax <$ keyWord "tenor sax"
-
-steelGuitar :: Parser InstrumentName
-steelGuitar = AcousticGuitarSteel <$ keyWord "steel guitar"
-
-violin :: Parser InstrumentName
-violin = Violin <$ keyWord "violin"
-
-viola :: Parser InstrumentName
-viola = Viola <$ keyWord "viola"
-
-cello :: Parser InstrumentName
-cello = Cello <$ keyWord "cello"
-
-stringEnsemble :: Parser InstrumentName
-stringEnsemble = StringEnsemble1 <$ keyWord "string ensemble"
+  (regex "[a-z][a-z0-9_]*" <* skipSpaces >>= (\name ->
+    checkInstrument name)
+  ) <?> "instrument"
 
 lines :: BindingMap ->  Parser Eut1.Music1
 lines bnds =
@@ -500,6 +452,13 @@ macroExpand name bmap =
   case Map.lookup name bmap of
     Just m -> pure m
     _ -> fail $ "variable " <> name <> ": not found"
+
+-- | check an instrument name against the Gleitzman names, fail if unknown
+checkInstrument :: String -> Parser InstrumentName
+checkInstrument name  =
+  case read name of
+    Just i -> pure i
+    _ -> fail $ "instrument: " <> name <> " not known"
 
 -- | a parse error and its accompanying position in the text
 newtype PositionedParseError = PositionedParseError
