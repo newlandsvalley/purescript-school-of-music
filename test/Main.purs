@@ -10,6 +10,7 @@ import Test.Unit.Main (runTest)
 import Test.Unit.Console (TESTOUTPUT)
 import Test.DSL (dslSuite)
 import Test.DSL1 (dsl1Suite)
+import Test.Instrument (instrumentSuite)
 
 main :: forall t.
         Eff
@@ -23,3 +24,4 @@ main = runTest do
   suite "euterpea" do
     dslSuite
     dsl1Suite
+    instrumentSuite
