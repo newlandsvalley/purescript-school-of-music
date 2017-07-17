@@ -9,6 +9,7 @@ import Data.Generic.Rep.Eq as GEq
 import Data.Generic.Rep.Ord as GOrd
 import Data.Generic.Rep.Show as GShow
 import Data.Generic.Rep.Bounded as GBounded
+import Data.Euterpea.Instrument (InstrumentName(..))
 
 
 infixr 5 Seq as :+:
@@ -99,6 +100,7 @@ instance ordMode :: Ord Mode where
 instance showMode :: Show Mode where
   show x = GShow.genericShow x
 
+{- now in Instruments
 data InstrumentName =
      AcousticGrandPiano     | BrightAcousticPiano    | ElectricGrandPiano
   |  HonkyTonkPiano         | RhodesPiano            | ChorusedPiano
@@ -152,6 +154,9 @@ instance ordInstrumentName :: Ord InstrumentName where
   compare x y = GOrd.genericCompare x y
 instance showInstrumentName :: Show InstrumentName where
   show x = GShow.genericShow x
+
+
+-}  
 
 data PhraseAttribute  =
     Dyn Dynamic

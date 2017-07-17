@@ -18,6 +18,7 @@
     "purescript-maybe": "^3.0.0",
     "purescript-integers": "^3.0.0",
     "purescript-math": "^2.0.0",
+    "purescript-unicode": "^3.0.1",
     "purescript-string-parsers": "^3.0.1"
   },
   "devDependencies": {

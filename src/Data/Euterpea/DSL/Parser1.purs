@@ -19,8 +19,9 @@ import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces)
 import Text.Parsing.StringParser.Combinators (choice, many1, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
-import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..), Control(..), InstrumentName(..)) as Eut
+import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..), Control(..)) as Eut
 import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
+import Data.Euterpea.Instrument (InstrumentName(..))
 import Data.Euterpea.Notes as Eutn
 import Data.Euterpea.Transform as Eutt
 
@@ -62,7 +63,7 @@ instrumentName =
 
 -- | for the time being we'll restrict ourselves to the common MIDI instruments (plus cello and violin)
 -- | that are defined as defaults here: https://github.com/Euterpea/Euterpea2/blob/master/Euterpea/IO/MIDI/ToMidi.lhs
-instrument :: Parser Eut.InstrumentName
+instrument :: Parser InstrumentName
 instrument =
   (choice
     [
@@ -81,38 +82,38 @@ instrument =
   ) <* skipSpaces
     <?> "instrument"
 
-piano :: Parser Eut.InstrumentName
-piano = Eut.AcousticGrandPiano <$ keyWord "piano"
+piano :: Parser InstrumentName
+piano = AcousticGrandPiano <$ keyWord "piano"
 
-marimba :: Parser Eut.InstrumentName
-marimba = Eut.Marimba <$ keyWord "marimba"
+marimba :: Parser InstrumentName
+marimba = Marimba <$ keyWord "marimba"
 
-vibraphone :: Parser Eut.InstrumentName
-vibraphone = Eut.Vibraphone <$ keyWord "vibraphone"
+vibraphone :: Parser InstrumentName
+vibraphone = Vibraphone <$ keyWord "vibraphone"
 
-bass :: Parser Eut.InstrumentName
-bass = Eut.AcousticBass <$ keyWord "bass"
+bass :: Parser InstrumentName
+bass = AcousticBass <$ keyWord "bass"
 
-flute :: Parser Eut.InstrumentName
-flute = Eut.Flute <$ keyWord "flute"
+flute :: Parser InstrumentName
+flute = Flute <$ keyWord "flute"
 
-tenorSax :: Parser Eut.InstrumentName
-tenorSax = Eut.TenorSax <$ keyWord "tenor sax"
+tenorSax :: Parser InstrumentName
+tenorSax = TenorSax <$ keyWord "tenor sax"
 
-steelGuitar :: Parser Eut.InstrumentName
-steelGuitar = Eut.AcousticGuitarSteel <$ keyWord "steel guitar"
+steelGuitar :: Parser InstrumentName
+steelGuitar = AcousticGuitarSteel <$ keyWord "steel guitar"
 
-violin :: Parser Eut.InstrumentName
-violin = Eut.Violin <$ keyWord "violin"
+violin :: Parser InstrumentName
+violin = Violin <$ keyWord "violin"
 
-viola :: Parser Eut.InstrumentName
-viola = Eut.Viola <$ keyWord "viola"
+viola :: Parser InstrumentName
+viola = Viola <$ keyWord "viola"
 
-cello :: Parser Eut.InstrumentName
-cello = Eut.Cello <$ keyWord "cello"
+cello :: Parser InstrumentName
+cello = Cello <$ keyWord "cello"
 
-stringEnsemble :: Parser Eut.InstrumentName
-stringEnsemble = Eut.StringEnsemble1 <$ keyWord "string ensemble"
+stringEnsemble :: Parser InstrumentName
+stringEnsemble = StringEnsemble1 <$ keyWord "string ensemble"
 
 repeat :: Parser Eut1.Music1
 repeat =
@@ -425,7 +426,7 @@ buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
 buildNote1 _ dur p vol =
   Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume vol)
 
-buildInstrument :: String -> Eut.InstrumentName -> Eut1.Music1 -> Eut1.Music1
+buildInstrument :: String -> InstrumentName -> Eut1.Music1 -> Eut1.Music1
 buildInstrument _ inst mus =
   Eut.Modify (Eut.Instrument inst) mus
 
