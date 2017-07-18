@@ -1,5 +1,6 @@
 module Data.Euterpea.Instrument
   ( InstrumentName(..)
+  , InstrumentMap(..)
   , gleitzmanName
   , read
   ) where
@@ -124,6 +125,8 @@ instance ordInstrumentName :: Ord InstrumentName where
 instance showInstrumentName :: Show InstrumentName where
   show x = GShow.genericShow x
 
+-- a mapping of instrument name to channel
+type InstrumentMap = Map.Map String Int
 
 -- | convert a PSoM instrument name to the format Found
 -- | in the Gleitzman instrument soundfont library

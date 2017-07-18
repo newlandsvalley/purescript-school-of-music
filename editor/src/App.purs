@@ -12,6 +12,8 @@ import Data.List as List
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Int (fromString)
 import Data.Monoid (mempty)
+import Data.Map (Map(..), fromFoldable)
+import Data.Tuple (Tuple(..))
 import Data.String (fromCharArray, toCharArray)
 import View.CSS
 import FileIO.FileIO (FILEIO, Filespec, loadTextFile, saveTextFile)
@@ -26,12 +28,14 @@ import Data.Euterpea.Music
 import Data.Euterpea.Music1 (Music1, Note1(..))
 import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, MEvent(..), perform1)
+-- import Data.Euterpea.Instrument (InstrumentMap(..))
 
 -- import Temp (perf2melody)
 import ToMelody (perf2melody)
 
 
 -- import Debug.Trace (trace, traceShow, traceShowM)
+
 
 data Event
     = NoOp
@@ -45,6 +49,7 @@ data Event
 
 type State = {
     polyphony :: String
+  -- , availableInstruments :: InstrumentMap
   -- , fileName :: Maybe String
   , tuneResult :: Either PositionedParseError Music1
   , performance :: Performance
@@ -57,9 +62,21 @@ nullTune :: Either PositionedParseError Music1
 nullTune =
   Left (PositionedParseError { pos : 0, error : "" })
 
+-- | hard-code the instrument map while we're still developing
+{-
+initialInstruments :: InstrumentMap
+initialInstruments =
+  fromFoldable
+    [ Tuple "acoustic_grand_piano" 0
+    , Tuple "vibraphone" 1
+    , Tuple "acoustic_bass" 2
+    ]
+-}
+
 initialState :: State
 initialState = {
     polyphony : ""
+  -- , availableInstruments : initialInstruments
   -- , fileName : Nothing
   , tuneResult : nullTune
   , performance : List.Nil
