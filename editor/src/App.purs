@@ -28,7 +28,7 @@ import Data.Euterpea.Music
 import Data.Euterpea.Music1 (Music1, Note1(..))
 import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, MEvent(..), perform1)
--- import Data.Euterpea.Instrument (InstrumentMap(..))
+import Data.Euterpea.Instrument (InstrumentMap(..))
 
 -- import Temp (perf2melody)
 import ToMelody (perf2melody)
@@ -49,7 +49,7 @@ data Event
 
 type State = {
     polyphony :: String
-  -- , availableInstruments :: InstrumentMap
+  , availableInstruments :: InstrumentMap
   -- , fileName :: Maybe String
   , tuneResult :: Either PositionedParseError Music1
   , performance :: Performance
@@ -63,7 +63,6 @@ nullTune =
   Left (PositionedParseError { pos : 0, error : "" })
 
 -- | hard-code the instrument map while we're still developing
-{-
 initialInstruments :: InstrumentMap
 initialInstruments =
   fromFoldable
@@ -71,12 +70,11 @@ initialInstruments =
     , Tuple "vibraphone" 1
     , Tuple "acoustic_bass" 2
     ]
--}
 
 initialState :: State
 initialState = {
     polyphony : ""
-  -- , availableInstruments : initialInstruments
+  , availableInstruments : initialInstruments
   -- , fileName : Nothing
   , tuneResult : nullTune
   , performance : List.Nil
@@ -147,7 +145,7 @@ onChangedEuterpea polyphony state =
     case tuneResult of
       Right tune ->
         let
-           melody = perf2melody performance
+           melody = perf2melody state.availableInstruments performance
         in
           { state: newState { playerState = Just MidiPlayer.initialState}
              , effects:
@@ -365,7 +363,7 @@ example4 =
   "    end2 = \r\n" <>
   "     Line Note qn Bf 4 100, Note qn G 4 100 \r\n" <>
   "  In \r\n" <>
-  "    Seq v2 end1 v2 end2 v2 end1 v2 end2"
+  "    Instrument vibraphone Seq v2 end1 v2 end2 v2 end1 v2 end2"
 
 
 example5 :: String
@@ -384,5 +382,5 @@ example6 =
   "In \r\n" <>
   "  Par \r\n" <>
   "     Seq ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 \r\n" <>
-  "     Seq rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 \r\n" <>
-  "     Seq rest rest rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 "
+  "     Instrument vibraphone Seq rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 \r\n" <>
+  "     Instrument acoustic_bass Seq rest rest rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 "

@@ -1,6 +1,7 @@
 module ToMelody (perf2melody) where
 
 import Prelude (($), (+), (-), (/), (>))
+import Data.Euterpea.Instrument (InstrumentName, InstrumentMap(..), gleitzmanName)
 import Data.Euterpea.Midi.MEvent (Performance, MEvent(..))
 import Data.Midi.Player.HybridPerformance (Melody, MidiPhrase)
 import Audio.SoundFont (MidiNote)
@@ -8,7 +9,8 @@ import Data.Rational (toNumber) as R
 import Data.Int (toNumber) as I
 import Data.Array (reverse, (:))
 import Data.Foldable (foldl)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Map (lookup)
 -- import Debug.Trace (traceShow)
 
 -- | Convert a Performance to a Melody described by a hybrid performance
@@ -56,10 +58,10 @@ getFinal (Accum a) = a.final
 phraseCutoff :: Number
 phraseCutoff = 0.8
 
-perf2melody :: Performance -> Melody
-perf2melody p =
+perf2melody :: InstrumentMap -> Performance -> Melody
+perf2melody im p =
   let
-    acc = perf2accum p
+    acc = perf2accum im p
     pendingCutoff = getPendingCutoff acc
     rlength = getRunningLength acc
     final = case pendingCutoff of
@@ -73,8 +75,8 @@ perf2melody p =
   in
     reverse final
 
-perf2accum :: Performance -> Accum
-perf2accum p =
+perf2accum :: InstrumentMap -> Performance -> Accum
+perf2accum im p =
   foldl f initialAccum p
     where
       f:: Accum -> MEvent -> Accum
@@ -84,7 +86,7 @@ perf2accum p =
              let
                rlength = getRunningLength acc
                nextNote :: MidiNote
-               nextNote = event2note me
+               nextNote = event2note im me
              in
                case getPendingCutoff acc of
                  Just lastNote ->
@@ -138,15 +140,30 @@ perf2accum p =
                         }
 
 
-event2note :: MEvent -> MidiNote
-event2note me =
+{-}
+event2note :: InstrumentMap -> MEvent -> MidiNote
+event2note im me =
   case me of
     (MEvent e) ->
       note 0 e.ePitch (R.toNumber e.eTime) (R.toNumber e.eDur)  (I.toNumber e.eVol / 125.0)
+-}
+
+
+event2note :: InstrumentMap -> MEvent -> MidiNote
+event2note im (MEvent e) =
+  let
+    channel = chan e.eInst im
+  in
+    note channel e.ePitch (R.toNumber e.eTime) (R.toNumber e.eDur)  (I.toNumber e.eVol / 125.0)
 
 note :: Int -> Int -> Number -> Number -> Number -> MidiNote
 note channel id timeOffset duration gain =
   { channel : channel, id : id, timeOffset : timeOffset, duration : duration, gain : gain }
+
+-- | look up the instrument in the map, defaulting to channel 0
+chan :: InstrumentName -> InstrumentMap -> Int
+chan inst instrumentMap  =
+  fromMaybe 0 $ lookup (gleitzmanName inst) instrumentMap
 
 
 {-
