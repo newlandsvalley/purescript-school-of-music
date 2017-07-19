@@ -381,6 +381,6 @@ example6 =
   "    rest = Line Rest wn \r\n" <>
   "In \r\n" <>
   "  Par \r\n" <>
-  "     Seq ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 \r\n" <>
+  "     Instrument acoustic_bass Transpose -12 Seq ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 \r\n" <>
   "     Instrument vibraphone Seq rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 \r\n" <>
-  "     Instrument acoustic_bass Seq rest rest rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 "
+  "     Seq rest rest rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 "
