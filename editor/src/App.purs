@@ -295,7 +295,7 @@ view state =
               text  "simple chords:"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example2) $ text "example 2"
           label ! labelAlignmentStyle $ do
-              text  "change tempo"
+              text  "change tempo:"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example3) $ text "example 3"
           label ! labelAlignmentStyle $ do
               text  "polska voice 1:"

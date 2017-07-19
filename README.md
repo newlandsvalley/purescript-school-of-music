@@ -14,6 +14,8 @@ Current State of Progress
 
 The editor is built using polyphonic soundfonts which must be pre-loaded for selected instruments before anything plays.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. 
 
+The following control mechanisms have been implemented in the DSL - setting the instrument, transposition and changing tempo. 
+
 Supported Instruments
 ---------------------
 
@@ -61,7 +63,7 @@ PSoM melodies are presented to the browser using a DSL with the following syntax
 
     octave = int
 
-    control = 'Instrument' instrumentName | 'Transpose' int
+    control = 'Instrument' instrumentName | 'Transpose' int | 'Tempo' (fraction | int)
 
     instrumentName = 'violin' | 'viola' ....
 ```
@@ -77,7 +79,7 @@ The DSL is very experimental and likely to change.
 Back End
 --------
 
-A PSoM melody is converted (via PSoM's __MEvent__) into a [MIDI Melody](https://github.com/newlandsvalley/purescript-midi-player/blob/master/src/Data/Midi/Player/HybridPerformance.purs). This supports up to 10 channels, each dedicated to a particular MIDI instrument.  This is then played using  [purescript-polyphonic-soundfonts](https://github.com/newlandsvalley/purescript-polyphonic-soundfonts) .
+A PSoM melody is converted (via PSoM's __MEvent__) into a [MIDI Melody](https://github.com/newlandsvalley/purescript-midi-player/blob/master/src/Data/Midi/Player/HybridPerformance.purs). This supports up to 10 channels, each dedicated to a particular MIDI instrument.  This is then capable of being played using  [purescript-polyphonic-soundfonts](https://github.com/newlandsvalley/purescript-polyphonic-soundfonts) .
 
 Editor
 ------
@@ -98,10 +100,10 @@ What options should we give the user for (re-)loading soundfonts?
 To Do
 -----
 
-*  Add the other control mechanisms to the DSL
+*  Add the phrase control mechanisms to the DSL
 *  Load and save scores
 *  Don't translate to MEvent until 'play' is first pressed
 *  Add option to re-select the loaded soundfonts
 *  Add quickcheck style tests to the PSoM library
 
-
+(The Custom and KeySig controls have not been implemented as these are also unimplemented in HSoM.)
