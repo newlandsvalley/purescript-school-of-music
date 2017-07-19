@@ -19,8 +19,8 @@ import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.Array (fromFoldable)
 import Data.Tuple (Tuple(..))
 import Data.Foldable (class Foldable)
-import Data.Rational (Rational, rational)
-import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, fail)
+import Data.Rational (Rational, fromInt, rational)
+import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try, fail)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces)
 import Text.Parsing.StringParser.Combinators (choice, many1, optionMaybe, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
@@ -121,8 +121,7 @@ transpose bnds =
 
 tempo :: BindingMap -> Parser Eut1.Music1
 tempo bnds =
-  fix \unit -> buildTempo <$> keyWord "Tempo" <*> fraction <*> (music bnds)
-
+  fix \unit -> buildTempo <$> keyWord "Tempo" <*> (try fraction <|> vulgar) <*> (music bnds)
 
 instrument :: Parser InstrumentName
 instrument =
@@ -421,6 +420,10 @@ fraction :: Parser Rational
 fraction =
   rational <$> int <* char '/' <*> int <* skipSpaces
 
+-- | an integer presented as a vulgar fraction
+vulgar :: Parser Rational
+vulgar =
+  fromInt <$> int <* skipSpaces
 
 anyString :: Parser String
 anyString = fromCharList <$> many1 anyChar
