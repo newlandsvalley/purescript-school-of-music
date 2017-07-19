@@ -19,7 +19,7 @@ import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.Array (fromFoldable)
 import Data.Tuple (Tuple(..))
 import Data.Foldable (class Foldable)
-import Data.Rational (fromInt)
+import Data.Rational (Rational, rational)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, fail)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces)
 import Text.Parsing.StringParser.Combinators (choice, many1, optionMaybe, (<?>))
@@ -108,6 +108,7 @@ control bnds =
       [
         instrumentName bnds
       , transpose bnds
+      , tempo bnds
       ]
 
 instrumentName :: BindingMap -> Parser Eut1.Music1
@@ -117,6 +118,11 @@ instrumentName bnds =
 transpose :: BindingMap -> Parser Eut1.Music1
 transpose bnds =
   fix \unit -> buildTranspose <$> keyWord "Transpose" <*> signedInt <*> (music bnds)
+
+tempo :: BindingMap -> Parser Eut1.Music1
+tempo bnds =
+  fix \unit -> buildTempo <$> keyWord "Tempo" <*> fraction <*> (music bnds)
+
 
 instrument :: Parser InstrumentName
 instrument =
@@ -411,6 +417,11 @@ anyInt :: Parser String
 anyInt =
   regex "0|[1-9][0-9]*"
 
+fraction :: Parser Rational
+fraction =
+  rational <$> int <* char '/' <*> int <* skipSpaces
+
+
 anyString :: Parser String
 anyString = fromCharList <$> many1 anyChar
 
@@ -453,6 +464,10 @@ buildInstrument _ inst mus =
 buildTranspose :: String -> Int -> Eut1.Music1 -> Eut1.Music1
 buildTranspose _ pitchShift mus =
   Eut.Modify (Eut.Transpose pitchShift) mus
+
+buildTempo :: String -> Rational -> Eut1.Music1 -> Eut1.Music1
+buildTempo _ tmp mus =
+  Eut.Modify (Eut.Tempo tmp) mus
 
 buildSignedInt :: Maybe String -> Int -> Int
 buildSignedInt sign val =

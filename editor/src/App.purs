@@ -111,12 +111,13 @@ foldp RequestFileDownload state =
     }
 -}
 foldp Clear state =
-  noEffects $ state { polyphony = ""
-                    -- , fileName = Nothing
-                    , tuneResult = nullTune
-                    , performance = List.Nil
-                    -- , playerState = Nothing
-                    }
+  onChangedEuterpea ""
+    (state { polyphony = ""
+           , tuneResult = nullTune
+           , performance = List.Nil
+           , playerState = Nothing
+           }
+    )
 foldp (PlayerEvent e) state =
   case state.playerState of
     Just pstate ->
