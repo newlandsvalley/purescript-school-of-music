@@ -295,17 +295,20 @@ view state =
               text  "simple chords:"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example2) $ text "example 2"
           label ! labelAlignmentStyle $ do
-              text  "polska voice 1:"
+              text  "change tempo"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example3) $ text "example 3"
           label ! labelAlignmentStyle $ do
-              text  "polska voice 2:"
+              text  "polska voice 1:"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example4) $ text "example 4"
           label ! labelAlignmentStyle $ do
-              text  "polska polyphony:"
+              text  "polska voice 2:"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example5) $ text "example 5"
           label ! labelAlignmentStyle $ do
-              text  "frere Jacques:"
+              text  "polska polyphony:"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example6) $ text "example 6"
+          label ! labelAlignmentStyle $ do
+              text  "frere Jacques:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example7) $ text "example 7"
 
 
         div ! leftPanelComponentStyle $ do
@@ -335,6 +338,15 @@ example2 = "Line Chord [ Note dhn A 4 100, Note dhn C 4 100, Note dhn E 3 100 ],
 example3 :: String
 example3 =
   "Let \r\n" <>
+  "  ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100  \r\n" <>
+  " In \r\n" <>
+  "   Par \r\n" <>
+  "     Instrument acoustic_bass Transpose -12 Seq ln1 ln1 ln1 ln1 \r\n" <>
+  "     Instrument vibraphone Tempo 1/2 Seq ln1 ln1"
+
+example4 :: String
+example4 =
+  "Let \r\n" <>
   "    v1 = \r\n" <>
   "       Line Note qn Bf 5 100, Note qn A 5 100, Note qn G 5 100, \r\n" <>
   "         Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn G 5 100, Note en A 5 100, \r\n" <>
@@ -349,8 +361,8 @@ example3 =
   " In \r\n" <>
   "    Seq v1 end1 v1 end2 v1 end1 v1 end2"
 
-example4 :: String
-example4 =
+example5 :: String
+example5 =
   "Let \r\n" <>
   "    v2 = \r\n" <>
   "      Line Note qn G 5 100, Note qn Fs 5 100, Note qn D 5 100, \r\n" <>
@@ -367,13 +379,13 @@ example4 =
   "    Instrument vibraphone Seq v2 end1 v2 end2 v2 end1 v2 end2"
 
 
-example5 :: String
-example5 =
-  "Par \r\n" <>
-    example3 <> "\r\n" <> example4
-
 example6 :: String
 example6 =
+  "Par \r\n" <>
+    example4 <> "\r\n" <> example5
+
+example7 :: String
+example7 =
   "Let \r\n" <>
   "    ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100  \r\n" <>
   "    ln2 = Line Note qn B 3 100, Note qn C 4 100, Note hn D 4 100 \r\n" <>
