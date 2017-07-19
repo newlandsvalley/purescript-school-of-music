@@ -76,6 +76,10 @@ noteSuite =
       assertParses "Instrument acoustic_grand_piano Note qn C 1 100"
     test "set unknown instrument" do
       assertFails "Instrument foobar Note qn C 1 100" "instrument: foobar not known"
+    test "transpose up" do
+      assertParses  "Transpose 12 Line Note qn C 1 100, Note qn D 1 100, Rest qn"
+    test "transpose down" do
+      assertParses  "Transpose -12 Line Note qn C 2 100, Note qn D 2 100, Rest qn" 
 
 complexVoicesSource :: String
 complexVoicesSource =

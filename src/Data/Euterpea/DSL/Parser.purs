@@ -5,7 +5,7 @@ module Data.Euterpea.DSL.Parser
         , parse
         ) where
 
-import Prelude (class Show, pure, show, ($), (<$>), (<$), (<*>), (<*), (*>), (<<<), (<>), (>>=))
+import Prelude (class Show, pure, show, ($), (<$>), (<$), (<*>), (<*), (*>), (<<<), (<>), (>>=), (-))
 import Control.Alt ((<|>))
 import Control.Lazy (fix)
 import Data.String as S
@@ -22,7 +22,7 @@ import Data.Foldable (class Foldable)
 import Data.Rational (fromInt)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, fail)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces)
-import Text.Parsing.StringParser.Combinators (choice, many1, (<?>))
+import Text.Parsing.StringParser.Combinators (choice, many1, optionMaybe, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..), Control(..)) as Eut
 import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
@@ -93,22 +93,30 @@ procedureOrVariable :: BindingMap -> Parser Eut1.Music1
 procedureOrVariable bnds =
   (musicProcedure bnds) <|> (variable bnds)
 
--- | for the initial version of the DSL parser, we'll restrict control to just
--- | setting the instrument name
-control :: BindingMap -> Parser Eut1.Music1
-control bnds =
-  fix \unit ->
-    instrumentName bnds
-
 -- | expand a variable as a Music tree
 variable :: BindingMap -> Parser Eut1.Music1
 variable bnds =
   identifier >>= (\name ->
     macroExpand name bnds)
 
+-- | for the initial version of the DSL parser, we'll restrict control to just
+-- | setting the instrument name
+control :: BindingMap -> Parser Eut1.Music1
+control bnds =
+  fix \unit ->
+    choice
+      [
+        instrumentName bnds
+      , transpose bnds
+      ]
+
 instrumentName :: BindingMap -> Parser Eut1.Music1
 instrumentName bnds =
   fix \unit -> buildInstrument <$> keyWord "Instrument" <*> instrument <*> (music bnds)
+
+transpose :: BindingMap -> Parser Eut1.Music1
+transpose bnds =
+  fix \unit -> buildTranspose <$> keyWord "Transpose" <*> signedInt <*> (music bnds)
 
 instrument :: Parser InstrumentName
 instrument =
@@ -395,6 +403,10 @@ int =
   (fromMaybe 0 <<< fromString) <$> anyInt
     <?> "expected a positive integer"
 
+signedInt :: Parser Int
+signedInt =
+  buildSignedInt <$> optionMaybe (string "-" <|> string "+") <*> int <* skipSpaces
+
 anyInt :: Parser String
 anyInt =
   regex "0|[1-9][0-9]*"
@@ -438,12 +450,15 @@ buildInstrument :: String -> InstrumentName -> Eut1.Music1 -> Eut1.Music1
 buildInstrument _ inst mus =
   Eut.Modify (Eut.Instrument inst) mus
 
--- | we're using the HSoM Custom attribute for defining function calls
--- | this requies a Music parameter which we don't need so we just
--- | fill it in with a Rest 0
-buildFunctionCall :: String -> String -> Eut1.Music1
-buildFunctionCall _ name =
-  Eut.Modify (Eut.Custom name) (Eut.Prim $ Eut.Rest $ fromInt 0)
+buildTranspose :: String -> Int -> Eut1.Music1 -> Eut1.Music1
+buildTranspose _ pitchShift mus =
+  Eut.Modify (Eut.Transpose pitchShift) mus
+
+buildSignedInt :: Maybe String -> Int -> Int
+buildSignedInt sign val =
+  case sign of
+    Just "-" -> (0 - val)
+    _ -> val
 
 -- | macro expand a 'function' name to give the function
 -- | contents (which is Music).  Fail if the name is unknown
