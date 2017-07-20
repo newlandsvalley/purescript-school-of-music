@@ -63,9 +63,17 @@ PSoM melodies are presented to the browser using a DSL with the following syntax
 
     octave = int
 
-    control = 'Instrument' instrumentName | 'Transpose' int | 'Tempo' (fraction | int)
+    control = 'Instrument' instrumentName | 'Transpose' int | 'Tempo' (fraction | int) | 'PhraseAtts' phraseAttributes
 
     instrumentName = 'violin' | 'viola' ....
+```
+
+where phrase attributes are:
+
+```
+   phraseAttributes = phraseAttribute, ( phraseAttribute }
+   
+   phraseAttribute = 'Loudness' ( fraction | int ) |  ... more to follow
 ```
 
 All keywords start with an upper-case letter.  Variables (which represent a repeatable section of music) start with a lower-case letter.
@@ -100,10 +108,17 @@ What options should we give the user for (re-)loading soundfonts?
 To Do
 -----
 
-*  Add the phrase control mechanisms to the DSL
+*  Add the dynamic markings to the DSL - Accent, Crescendo, Diminuendo, StdLoudness
+*  Add the Ritardando and Accelerando tempo markings to the DSL
+*  Add Staccato, Legato and Slurred articulations to the DSL
 *  Load and save scores
 *  Don't translate to MEvent until 'play' is first pressed
 *  Add option to re-select the loaded soundfonts
 *  Add quickcheck style tests to the PSoM library
 
-(The Custom and KeySig controls have not been implemented as these are also unimplemented in HSoM.)
+The following control mechanisms are unimplemented because they also have not been implemented in HSoM:
+
+*  Custom
+*  KeySig
+*  Ornamentation
+*  Articulation other than Staccato, Legato and Slurred

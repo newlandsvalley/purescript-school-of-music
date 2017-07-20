@@ -81,9 +81,13 @@ noteSuite =
     test "transpose down" do
       assertParses  "Transpose -12 Line Note qn C 2 100, Note qn D 2 100, Rest qn"
     test "tempo up" do
-      assertParses  "Tempo 3 Line Note qn C 2 100, Note qn D 2 100, Rest qn" 
+      assertParses  "Tempo 3 Line Note qn C 2 100, Note qn D 2 100, Rest qn"
     test "tempo down" do
       assertParses  "Tempo 1/2 Line Note qn C 1 100, Note qn D 1 100, Rest qn"
+    test "loudness up" do
+      assertParses  "PhraseAtts Loudness 2 Line Note qn C 1 100, Note qn D 1 100, Rest qn"
+    test "loudness down" do
+      assertParses  "PhraseAtts Loudness 1/4 Line Note qn C 1 100, Note qn D 1 100, Rest qn"
 
 complexVoicesSource :: String
 complexVoicesSource =

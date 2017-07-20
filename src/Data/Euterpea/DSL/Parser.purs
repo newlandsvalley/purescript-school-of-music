@@ -12,7 +12,7 @@ import Data.String as S
 import Data.Bifunctor (bimap)
 import Data.Int (fromString)
 import Data.Either (Either(..))
-import Data.List (singleton)
+import Data.List (List, singleton)
 import Data.List.NonEmpty as Nel
 import Data.Map (Map, empty, fromFoldable, lookup, union) as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
@@ -24,7 +24,8 @@ import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try, fail)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces)
 import Text.Parsing.StringParser.Combinators (choice, many1, optionMaybe, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
-import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..), NoteAttribute(..), Control(..)) as Eut
+import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..),
+       NoteAttribute(..), PhraseAttribute(..), Dynamic(..), Control(..)) as Eut
 import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
 import Data.Euterpea.Instrument (InstrumentName, read)
 import Data.Euterpea.Notes as Eutn
@@ -109,6 +110,7 @@ control bnds =
         instrumentName bnds
       , transpose bnds
       , tempo bnds
+      , phraseAttributes bnds
       ]
 
 instrumentName :: BindingMap -> Parser Eut1.Music1
@@ -122,6 +124,19 @@ transpose bnds =
 tempo :: BindingMap -> Parser Eut1.Music1
 tempo bnds =
   fix \unit -> buildTempo <$> keyWord "Tempo" <*> (try fraction <|> vulgar) <*> (music bnds)
+
+phraseAttributes :: BindingMap -> Parser Eut1.Music1
+phraseAttributes bnds =
+  fix \unit -> buildPhrase <$> keyWord "PhraseAtts" <*> (many1 phraseAttribute) <*> (music bnds)
+
+phraseAttribute :: Parser Eut.PhraseAttribute
+phraseAttribute =
+  loudness
+  -- more to follow
+
+loudness :: Parser Eut.PhraseAttribute
+loudness =
+  fix \unit -> buildLoudness <$> keyWord "Loudness" <*> (try fraction <|> vulgar)
 
 instrument :: Parser InstrumentName
 instrument =
@@ -471,6 +486,14 @@ buildTranspose _ pitchShift mus =
 buildTempo :: String -> Rational -> Eut1.Music1 -> Eut1.Music1
 buildTempo _ tmp mus =
   Eut.Modify (Eut.Tempo tmp) mus
+
+buildPhrase :: String -> List Eut.PhraseAttribute -> Eut1.Music1 -> Eut1.Music1
+buildPhrase _ phraseAtts mus =
+  Eut.Modify (Eut.Phrase phraseAtts) mus
+
+buildLoudness :: String -> Rational -> Eut.PhraseAttribute
+buildLoudness _ ld =
+  Eut.Dyn (Eut.Loudness ld)
 
 buildSignedInt :: Maybe String -> Int -> Int
 buildSignedInt sign val =
