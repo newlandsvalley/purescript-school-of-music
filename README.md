@@ -108,9 +108,13 @@ Design Questions
 
 What features would make the DSL pleasant and convenient to use?
 
-## Soundfonts
+### Soundfonts
 
 What options should we give the user for (re-)loading soundfonts?
+
+### Volume
+
+How should we describe the volume of a note?  At the moment, each note volume is set explcitly, which is tedious.  I am inclined to leave it out of the description of a  note in the DSL and default to some sensible value (say 100 or 127).  And then apply loudness phrase attributes if we wish to vary it.  Dynamic markings of PP to FF might be very useful here.
 
 To Do
 -----
@@ -136,6 +140,6 @@ Questions on the HSoM Implementation
 ------------------------------------
 
 
-There seem to be various problems surrounding volume in MEvent.  Perhaps it is because I am using only a MIDI backend which has a maximum volume setting of 7F (127).  Firstly, crescendos seem to __start__ at this volume level, although diminuendos are OK.  Secondly, the Loudness implementation seems correctly to set the volume in the context and then ignore it, taking the volume only of the original note.
+There seem to be various problems surrounding volume in MEvent.  Perhaps it is because I am using only a MIDI backend which has a maximum volume setting of 7F (127).  Firstly, crescendos seem to __start__ at this volume level, although diminuendos are OK.  Secondly, the Loudness implementation seems correctly to set the volume in the context but then to ignore it, taking the volume only of the original note.
 
 
