@@ -309,6 +309,9 @@ view state =
           label ! labelAlignmentStyle $ do
               text  "frere Jacques:"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example7) $ text "example 7"
+          label ! labelAlignmentStyle $ do
+              text  "loudness:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example8) $ text "example 8"
 
 
         div ! leftPanelComponentStyle $ do
@@ -342,7 +345,7 @@ example3 =
   " In \r\n" <>
   "   Par \r\n" <>
   "     Instrument acoustic_bass ( Transpose -12 ( Seq ln1 ln1 ln1 ln1 )) \r\n" <>
-  "     Instrument vibraphone ( Tempo 1/2 Seq ln1 ln1 )"
+  "     Instrument vibraphone ( Tempo 1/2 ( Seq ln1 ln1 ))"
 
 example4 :: String
 example4 =
@@ -397,3 +400,14 @@ example7 =
   "     Instrument acoustic_bass ( Transpose -12 ( Seq ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 )) \r\n" <>
   "     Instrument vibraphone ( Seq rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 )\r\n" <>
   "     Seq rest rest rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 "
+
+example8 :: String
+example8 =
+  "Let \r\n" <>
+  "  ln1 = Instrument acoustic_bass (Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100 ) \r\n" <>
+  "In \r\n" <>
+  "  Seq \r\n" <>
+  "    PhraseAtts Loudness 120 ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts Loudness 90 ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts Loudness 60 ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts Loudness 30 ( Seq ln1 ) \r\n"

@@ -35,13 +35,15 @@ PSoM melodies are presented to the browser using a DSL with the following syntax
     
     binding = identifier '=' music
 
-    music = voices | lines | line | chord | prim | control music
+    music = voices | lines | line | chord | prim | control "(" music ")"
 
     voices = 'Par' musicProcedure, { musicProcedure }
 
-    lines = 'Seq' 'lineOrVariable, { lineOrVariable }
+    lines = 'Seq' seqOptions, { lineOrVariable }
 
     line = 'Line' chordorprim, { chordorprim }
+    
+    seqOptions = line | variable | control
 
     chordorprim = chord | prim
 
@@ -109,9 +111,7 @@ What options should we give the user for (re-)loading soundfonts?
 To Do
 -----
 
-*  Allow Seq to include control sections as children
 *  Allow variable definitions to refer to other variables defined earlier in the same scope
-*  Fix interpretation of loudness settings
 *  Add the dynamic markings to the DSL - Accent, Crescendo, Diminuendo, StdLoudness
 *  Add the Ritardando and Accelerando tempo markings to the DSL
 *  Add Staccato, Legato and Slurred articulations to the DSL
