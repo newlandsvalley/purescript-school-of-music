@@ -49,7 +49,7 @@ noteSuite :: forall t. Free (TestF t) Unit
 noteSuite =
   suite "notes" do
     test "note" do
-      assertMusic  "Note qn C 1 100" cq
+      assertMusic  "Note qn C 1 100" (cq 100)
     test "rest" do
       assertMusic  "Rest qn" rq
     test "line" do
@@ -86,8 +86,8 @@ noteSuite =
       assertParses  "Tempo 1/2 Line Note qn C 1 100, Note qn D 1 100, Rest qn"
     test "loudness up" do
       assertParses  "PhraseAtts Loudness 2 Line Note qn C 1 100, Note qn D 1 100, Rest qn"
-    test "loudness down" do
-      assertParses  "PhraseAtts Loudness 1/4 Line Note qn C 1 100, Note qn D 1 100, Rest qn"
+    --test "loudness down" do
+    --  assertMusic  "PhraseAtts Loudness 1/4 Line Note qn C 1 100, Note qn D 1 100, Rest qn" line
 
 complexVoicesSource :: String
 complexVoicesSource =
@@ -127,27 +127,30 @@ roundSource =
 
 
 
-cq :: Music1
-cq = Prim (Note (1 % 4) (Note1 (Pitch C 1) ((Volume 100) : Nil)))
+cq :: Volume -> Music1
+cq v = Prim (Note (1 % 4) (Note1 (Pitch C 1) ((Volume v) : Nil)))
 
-dq :: Music1
-dq = Prim (Note (1 % 4) (Note1 (Pitch D 1) ((Volume 100) : Nil)))
+dq :: Volume -> Music1
+dq v = Prim (Note (1 % 4) (Note1 (Pitch D 1) ((Volume v) : Nil)))
 
 rq :: Music1
 rq = Prim (Rest (1 % 4))
 
 line :: Music1
-line = Seq cq (Seq dq rq)
+line = lineAtVol 100
+
+lineAtVol :: Volume -> Music1
+lineAtVol v = Seq (cq v) (Seq (dq v) rq)
 
 lineWithChord :: Music1
-lineWithChord = Seq cq (Seq dq (Seq chord rq))
+lineWithChord = Seq (cq 100) (Seq (dq 100) (Seq chord rq))
 
 lines :: Music1
 lines =
   Seq line line
 
 chord :: Music1
-chord = Par cq dq
+chord = Par (cq 100) (dq 100)
 
 violin :: Music1 -> Music1
 violin = Modify (Instrument Violin)

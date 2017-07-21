@@ -19,6 +19,7 @@ import Data.Generic.Rep.Eq as GEq
 import Data.Generic.Rep.Ord as GOrd
 import Data.Generic.Rep.Show as GShow
 
+
 type PTime = Rational
 type DurT = Rational
 
@@ -82,7 +83,8 @@ perform1 :: Music1 -> Performance
 perform1 = fst <<< perform1Dur
 
 perform1Dur :: Music1 -> Tuple Performance DurT
-perform1Dur = (musicToMEvents defCon) <<< applyControls where
+perform1Dur =
+  (musicToMEvents defCon) <<< applyControls where
     defCon  = MContext {mcTime : zero, mcInst : AcousticGrandPiano, mcDur : metro 120 qn, mcVol:127}
     -- timing musicToMEventss
     metro :: Int -> Dur -> DurT
@@ -100,24 +102,43 @@ merge a@(e1:es1)  b@(e2:es2)  =
 
 musicToMEvents :: MContext -> Music1 -> Tuple Performance DurT
 musicToMEvents c@(MContext {mcTime:t, mcDur:dt}) (Prim (Note d p)) =
-    Tuple (singleton (noteToMEvent c d p)) (d*dt)
+  Tuple (singleton (noteToMEvent c d p)) (d*dt)
 musicToMEvents (c@MContext {mcTime:t, mcDur:dt}) (Prim (Rest d)) =
-    Tuple Nil (d*dt)
+  Tuple Nil (d*dt)
 musicToMEvents (MContext c) (m1 :+: m2) =
     let t = c.mcTime
         Tuple evs1 d1 = musicToMEvents (MContext c) m1
         Tuple evs2 d2 = musicToMEvents (MContext (c {mcTime = t+d1 })) m2
-    in  Tuple (evs1 <> evs2) (d1+d2)
+    in
+      Tuple (evs1 <> evs2) (d1+d2)
 musicToMEvents c (m1 :=: m2) =
     let Tuple evs1 d1 = musicToMEvents c m1
         Tuple evs2 d2 = musicToMEvents c m2
-    in  Tuple (merge evs1 evs2) (rMax d1 d2)
-musicToMEvents (MContext c) (Modify (Instrument i) m) = musicToMEvents (MContext (c { mcInst=i })) m
-musicToMEvents c (Modify (Phrase pas) m) = phraseToMEvents c pas m
-musicToMEvents c (Modify (KeySig x y) m) = musicToMEvents c m            -- KeySig causes no change
-musicToMEvents c (Modify (Custom x) m) = musicToMEvents c m              -- Custom causes no change
-musicToMEvents c m@(Modify x m') = musicToMEvents c $ applyControls m    -- Transpose and Tempo addressed by applyControls
+    in
+      Tuple (merge evs1 evs2) (rMax d1 d2)
+musicToMEvents (MContext c) (Modify (Instrument i) m) =
+   musicToMEvents (MContext (c { mcInst=i })) m
+musicToMEvents c (Modify (Phrase pas) m) =
+   phraseToMEvents c pas m
+musicToMEvents c (Modify (KeySig x y) m) =
+  musicToMEvents c m            -- KeySig causes no change
+musicToMEvents c (Modify (Custom x) m) =
+  musicToMEvents c m              -- Custom causes no change
+musicToMEvents c m@(Modify x m') =
+  musicToMEvents c $ applyControls m    -- Transpose and Tempo addressed by applyControls
 
+-- | I don't yet understand the original HSoM noteToMEvent shown here
+-- | this function sets MEvent charactersitics from the note pitch
+-- | together with the current context.  (The context has been set, for example,
+-- | by applying the phrase attributes).  However, when it comes to volume
+-- | it just ignores the context volumne and replaces it with the context from
+-- | the note itself
+-- | perhaps it would be better if modifying the volume Phrase Attribute provided
+-- | a multiplier for the note volume and not simply a replacement
+-- | I need to review the original Euterpea documentation
+
+
+{-  Original HS0M implementation
 noteToMEvent :: MContext -> Dur ->  Note1 -> MEvent
 noteToMEvent (MContext { mcTime:ct, mcInst:ci, mcDur:cdur, mcVol:cvol }) d (Note1 p nas) =
   let
@@ -130,6 +151,11 @@ noteToMEvent (MContext { mcTime:ct, mcInst:ci, mcDur:cdur, mcVol:cvol }) d (Note
       nasFun (Params pms) (MEvent ev) =
         MEvent (ev {eParams = pms})
       nasFun _ ev = ev
+-}
+
+noteToMEvent :: MContext -> Dur ->  Note1 -> MEvent
+noteToMEvent (MContext { mcTime:ct, mcInst:ci, mcDur:cdur, mcVol:cvol }) d (Note1 p nas) =
+  MEvent {eTime:ct, ePitch:absPitch p, eInst:ci, eDur:d*cdur, eVol:cvol, eParams:Nil }
 
 applyControls :: Music1 -> Music1
 applyControls (Modify (Tempo r) m) = scaleDurations r (applyControls m)
@@ -139,11 +165,6 @@ applyControls (m1 :+: m2) = applyControls m1 :+: applyControls m2
 applyControls (m1 :=: m2) = applyControls m1 :=: applyControls m2
 applyControls x = x
 
--- | Stub
-{-}
-musicToMEvents :: MContext -> Music1 -> Tuple Performance DurT
-musicToMEvents c m = Tuple Nil (fromInt 0)
--}
 
 
 -- | This is an horrendous function!

@@ -19,7 +19,8 @@
     "purescript-integers": "^3.0.0",
     "purescript-math": "^2.0.0",
     "purescript-unicode": "^3.0.1",
-    "purescript-string-parsers": "^3.0.1"
+    "purescript-string-parsers": "^3.0.1",
+    "purescript-debug": "^3.0.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0",

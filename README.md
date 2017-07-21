@@ -63,7 +63,8 @@ PSoM melodies are presented to the browser using a DSL with the following syntax
 
     octave = int
 
-    control = 'Instrument' instrumentName | 'Transpose' int | 'Tempo' (fraction | int) | 'PhraseAtts' phraseAttributes
+    control = 'Instrument' instrumentName | 'Transpose' int | 'Tempo' (fraction | int) 
+                | 'PhraseAtts' phraseAttributes
 
     instrumentName = 'violin' | 'viola' ....
 ```
@@ -108,6 +109,9 @@ What options should we give the user for (re-)loading soundfonts?
 To Do
 -----
 
+*  Allow Seq to include control sections as children
+*  Allow variable definitions to refer to other variables defined earlier in the same scope
+*  Fix interpretation of loudness settings
 *  Add the dynamic markings to the DSL - Accent, Crescendo, Diminuendo, StdLoudness
 *  Add the Ritardando and Accelerando tempo markings to the DSL
 *  Add Staccato, Legato and Slurred articulations to the DSL
