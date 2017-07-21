@@ -22,7 +22,7 @@ import Data.Foldable (class Foldable)
 import Data.Rational (Rational, fromInt, rational)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try, fail)
 import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces)
-import Text.Parsing.StringParser.Combinators (choice, many1, optionMaybe, (<?>))
+import Text.Parsing.StringParser.Combinators (between, choice, many1, optionMaybe, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..),
        NoteAttribute(..), PhraseAttribute(..), Dynamic(..), Control(..)) as Eut
@@ -84,6 +84,10 @@ music bnds =
       ]
     ) <?> "music"
 
+bracketedMusic :: BindingMap -> Parser Eut1.Music1
+bracketedMusic bnds =
+  between (string "(" <* skipSpaces) (string ")" <* skipSpaces) (music bnds)
+
 voices :: BindingMap -> Parser Eut1.Music1
 voices bnds =
   fix \unit ->
@@ -113,7 +117,7 @@ control bnds =
         , tempo
         , phraseAttributes
         ]
-      )  <*> (music bnds)
+      )  <*> (bracketedMusic bnds)
 
 instrumentName :: Parser Eut.Control
 instrumentName =
@@ -148,8 +152,8 @@ instrument =
 
 lines :: BindingMap ->  Parser Eut1.Music1
 lines bnds =
-  -- Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (lineOrVariableOrControl bnds))
-  Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (lineOrVariable bnds))
+  Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (lineOrVariableOrControl bnds))
+  -- Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (lineOrVariable bnds))
 
 -- | perhaps ditch this in favour of the next one?
 lineOrVariable :: BindingMap -> Parser Eut1.Music1

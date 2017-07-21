@@ -71,21 +71,21 @@ noteSuite =
     test "instruments" do
       assertMusic instrumentsSource instruments
     test "set marimba" do
-      assertParses "Instrument marimba Note qn C 1 100"
+      assertParses "Instrument marimba ( Note qn C 1 100 )"
     test "set acoustic_grand_piano" do
-      assertParses "Instrument acoustic_grand_piano Note qn C 1 100"
+      assertParses "Instrument acoustic_grand_piano ( Note qn C 1 100 )"
     test "set unknown instrument" do
-      assertFails "Instrument foobar Note qn C 1 100" "instrument: foobar not known"
+      assertFails "Instrument foobar ( Note qn C 1 100 )" "instrument: foobar not known"
     test "transpose up" do
-      assertParses  "Transpose 12 Line Note qn C 1 100, Note qn D 1 100, Rest qn"
+      assertParses  "Transpose 12 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
     test "transpose down" do
-      assertParses  "Transpose -12 Line Note qn C 2 100, Note qn D 2 100, Rest qn"
+      assertParses  "Transpose -12 ( Line Note qn C 2 100, Note qn D 2 100, Rest qn )"
     test "tempo up" do
-      assertParses  "Tempo 3 Line Note qn C 2 100, Note qn D 2 100, Rest qn"
+      assertParses  "Tempo 3 ( Line Note qn C 2 100, Note qn D 2 100, Rest qn )"
     test "tempo down" do
-      assertParses  "Tempo 1/2 Line Note qn C 1 100, Note qn D 1 100, Rest qn"
+      assertParses  "Tempo 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
     test "loudness up" do
-      assertParses  "PhraseAtts Loudness 2 Line Note qn C 1 100, Note qn D 1 100, Rest qn"
+      assertParses  "PhraseAtts Loudness 2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
     --test "loudness down" do
     --  assertMusic  "PhraseAtts Loudness 1/4 Line Note qn C 1 100, Note qn D 1 100, Rest qn" line
 
@@ -103,9 +103,9 @@ instrumentsSource :: String
 instrumentsSource =
    "Par " <>
      "Instrument violin " <>
-       "Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
+       "( Line Note qn C 1 100, Note qn D 1 100, Rest qn )" <>
      "Instrument viola " <>
-       "Line Note qn C 1 100, Note qn D 1 100, Rest qn"
+       "( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
 
 repeatsSource :: String
 repeatsSource =

@@ -341,8 +341,8 @@ example3 =
   "  ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100  \r\n" <>
   " In \r\n" <>
   "   Par \r\n" <>
-  "     Instrument acoustic_bass Transpose -12 Seq ln1 ln1 ln1 ln1 \r\n" <>
-  "     Instrument vibraphone Tempo 1/2 Seq ln1 ln1"
+  "     Instrument acoustic_bass ( Transpose -12 ( Seq ln1 ln1 ln1 ln1 )) \r\n" <>
+  "     Instrument vibraphone ( Tempo 1/2 Seq ln1 ln1 )"
 
 example4 :: String
 example4 =
@@ -376,7 +376,7 @@ example5 =
   "    end2 = \r\n" <>
   "     Line Note qn Bf 4 100, Note qn G 4 100 \r\n" <>
   "  In \r\n" <>
-  "    Instrument vibraphone Seq v2 end1 v2 end2 v2 end1 v2 end2"
+  "    Instrument vibraphone ( Seq v2 end1 v2 end2 v2 end1 v2 end2 )"
 
 
 example6 :: String
@@ -394,6 +394,6 @@ example7 =
   "    rest = Line Rest wn \r\n" <>
   "In \r\n" <>
   "  Par \r\n" <>
-  "     Instrument acoustic_bass Transpose -12 Seq ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 \r\n" <>
-  "     Instrument vibraphone Seq rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 \r\n" <>
+  "     Instrument acoustic_bass ( Transpose -12 ( Seq ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 )) \r\n" <>
+  "     Instrument vibraphone ( Seq rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 )\r\n" <>
   "     Seq rest rest rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 "
