@@ -419,8 +419,8 @@ example8 =
 example9 :: String
 example9 =
   "Let \r\n" <>
-  "  ln1 = Instrument acoustic_bass (Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100, " <>
-  "          Note qn A 3 100, Note qn AB3 100, Note qn C 4 100, Note qn D 4 100  ) \r\n" <>
+  "  ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn C 4 100, " <>
+  "  Note qn D 4 100, Note qn E 4 100, Note qn Fs 4 100, Note qn G 4 100  \r\n" <>
   "In \r\n" <>
   "  Seq \r\n" <>
-  "    PhraseAtts Diminuendo 1/2 ( Seq ln1 ) \r\n"
+  "    PhraseAtts Diminuendo 7/8 ( Seq ln1 ) \r\n"

@@ -130,3 +130,12 @@ The following control mechanisms are unimplemented because they also have not be
 *  KeySig
 *  Ornamentation
 *  Articulation other than Staccato, Legato and Slurred
+  
+
+Questions on the HSoM Implementation
+------------------------------------
+
+
+There seem to be various problems surrounding volume in MEvent.  Perhaps it is because I am using only a MIDI backend which has a maximum volume setting of 7F (127).  Firstly, crescendos seem to __start__ at this volume level, although diminuendos are OK.  Secondly, the Loudness implementation seems correctly to set the volume in the context and then ignore it, taking the volume only of the original note.
+
+
