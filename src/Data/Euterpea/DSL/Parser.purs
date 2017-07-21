@@ -12,7 +12,7 @@ import Data.String as S
 import Data.Bifunctor (bimap)
 import Data.Int (fromString)
 import Data.Either (Either(..))
-import Data.List (List, singleton)
+import Data.List (singleton)
 import Data.List.NonEmpty as Nel
 import Data.Map (Map, empty, fromFoldable, lookup, union) as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
@@ -105,29 +105,31 @@ variable bnds =
 control :: BindingMap -> Parser Eut1.Music1
 control bnds =
   fix \unit ->
-    choice
-      [
-        instrumentName bnds
-      , transpose bnds
-      , tempo bnds
-      , phraseAttributes bnds
-      ]
+    Eut.Modify <$>
+      (choice
+        [
+          instrumentName
+        , transpose
+        , tempo
+        , phraseAttributes
+        ]
+      )  <*> (music bnds)
 
-instrumentName :: BindingMap -> Parser Eut1.Music1
-instrumentName bnds =
-  fix \unit -> buildInstrument <$> keyWord "Instrument" <*> instrument <*> (music bnds)
+instrumentName :: Parser Eut.Control
+instrumentName =
+  Eut.Instrument <$> (keyWord "Instrument" *> instrument)
 
-transpose :: BindingMap -> Parser Eut1.Music1
-transpose bnds =
-  fix \unit -> buildTranspose <$> keyWord "Transpose" <*> signedInt <*> (music bnds)
+transpose :: Parser Eut.Control
+transpose =
+  Eut.Transpose <$> (keyWord "Transpose" *> signedInt)
 
-tempo :: BindingMap -> Parser Eut1.Music1
-tempo bnds =
-  fix \unit -> buildTempo <$> keyWord "Tempo" <*> (try fraction <|> vulgar) <*> (music bnds)
+tempo :: Parser Eut.Control
+tempo =
+  Eut.Tempo <$> (keyWord "Tempo" *> (try fraction <|> vulgar))
 
-phraseAttributes :: BindingMap -> Parser Eut1.Music1
-phraseAttributes bnds =
-  fix \unit -> buildPhrase <$> keyWord "PhraseAtts" <*> (many1 phraseAttribute) <*> (music bnds)
+phraseAttributes :: Parser Eut.Control
+phraseAttributes =
+  Eut.Phrase <$> (keyWord "PhraseAtts" *> (many1 phraseAttribute))
 
 phraseAttribute :: Parser Eut.PhraseAttribute
 phraseAttribute =
@@ -146,9 +148,8 @@ instrument =
 
 lines :: BindingMap ->  Parser Eut1.Music1
 lines bnds =
-  -- Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (music bnds))
-  Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (lineOrVariableOrControl bnds))
-  --Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (lineOrVariable bnds))
+  -- Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (lineOrVariableOrControl bnds))
+  Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (lineOrVariable bnds))
 
 -- | perhaps ditch this in favour of the next one?
 lineOrVariable :: BindingMap -> Parser Eut1.Music1
@@ -481,22 +482,6 @@ buildVoices _ vs =
 buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
 buildNote1 _ dur p vol =
   Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume vol)
-
-buildInstrument :: String -> InstrumentName -> Eut1.Music1 -> Eut1.Music1
-buildInstrument _ inst mus =
-  Eut.Modify (Eut.Instrument inst) mus
-
-buildTranspose :: String -> Int -> Eut1.Music1 -> Eut1.Music1
-buildTranspose _ pitchShift mus =
-  Eut.Modify (Eut.Transpose pitchShift) mus
-
-buildTempo :: String -> Rational -> Eut1.Music1 -> Eut1.Music1
-buildTempo _ tmp mus =
-  Eut.Modify (Eut.Tempo tmp) mus
-
-buildPhrase :: String -> List Eut.PhraseAttribute -> Eut1.Music1 -> Eut1.Music1
-buildPhrase _ phraseAtts mus =
-  Eut.Modify (Eut.Phrase phraseAtts) mus
 
 buildLoudness :: String -> Rational -> Eut.PhraseAttribute
 buildLoudness _ ld =
