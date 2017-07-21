@@ -3,18 +3,20 @@ Purescript School of Music (PSoM)
 
 WORK IN PROGRESS
 
+
+Try it out [here](http://www.tradtunedb.org.uk:8600/).
+
 This is another attempt at porting the music notation part of the [Haskell School of Music](https://github.com/Euterpea/Euterpea2) (HSoM) to the browser. It follows an [abortive attempt in Elm](https://github.com/danigb/elm-school-of-music) in conjunction with danigb.  This failed largely because of the lack of type classes in Elm but also because of the time delays inherent in Elm's port system when requesting that a sound should actually be played.
 
-It consists of a PSoM library, ported from HSoM, together with an editor that runs in the browser. This allows you to enter melodies using a DSL which attempts to be a simple interface to the PSoM API.
+It consists of a PSoM library (ported from HSoM) together with an editor that runs in the browser. This allows you to enter melodies using a DSL which attempts to be a simple interface to the PSoM API.
 
-You can try it out [here](http://www.tradtunedb.org.uk:8600/).
 
 Current State of Progress
 -------------------------
 
 The editor is built using polyphonic soundfonts which must be pre-loaded for selected instruments before anything plays.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. 
 
-The following control mechanisms have been implemented in the DSL - setting the instrument, transposition and changing tempo. 
+The following control mechanisms have been implemented in the DSL - set the instrument, transpose, set the tempo and some of the change volume instructions. 
 
 Supported Instruments
 ---------------------
@@ -65,6 +67,7 @@ PSoM melodies are presented to the browser using a DSL with the following syntax
 
     octave = int
 
+The DSL is very experimental and likely to change.  
     control = 'Instrument' instrumentName | 'Transpose' int | 'Tempo' (fraction | int) 
                 | 'PhraseAtts' phraseAttributes
 
@@ -85,11 +88,10 @@ where phrase attributes are:
 
 All keywords start with an upper-case letter.  Variables (which represent a repeatable section of music) start with a lower-case letter.
 
+
+The DSL attempts to give a convenient representation for lines of music and chords, whilst still retaining the ability to control whole phrases (however built). It is very experimental and likely to change.  
+
 See the DSL tests for example usage.
-
-This attempts to give a convenient representation for lines of music and chords, whilst still retaining the ability to control whole phrases (however built). If this works out, we can then build in the further control mechanisms that are supported by the API.
-
-The DSL is very experimental and likely to change.  
 
 Back End
 --------
@@ -114,7 +116,7 @@ What options should we give the user for (re-)loading soundfonts?
 
 ### Volume
 
-How should we describe the volume of a note?  At the moment, each note volume is set explcitly, which is tedious.  I am inclined to leave it out of the description of a  note in the DSL and default to some sensible value (say 100 or 127).  And then apply loudness phrase attributes if we wish to vary it.  Dynamic markings of PP to FF might be very useful here.
+How should we describe the volume of a note?  At the moment, each note volume is set explicitly, which is tedious.  I am inclined to leave it out of the description of a  note in the DSL and default to some sensible value (say 100 or 127).  And then apply loudness phrase attributes if we wish to vary it.  Dynamic markings of PP to FF might be very useful here.
 
 To Do
 -----
@@ -140,6 +142,6 @@ Questions on the HSoM Implementation
 ------------------------------------
 
 
-There seem to be various problems surrounding volume in MEvent.  Perhaps it is because I am using only a MIDI backend which has a maximum volume setting of 7F (127).  Firstly, crescendos seem to __start__ at this volume level, although diminuendos are OK.  Secondly, the Loudness implementation seems correctly to set the volume in the context but then to ignore it, taking the volume only of the original note.
+There seem to be various problems surrounding volume in MEvent.  Perhaps it is because I am using only a MIDI backend which has a maximum volume setting of 7F (127).  Firstly, crescendos seem to _start_ at this volume level, although diminuendos are OK.  Secondly, the Loudness implementation seems correctly to set the volume in the context but then to ignore it, taking the volume only of the original note.
 
 
