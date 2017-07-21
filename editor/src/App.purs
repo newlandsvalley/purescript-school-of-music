@@ -312,6 +312,9 @@ view state =
           label ! labelAlignmentStyle $ do
               text  "loudness:"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example8) $ text "example 8"
+          label ! labelAlignmentStyle $ do
+              text  "diminuendo:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example9) $ text "example 9"
 
 
         div ! leftPanelComponentStyle $ do
@@ -411,3 +414,13 @@ example8 =
   "    PhraseAtts Loudness 90 ( Seq ln1 ) \r\n" <>
   "    PhraseAtts Loudness 60 ( Seq ln1 ) \r\n" <>
   "    PhraseAtts Loudness 30 ( Seq ln1 ) \r\n"
+
+
+example9 :: String
+example9 =
+  "Let \r\n" <>
+  "  ln1 = Instrument acoustic_bass (Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100, " <>
+  "          Note qn A 3 100, Note qn AB3 100, Note qn C 4 100, Note qn D 4 100  ) \r\n" <>
+  "In \r\n" <>
+  "  Seq \r\n" <>
+  "    PhraseAtts Diminuendo 1/2 ( Seq ln1 ) \r\n"

@@ -18,6 +18,7 @@ import Data.Map (Map, empty, fromFoldable, lookup, union) as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.Array (fromFoldable)
 import Data.Tuple (Tuple(..))
+import Data.Ring (negate) as Ring
 import Data.Foldable (class Foldable)
 import Data.Rational (Rational, fromInt, rational)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try, fail)
@@ -137,12 +138,24 @@ phraseAttributes =
 
 phraseAttribute :: Parser Eut.PhraseAttribute
 phraseAttribute =
-  loudness
-  -- more to follow
+  choice
+    [ loudness
+    , crescendo
+    , diminuendo
+    ]
+    -- more to follow
 
 loudness :: Parser Eut.PhraseAttribute
 loudness =
-  fix \unit -> buildLoudness <$> keyWord "Loudness" <*> (try fraction <|> vulgar)
+  Eut.Dyn <$> Eut.Loudness <$> (keyWord "Loudness" *> (try fraction <|> vulgar))
+
+crescendo :: Parser Eut.PhraseAttribute
+crescendo =
+  Eut.Dyn <$> Eut.Crescendo <$> (keyWord "Crescendo" *> (try fraction <|> vulgar))
+
+diminuendo :: Parser Eut.PhraseAttribute
+diminuendo =
+  Eut.Dyn <$> Eut.Diminuendo <$> (keyWord "Diminuendo" *> (try fraction <|> vulgar))
 
 instrument :: Parser InstrumentName
 instrument =
@@ -443,6 +456,10 @@ anyInt :: Parser String
 anyInt =
   regex "0|[1-9][0-9]*"
 
+negate :: Parser Rational -> Parser Rational
+negate r =
+  Ring.negate <$> r
+
 fraction :: Parser Rational
 fraction =
   rational <$> int <* char '/' <*> int <* skipSpaces
@@ -486,10 +503,6 @@ buildVoices _ vs =
 buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
 buildNote1 _ dur p vol =
   Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume vol)
-
-buildLoudness :: String -> Rational -> Eut.PhraseAttribute
-buildLoudness _ ld =
-  Eut.Dyn (Eut.Loudness ld)
 
 buildSignedInt :: Maybe String -> Int -> Int
 buildSignedInt sign val =

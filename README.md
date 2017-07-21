@@ -76,7 +76,11 @@ where phrase attributes are:
 ```
    phraseAttributes = phraseAttribute, ( phraseAttribute }
    
-   phraseAttribute = 'Loudness' ( fraction | int ) |  ... more to follow
+   phraseAttribute =   'Loudness' ( fraction | int ) 
+                     | 'Crescendo' ( fraction | int ) 
+                     | 'Diminuendo' ( fraction | int ) 
+                     |  more to follow
+                     
 ```
 
 All keywords start with an upper-case letter.  Variables (which represent a repeatable section of music) start with a lower-case letter.
@@ -112,7 +116,7 @@ To Do
 -----
 
 *  Allow variable definitions to refer to other variables defined earlier in the same scope
-*  Add the dynamic markings to the DSL - Accent, Crescendo, Diminuendo, StdLoudness
+*  Add the other dynamic markings to the DSL - Accent, StdLoudness
 *  Add the Ritardando and Accelerando tempo markings to the DSL
 *  Add Staccato, Legato and Slurred articulations to the DSL
 *  Load and save scores

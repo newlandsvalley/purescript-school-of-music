@@ -131,7 +131,7 @@ musicToMEvents c m@(Modify x m') =
 -- | this function sets MEvent charactersitics from the note pitch
 -- | together with the current context.  (The context has been set, for example,
 -- | by applying the phrase attributes).  However, when it comes to volume
--- | it just ignores the context volumne and replaces it with the context from
+-- | it just ignores the context volume and replaces it with the context from
 -- | the note itself
 -- | perhaps it would be better if modifying the volume Phrase Attribute provided
 -- | a multiplier for the note volume and not simply a replacement

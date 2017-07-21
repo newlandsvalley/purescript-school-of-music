@@ -37,10 +37,24 @@ dynamicsSuite =
       assertPerformance  "PhraseAtts Loudness 50 ( Line Note qn C 1 100 )" loudness50
     -- test "voices" do
     --    assertPerformance  voicesSource Nil
+    -- crescendo seems to start to loud at max MIDI velocity in HSoM !
+    -- test "crescendo" do
+    --  assertPerformance  "PhraseAtts Crescendo 1/2 ( Line Note qn C 1 50, Note qn C 1 50, Note qn C 1 50)" loudness50
+    test "diminuendo" do
+        assertPerformance  "PhraseAtts Diminuendo 1/2 ( Line Note qn C 1 50, Note qn C 1 50, Note qn C 1 50)" diminuendoResult
+
 
 loudness50  :: Performance
 loudness50 =
   ((MEvent { eDur: 1 % 2, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 0 % 1, eVol: 50 }) : Nil)
+
+diminuendoResult :: Performance
+diminuendoResult =
+  ((MEvent { eDur: 1 % 2, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 0 % 1, eVol: 127 }) :
+   (MEvent { eDur: 1 % 2, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 1 % 2, eVol: 106 }) :
+   (MEvent { eDur: 1 % 2, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 1 % 1, eVol: 85 }) :
+   Nil)
+
 
 voicesSource :: String
 voicesSource =
