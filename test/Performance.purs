@@ -52,6 +52,12 @@ dynamicsSuite =
         assertPerformance  "PhraseAtts Ritardando 1/2 ( Line Note qn C 1 50, Note qn C 1 50, Note qn C 1 50)" ritardandoResult
     test "accelerando" do
         assertPerformance  "PhraseAtts Accelerando 1/2 ( Line Note qn C 1 50, Note qn C 1 50, Note qn C 1 50)" accelerandoResult
+    test "staccato" do
+        assertPerformance  "PhraseAtts Staccato 1/2 ( Line Note qn C 1 50, Note qn C 1 50, Note qn C 1 50)" staccatoResult
+    test "legato" do
+        assertPerformance  "PhraseAtts Legato 5/4 ( Line Note qn C 1 50, Note qn C 1 50, Note qn C 1 50)" legatoResult
+    test "slurred" do
+        assertPerformance  "PhraseAtts Slurred 5/4 ( Line Note qn C 1 50, Note qn C 1 50, Note qn C 1 50)" slurredResult
 
 
 loudness  :: Int -> Performance
@@ -73,11 +79,32 @@ ritardandoResult =
    Nil)
 
 accelerandoResult :: Performance
-accelerandoResult =  ((MEvent { eDur: 5 % 12, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 0 % 1, eVol: 127 }) :
+accelerandoResult =
+  ((MEvent { eDur: 5 % 12, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 0 % 1, eVol: 127 }) :
    (MEvent { eDur: 1 % 4, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 5 % 12, eVol: 127 }) :
    (MEvent { eDur: 1 % 12, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 2 % 3, eVol: 127 }) :
   Nil)
 
+staccatoResult :: Performance
+staccatoResult =
+  ((MEvent { eDur: 1 % 4, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 0 % 1, eVol: 127 }) :
+   (MEvent { eDur: 1 % 4, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 1 % 2, eVol: 127 }) :
+   (MEvent { eDur: 1 % 4, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 1 % 1, eVol: 127 }) :
+  Nil)
+
+legatoResult :: Performance
+legatoResult =
+  ((MEvent { eDur: 5 % 8, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 0 % 1, eVol: 127 }) :
+   (MEvent { eDur: 5 % 8, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 1 % 2, eVol: 127 }) :
+   (MEvent { eDur: 5 % 8, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 1 % 1, eVol: 127 }) :
+  Nil)
+
+slurredResult :: Performance
+slurredResult =
+  ((MEvent { eDur: 5 % 8, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 0 % 1, eVol: 127 }) :
+   (MEvent { eDur: 5 % 8, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 1 % 2, eVol: 127 }) :
+   (MEvent { eDur: 1 % 2, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 1 % 1, eVol: 127 }) :
+  Nil)
 
 
 voicesSource :: String

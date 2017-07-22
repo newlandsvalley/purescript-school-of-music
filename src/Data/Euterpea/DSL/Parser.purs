@@ -25,7 +25,7 @@ import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex,
 import Text.Parsing.StringParser.Combinators (between, choice, many1, optionMaybe, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..),
-       NoteAttribute(..), PhraseAttribute(..), Control(..), Tempo(..)) as Eut
+       NoteAttribute(..), PhraseAttribute(..), Control(..), Tempo(..), Articulation(..)) as Eut
 import Data.Euterpea.Dynamics (Dynamic(..), StdLoudness, read) as Dyn
 import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
 import Data.Euterpea.Instrument (InstrumentName, read)
@@ -146,12 +146,15 @@ phraseAttribute =
     , accent
     , ritardando
     , accelerando
+    , staccato
+    , legato
+    , slurred
     ]
     -- more to follow
 
 loudness :: Parser Eut.PhraseAttribute
 loudness =
-  Eut.Dyn <$> Dyn.Loudness <$> (keyWord "Loudness" *> (try fraction <|> vulgar))
+  Eut.Dyn <$> Dyn.Loudness <$> (keyWord "Loudness" *> vulgar)
 
 stdLoudness :: Parser Eut.PhraseAttribute
 stdLoudness =
@@ -176,6 +179,18 @@ ritardando =
 accelerando :: Parser Eut.PhraseAttribute
 accelerando =
   Eut.Tmp <$> Eut.Accelerando <$> (keyWord "Accelerando" *> (try fraction <|> vulgar))
+
+staccato :: Parser Eut.PhraseAttribute
+staccato =
+  Eut.Art <$> Eut.Staccato <$> (keyWord "Staccato" *> (try fraction <|> vulgar))
+
+legato :: Parser Eut.PhraseAttribute
+legato =
+  Eut.Art <$> Eut.Legato <$> (keyWord "Legato" *> (try fraction <|> vulgar))
+
+slurred :: Parser Eut.PhraseAttribute
+slurred =
+  Eut.Art <$> Eut.Slurred <$> (keyWord "Slurred" *> (try fraction <|> vulgar))
 
 instrument :: Parser InstrumentName
 instrument =

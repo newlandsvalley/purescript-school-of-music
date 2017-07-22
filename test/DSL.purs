@@ -94,6 +94,12 @@ noteSuite =
       assertParses  "PhraseAtts Ritardando 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
     test "accelerando" do
       assertParses  "PhraseAtts Accelerando 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+    test "staccato" do
+      assertParses  "PhraseAtts Staccato 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+    test "legato" do
+      assertParses  "PhraseAtts Legato 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+    test "slurred" do
+      assertParses  "PhraseAtts Slurred 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
 
 complexVoicesSource :: String
 complexVoicesSource =

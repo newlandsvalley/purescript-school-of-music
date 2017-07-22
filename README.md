@@ -16,7 +16,7 @@ Current State of Progress
 
 The editor is built using polyphonic soundfonts which must be pre-loaded for selected instruments before anything plays.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. 
 
-All control mechanisms which were fully supported by HSoM have been carried accross to the DSL - except the articulations: (Staccato, Legato, Slur).
+As far as I am aware, all features of the Music ADT which are fully supported by HSoM have been carried accross to the DSL.
 
 Supported Instruments
 ---------------------
@@ -78,14 +78,16 @@ where phrase attributes are:
 ```
    phraseAttributes = phraseAttribute, ( phraseAttribute }
    
-   phraseAttribute =   'Loudness' ( fraction | int ) 
-                     | 'StdLoudness' ( FFF | FF | ....  ) 
+   phraseAttribute =   'Loudness' int
+                     | 'StdLoudness' ( FFF | F
                      | 'Diminuendo' ( fraction | int ) 
                      | 'Crescendo' ( fraction | int ) 
                      | 'Accent' ( fraction | int ) 
                      | 'Ritardando' ( fraction | int ) 
                      | 'Accelerando' ( fraction | int ) 
-                     |  articulations to follow
+                     | 'Staccato' ( fraction | int ) 
+                     | 'Legato' ( fraction | int ) 
+                     | 'Slurred' ( fraction | int ) 
                      
 ```
 
@@ -94,7 +96,7 @@ All keywords start with an upper-case letter.  Variables (which represent a repe
 
 The DSL attempts to give a convenient representation for lines of music and chords, whilst still retaining the ability to control whole phrases (however built). It is very experimental and likely to change.  
 
-See the DSL tests for example usage.
+See the DSL tests and editor examples for example usage.
 
 Back End
 --------
@@ -125,7 +127,6 @@ To Do
 -----
 
 *  Allow variable definitions to refer to other variables defined earlier in the same scope
-*  Add Staccato, Legato and Slurred articulations to the DSL
 *  Load and save scores
 *  Don't translate to MEvent until 'play' is first pressed
 *  Add option to re-select the loaded soundfonts
