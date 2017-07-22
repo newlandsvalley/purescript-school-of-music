@@ -338,16 +338,16 @@ view state =
 
 -- | some examples
 example1 :: String
-example1 = "Line Note qn C 3 100, Note qn D 3 100, Note hn E 3 100, Note hn F 3 100"
+example1 = "Line Note qn C 3, Note qn D 3, Note hn E 3, Note hn F 3"
 
 example2 :: String
-example2 = "Line Chord [ Note dhn A 4 100, Note dhn C 4 100, Note dhn E 3 100 ], Note qn B 4 100, Note hn A 4 100,\r\n" <>
-           "    Note hn G 4 100, Chord [ Note wn E 5 100, Note wn B 4 100, Note wn G 4 100, Note wn E 4 100 ]\r\n"
+example2 = "Line Chord [ Note dhn A 4, Note dhn C 4, Note dhn E 3 ], Note qn B 4, Note hn A 4,\r\n" <>
+           "    Note hn G 4, Chord [ Note wn E 5, Note wn B 4, Note wn G 4, Note wn E 4 ]\r\n"
 
 example3 :: String
 example3 =
   "Let \r\n" <>
-  "  ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100  \r\n" <>
+  "  ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3  \r\n" <>
   " In \r\n" <>
   "   Par \r\n" <>
   "     Instrument acoustic_bass ( Transpose -12 ( Seq ln1 ln1 ln1 ln1 )) \r\n" <>
@@ -357,16 +357,16 @@ example4 :: String
 example4 =
   "Let \r\n" <>
   "    v1 = \r\n" <>
-  "       Line Note qn Bf 5 100, Note qn A 5 100, Note qn G 5 100, \r\n" <>
-  "         Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn G 5 100, Note en A 5 100, \r\n" <>
-  "         Note sn A 5 100, Note sn C 6 100, Note en Bf 5 100, Note en A 5 100, \r\n" <>
-  "         Note en G 5 100, Note sn Ef 6 100, Note sn D 6 100, Note en C 6 100, Note en Bf 5 100, \r\n" <>
-  "         Note en A 5   100, Note en G 5 100, \r\n" <>
-  "         Note sn Fs 5 100, Note sn G 5 100, Note sn A 5 100 \r\n" <>
+  "       Line Note qn Bf 5, Note qn A 5, Note qn G 5, \r\n" <>
+  "         Note sn D 5, Note sn E 5, Note sn Fs 5, Note sn G 5, Note en A 5, \r\n" <>
+  "         Note sn A 5, Note sn C 6, Note en Bf 5, Note en A 5, \r\n" <>
+  "         Note en G 5, Note sn Ef 6, Note sn D 6, Note en C 6, Note en Bf 5, \r\n" <>
+  "         Note en A 5, Note en G 5, \r\n" <>
+  "         Note sn Fs 5, Note sn G 5, Note sn A 5 \r\n" <>
   "    end1 = \r\n" <>
-  "         Line Note sn G 5 100, Note en Fs 5 100, Note en A 5 100, Note en G 5 100,  Note en A 5 100 \r\n" <>
+  "         Line Note sn G 5, Note en Fs 5, Note en A 5, Note en G 5,  Note en A 5 \r\n" <>
   "    end2 = \r\n" <>
-  "         Line Note sn Fs 5 100, Note qn G 5 100, Note qn G 4 100 \r\n" <>
+  "         Line Note sn Fs 5, Note qn G 5, Note qn G 4 \r\n" <>
   " In \r\n" <>
   "    Seq v1 end1 v1 end2 v1 end1 v1 end2"
 
@@ -374,16 +374,16 @@ example5 :: String
 example5 =
   "Let \r\n" <>
   "    v2 = \r\n" <>
-  "      Line Note qn G 5 100, Note qn Fs 5 100, Note qn D 5 100, \r\n" <>
-  "        Note en A 4 100, Note en D 5 100, Note en Fs 5 100, \r\n" <>
-  "        Note sn Fs 5 100, Note sn A 5 100, Note en G 5 100, Note en Fs 5 100, \r\n" <>
-  "        Note en D 5 100, Note sn C 6 100, Note sn Bf 5 100, Note en A 5 100, Note en G 5 100, \r\n" <>
-  "        Note en Fs 5 100, Note en D 5 100, \r\n" <>
-  "        Note sn D 5 100, Note sn E 5 100, Note sn Fs 5 100, Note sn D 5 100 \r\n" <>
+  "      Line Note qn G 5, Note qn Fs 5, Note qn D 5, \r\n" <>
+  "        Note en A 4, Note en D 5, Note en Fs 5, \r\n" <>
+  "        Note sn Fs 5, Note sn A 5, Note en G 5, Note en Fs 5, \r\n" <>
+  "        Note en D 5, Note sn C 6, Note sn Bf 5, Note en A 5, Note en G 5, \r\n" <>
+  "        Note en Fs 5, Note en D 5, \r\n" <>
+  "        Note sn D 5, Note sn E 5, Note sn Fs 5, Note sn D 5 \r\n" <>
   "    end1 = \r\n" <>
-  "     Line Note en D 5 100, Note en Fs 5 100, Note en D 5 100, Note en Fs 5 100 \r\n" <>
+  "     Line Note en D 5, Note en Fs 5, Note en D 5, Note en Fs 5 \r\n" <>
   "    end2 = \r\n" <>
-  "     Line Note qn Bf 4 100, Note qn G 4 100 \r\n" <>
+  "     Line Note qn Bf 4, Note qn G 4 \r\n" <>
   "  In \r\n" <>
   "    Instrument vibraphone ( Seq v2 end1 v2 end2 v2 end1 v2 end2 )"
 
@@ -396,10 +396,10 @@ example6 =
 example7 :: String
 example7 =
   "Let \r\n" <>
-  "    ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100  \r\n" <>
-  "    ln2 = Line Note qn B 3 100, Note qn C 4 100, Note hn D 4 100 \r\n" <>
-  "    ln3 = Line Note en D 4 100, Note en E 4 100, Note en D 4 100, Note en C 4 100, Note qn B 3 100, Note qn G 3 100 \r\n" <>
-  "    ln4 = Line Note qn G 3 100, Note qn D 3 100, Note hn G 3 100 \r\n" <>
+  "    ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3  \r\n" <>
+  "    ln2 = Line Note qn B 3, Note qn C 4, Note hn D 4 \r\n" <>
+  "    ln3 = Line Note en D 4, Note en E 4, Note en D 4, Note en C 4, Note qn B 3, Note qn G 3 \r\n" <>
+  "    ln4 = Line Note qn G 3, Note qn D 3, Note hn G 3 \r\n" <>
   "    rest = Line Rest wn \r\n" <>
   "In \r\n" <>
   "  Par \r\n" <>
@@ -410,7 +410,7 @@ example7 =
 example8 :: String
 example8 =
   "Let \r\n" <>
-  "  ln1 = Instrument acoustic_bass (Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100 ) \r\n" <>
+  "  ln1 = Instrument acoustic_bass (Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3 ) \r\n" <>
   "In \r\n" <>
   "  Seq \r\n" <>
   "    PhraseAtts Loudness 120 ( Seq ln1 ) \r\n" <>
@@ -422,12 +422,11 @@ example8 =
   "    PhraseAtts StdLoudness MF ( Seq ln1 ) \r\n" <>
   "    PhraseAtts StdLoudness FFF ( Seq ln1 ) \r\n"
 
-
 example9 :: String
 example9 =
   "Let \r\n" <>
-  "  ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn C 4 100, " <>
-  "  Note qn D 4 100, Note qn E 4 100, Note qn Fs 4 100, Note qn G 4 100  \r\n" <>
+  "  ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn C 4, " <>
+  "  Note qn D 4, Note qn E 4, Note qn Fs 4, Note qn G 4  \r\n" <>
   "In \r\n" <>
   "  Seq \r\n" <>
   "    PhraseAtts Diminuendo 7/8 ( Seq ln1 ) \r\n"
@@ -435,8 +434,8 @@ example9 =
 example10 :: String
 example10 =
   "Let \r\n" <>
-  "  ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn C 4 100, " <>
-  "  Note qn D 4 100, Note qn E 4 100, Note qn Fs 4 100, Note qn G 4 100  \r\n" <>
+  "  ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn C 4, " <>
+  "  Note qn D 4, Note qn E 4, Note qn Fs 4, Note qn G 4  \r\n" <>
   "In \r\n" <>
   "  Seq \r\n" <>
   "    ln1 \r\n" <>

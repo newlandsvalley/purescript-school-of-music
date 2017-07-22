@@ -53,7 +53,7 @@ PSoM melodies are presented to the browser using a DSL with the following syntax
 
     prim = note | rest
 
-    note = 'Note' dur pitch vol
+    note = 'Note' dur pitch 
     
     variable = identifier
 
@@ -121,7 +121,7 @@ What options should we give the user for (re-)loading soundfonts?
 
 ### Volume
 
-How should we describe the volume of a note?  At the moment, each note volume is set explicitly, which is tedious.  I am inclined to leave it out of the description of a  note in the DSL and default to some sensible value (say 100 or 127).  And then apply loudness phrase attributes if we wish to vary it.  Dynamic markings of PP to FF might be very useful here.
+What would be a sensible default value for a note volume (currently 100)?
 
 To Do
 -----
@@ -145,5 +145,7 @@ Questions on the HSoM Implementation
 
 
 There seem to be various problems surrounding volume in MEvent.  Perhaps it is because I am using only a MIDI backend which has a maximum volume setting of 7F (127).  Firstly, crescendos seem to _start_ at this volume level, although diminuendos are OK.  Secondly, the Loudness implementation seems correctly to set the volume in the context but then to ignore it, taking the volume only of the original note.
+
+The various articulations don't seem to work properly.  Not sure yet if it's a bug in HSoM or in the translation to PureScript.
 
 
