@@ -413,7 +413,11 @@ example8 =
   "    PhraseAtts Loudness 120 ( Seq ln1 ) \r\n" <>
   "    PhraseAtts Loudness 90 ( Seq ln1 ) \r\n" <>
   "    PhraseAtts Loudness 60 ( Seq ln1 ) \r\n" <>
-  "    PhraseAtts Loudness 30 ( Seq ln1 ) \r\n"
+  "    PhraseAtts Loudness 30 ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts StdLoudness PPP ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts StdLoudness PP ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts StdLoudness MF ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts StdLoudness FFF ( Seq ln1 ) \r\n"
 
 
 example9 :: String

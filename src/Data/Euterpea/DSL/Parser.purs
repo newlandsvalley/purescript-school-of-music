@@ -18,7 +18,6 @@ import Data.Map (Map, empty, fromFoldable, lookup, union) as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.Array (fromFoldable)
 import Data.Tuple (Tuple(..))
-import Data.Ring (negate) as Ring
 import Data.Foldable (class Foldable)
 import Data.Rational (Rational, fromInt, rational)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try, fail)
@@ -26,7 +25,7 @@ import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex,
 import Text.Parsing.StringParser.Combinators (between, choice, many1, optionMaybe, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..),
-       NoteAttribute(..), PhraseAttribute(..), Control(..)) as Eut
+       NoteAttribute(..), PhraseAttribute(..), Control(..), Tempo(..)) as Eut
 import Data.Euterpea.Dynamics (Dynamic(..), StdLoudness, read) as Dyn
 import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
 import Data.Euterpea.Instrument (InstrumentName, read)
@@ -145,6 +144,8 @@ phraseAttribute =
     , crescendo
     , diminuendo
     , accent
+    , ritardando
+    , accelerando
     ]
     -- more to follow
 
@@ -167,6 +168,14 @@ diminuendo =
 accent :: Parser Eut.PhraseAttribute
 accent =
   Eut.Dyn <$> Dyn.Accent <$> (keyWord "Accent" *> (try fraction <|> vulgar))
+
+ritardando :: Parser Eut.PhraseAttribute
+ritardando =
+  Eut.Tmp <$> Eut.Ritardando <$> (keyWord "Ritardando" *> (try fraction <|> vulgar))
+
+accelerando :: Parser Eut.PhraseAttribute
+accelerando =
+  Eut.Tmp <$> Eut.Accelerando <$> (keyWord "Accelerando" *> (try fraction <|> vulgar))
 
 instrument :: Parser InstrumentName
 instrument =
@@ -466,10 +475,6 @@ signedInt =
 anyInt :: Parser String
 anyInt =
   regex "0|[1-9][0-9]*"
-
-negate :: Parser Rational -> Parser Rational
-negate r =
-  Ring.negate <$> r
 
 fraction :: Parser Rational
 fraction =

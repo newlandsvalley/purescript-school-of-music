@@ -48,6 +48,10 @@ dynamicsSuite =
         assertPerformance  "PhraseAtts StdLoudness FFF ( Line Note qn C 1 50 )" (loudness 120)
     test "PPP" do
         assertPerformance  "PhraseAtts StdLoudness PPP ( Line Note qn C 1 50 )" (loudness 40)
+    test "ritardando" do
+        assertPerformance  "PhraseAtts Ritardando 1/2 ( Line Note qn C 1 50, Note qn C 1 50, Note qn C 1 50)" ritardandoResult
+    test "accelerando" do
+        assertPerformance  "PhraseAtts Accelerando 1/2 ( Line Note qn C 1 50, Note qn C 1 50, Note qn C 1 50)" accelerandoResult
 
 
 loudness  :: Int -> Performance
@@ -60,6 +64,20 @@ diminuendoResult =
    (MEvent { eDur: 1 % 2, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 1 % 2, eVol: 106 }) :
    (MEvent { eDur: 1 % 2, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 1 % 1, eVol: 85 }) :
    Nil)
+
+ritardandoResult :: Performance
+ritardandoResult =
+  ((MEvent { eDur: 7 % 12, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 0 % 1, eVol: 127 }) :
+   (MEvent { eDur: 3 % 4, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 7 % 12, eVol: 127 }) :
+   (MEvent { eDur: 11 % 12, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 4 % 3, eVol: 127 }) :
+   Nil)
+
+accelerandoResult :: Performance
+accelerandoResult =  ((MEvent { eDur: 5 % 12, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 0 % 1, eVol: 127 }) :
+   (MEvent { eDur: 1 % 4, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 5 % 12, eVol: 127 }) :
+   (MEvent { eDur: 1 % 12, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 2 % 3, eVol: 127 }) :
+  Nil)
+
 
 
 voicesSource :: String

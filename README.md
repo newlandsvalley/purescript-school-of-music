@@ -16,7 +16,7 @@ Current State of Progress
 
 The editor is built using polyphonic soundfonts which must be pre-loaded for selected instruments before anything plays.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. 
 
-The following control mechanisms have been implemented in the DSL - set the instrument, transpose, set the tempo and set dynamics. 
+All control mechanisms which were fully supported by HSoM have been carried accross to the DSL - except the articulations: (Staccato, Legato, Slur).
 
 Supported Instruments
 ---------------------
@@ -79,9 +79,13 @@ where phrase attributes are:
    phraseAttributes = phraseAttribute, ( phraseAttribute }
    
    phraseAttribute =   'Loudness' ( fraction | int ) 
-                     | 'Crescendo' ( fraction | int ) 
+                     | 'StdLoudness' ( FFF | FF | ....  ) 
                      | 'Diminuendo' ( fraction | int ) 
-                     |  more to follow
+                     | 'Crescendo' ( fraction | int ) 
+                     | 'Accent' ( fraction | int ) 
+                     | 'Ritardando' ( fraction | int ) 
+                     | 'Accelerando' ( fraction | int ) 
+                     |  articulations to follow
                      
 ```
 
@@ -121,7 +125,6 @@ To Do
 -----
 
 *  Allow variable definitions to refer to other variables defined earlier in the same scope
-*  Add the Ritardando and Accelerando tempo markings to the DSL
 *  Add Staccato, Legato and Slurred articulations to the DSL
 *  Load and save scores
 *  Don't translate to MEvent until 'play' is first pressed
