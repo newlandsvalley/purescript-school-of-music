@@ -40,6 +40,9 @@ type Binding = Tuple String Eut1.Music1
 type BindingMap =
   Map.Map String Eut1.Music1
 
+defaultVolume :: Int
+defaultVolume = 100
+
 -- | top level production
 musicProcedure :: BindingMap -> Parser Eut1.Music1
 musicProcedure bnds =
@@ -231,7 +234,7 @@ primNote1 = Eut.Prim <$> note1
 
 note1 :: Parser (Eut.Primitive Eut1.Note1)
 note1 =
-  buildNote1 <$> keyWord "Note" <*> duration <*> pitch <*> volume
+  buildNote1 <$> keyWord "Note" <*> duration <*> pitch
 
 rest :: ∀ a. Parser (Eut.Primitive a)
 rest =
@@ -537,9 +540,9 @@ buildVoices :: String -> Nel.NonEmptyList Eut1.Music1 -> Eut1.Music1
 buildVoices _ vs =
   Eutt.chord1 vs
 
-buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Int -> Eut.Primitive Eut1.Note1
-buildNote1 _ dur p vol =
-  Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume vol)
+buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Eut.Primitive Eut1.Note1
+buildNote1 _ dur p  =
+  Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume defaultVolume)
 
 buildSignedInt :: Maybe String -> Int -> Int
 buildSignedInt sign val =

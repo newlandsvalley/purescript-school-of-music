@@ -16,7 +16,7 @@ Current State of Progress
 
 The editor is built using polyphonic soundfonts which must be pre-loaded for selected instruments before anything plays.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. 
 
-As far as I am aware, all features of the Music ADT which are fully supported by HSoM have been carried accross to the DSL.
+As far as I am aware, all features of the Music ADT which are fully supported by HSoM have been carried across to the DSL.
 
 Supported Instruments
 ---------------------
@@ -79,7 +79,7 @@ where phrase attributes are:
    phraseAttributes = phraseAttribute, ( phraseAttribute }
    
    phraseAttribute =   'Loudness' int
-                     | 'StdLoudness' ( FFF | F
+                     | 'StdLoudness' ( FFF | F | .....
                      | 'Diminuendo' ( fraction | int ) 
                      | 'Crescendo' ( fraction | int ) 
                      | 'Accent' ( fraction | int ) 

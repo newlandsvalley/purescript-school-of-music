@@ -49,19 +49,19 @@ noteSuite :: forall t. Free (TestF t) Unit
 noteSuite =
   suite "notes" do
     test "note" do
-      assertMusic  "Note qn C 1 100" (cq 100)
+      assertMusic  "Note qn C 1" (cq 100)
     test "rest" do
       assertMusic  "Rest qn" rq
     test "line" do
-      assertMusic  "Line Note qn C 1 100, Note qn D 1 100, Rest qn" line
+      assertMusic  "Line Note qn C 1, Note qn D 1, Rest qn" line
     test "chord" do
-      assertMusic  "Chord [ Note qn C 1 100, Note qn D 1 100 ]" chord
+      assertMusic  "Chord [ Note qn C 1, Note qn D 1 ]" chord
     test "line with chord" do
-      assertMusic  "Line Note qn C 1 100, Note qn D 1 100, Chord [ Note qn C 1 100, Note qn D 1 100 ], Rest qn" lineWithChord
+      assertMusic  "Line Note qn C 1, Note qn D 1, Chord [ Note qn C 1, Note qn D 1 ], Rest qn" lineWithChord
     test "lines" do
-      assertMusic  "Seq Line Note qn C 1 100, Note qn D 1 100, Rest qn Line Note qn C 1 100, Note qn D 1 100, Rest qn" lines
+      assertMusic  "Seq Line Note qn C 1, Note qn D 1, Rest qn Line Note qn C 1, Note qn D 1, Rest qn" lines
     test "simple voices" do
-      assertMusic "Par Seq Line Note qn C 1 100, Note qn D 1 100, Rest qn Seq Line Note qn C 1 100, Note qn D 1 100, Rest qn" simpleVoices
+      assertMusic "Par Seq Line Note qn C 1, Note qn D 1, Rest qn Seq Line Note qn C 1, Note qn D 1, Rest qn" simpleVoices
     test "complex voices" do
       assertMusic complexVoicesSource complexVoices
     test "repeats" do
@@ -71,66 +71,66 @@ noteSuite =
     test "instruments" do
       assertMusic instrumentsSource instruments
     test "set marimba" do
-      assertParses "Instrument marimba ( Note qn C 1 100 )"
+      assertParses "Instrument marimba ( Note qn C 1 )"
     test "set acoustic_grand_piano" do
-      assertParses "Instrument acoustic_grand_piano ( Note qn C 1 100 )"
+      assertParses "Instrument acoustic_grand_piano ( Note qn C 1 )"
     test "set unknown instrument" do
-      assertFails "Instrument foobar ( Note qn C 1 100 )" "instrument: foobar not known"
+      assertFails "Instrument foobar ( Note qn C 1 )" "instrument: foobar not known"
     test "transpose up" do
-      assertParses  "Transpose 12 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+      assertParses  "Transpose 12 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "transpose down" do
-      assertParses  "Transpose -12 ( Line Note qn C 2 100, Note qn D 2 100, Rest qn )"
+      assertParses  "Transpose -12 ( Line Note qn C 2, Note qn D 2, Rest qn )"
     test "tempo up" do
-      assertParses  "Tempo 3 ( Line Note qn C 2 100, Note qn D 2 100, Rest qn )"
+      assertParses  "Tempo 3 ( Line Note qn C 2, Note qn D 2, Rest qn )"
     test "tempo down" do
-      assertParses  "Tempo 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+      assertParses  "Tempo 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "loudness up" do
-      assertParses  "PhraseAtts Loudness 2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+      assertParses  "PhraseAtts Loudness 2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "std loudness" do
-      assertParses  "PhraseAtts StdLoudness FFF ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+      assertParses  "PhraseAtts StdLoudness FFF ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "accent" do
-      assertParses  "PhraseAtts Accent 3/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+      assertParses  "PhraseAtts Accent 3/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "ritardando" do
-      assertParses  "PhraseAtts Ritardando 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+      assertParses  "PhraseAtts Ritardando 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "accelerando" do
-      assertParses  "PhraseAtts Accelerando 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+      assertParses  "PhraseAtts Accelerando 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "staccato" do
-      assertParses  "PhraseAtts Staccato 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+      assertParses  "PhraseAtts Staccato 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "legato" do
-      assertParses  "PhraseAtts Legato 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+      assertParses  "PhraseAtts Legato 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "slurred" do
-      assertParses  "PhraseAtts Slurred 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+      assertParses  "PhraseAtts Slurred 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
 
 complexVoicesSource :: String
 complexVoicesSource =
    "Par " <>
      "Seq " <>
-       "Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
-       "Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
+       "Line Note qn C 1, Note qn D 1, Rest qn " <>
+       "Line Note qn C 1, Note qn D 1, Rest qn " <>
      "Seq " <>
-       "Line Note qn C 1 100, Note qn D 1 100, Rest qn" <>
-       "Line Note qn C 1 100, Note qn D 1 100, Chord [ Note qn C 1 100, Note qn D 1 100 ], Rest qn"
+       "Line Note qn C 1, Note qn D 1, Rest qn" <>
+       "Line Note qn C 1, Note qn D 1, Chord [ Note qn C 1, Note qn D 1 ], Rest qn"
 
 instrumentsSource :: String
 instrumentsSource =
    "Par " <>
      "Instrument violin " <>
-       "( Line Note qn C 1 100, Note qn D 1 100, Rest qn )" <>
+       "( Line Note qn C 1, Note qn D 1, Rest qn )" <>
      "Instrument viola " <>
-       "( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+       "( Line Note qn C 1, Note qn D 1, Rest qn )"
 
 repeatsSource :: String
 repeatsSource =
   "Let " <>
-    "ln = Line Note qn C 1 100, Note qn D 1 100, Rest qn " <>
+    "ln = Line Note qn C 1, Note qn D 1, Rest qn " <>
   "In " <>
     "Seq ln ln"
 
 roundSource :: String
 roundSource =
   "Let " <>
-    "ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn G 3 100" <>
-    "ln2 = Line Note qn B 3 100, Note qn C 4 100, Note hn D 4 100 " <>
+    "ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3" <>
+    "ln2 = Line Note qn B 3, Note qn C 4, Note hn D 4 " <>
     "rest = Line Rest wn" <>
   "In " <>
     "Par " <>
