@@ -315,6 +315,9 @@ view state =
           label ! labelAlignmentStyle $ do
               text  "diminuendo:"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example9) $ text "example 9"
+          label ! labelAlignmentStyle $ do
+              text  "accelerate/decelerate:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example10) $ text "example 10"
 
 
         div ! leftPanelComponentStyle $ do
@@ -428,3 +431,14 @@ example9 =
   "In \r\n" <>
   "  Seq \r\n" <>
   "    PhraseAtts Diminuendo 7/8 ( Seq ln1 ) \r\n"
+
+example10 :: String
+example10 =
+  "Let \r\n" <>
+  "  ln1 = Line Note qn G 3 100, Note qn A 3 100, Note qn B 3 100, Note qn C 4 100, " <>
+  "  Note qn D 4 100, Note qn E 4 100, Note qn Fs 4 100, Note qn G 4 100  \r\n" <>
+  "In \r\n" <>
+  "  Seq \r\n" <>
+  "    ln1 \r\n" <>
+  "    PhraseAtts Ritardando 1/2 ( Seq ln1 ) \r\n"  <>
+  "    PhraseAtts Accelerando 1/2 ( Seq ln1 ) \r\n"
