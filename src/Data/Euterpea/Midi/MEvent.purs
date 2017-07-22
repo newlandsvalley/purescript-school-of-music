@@ -7,6 +7,7 @@ import Data.List (List(..), (:), head, singleton)
 import Data.Int (round)
 import Data.Euterpea.Music
 import Data.Euterpea.Instrument (InstrumentName(..))
+import Data.Euterpea.Dynamics (Dynamic(..), StdLoudness(..))
 import Data.Euterpea.Music1 (class ToMusic1, Music1, Note1(..), toMusic1)
 import Data.Euterpea.Notes (qn, absPitch)
 import Data.Euterpea.Transform (rMax, scaleDurations, shiftPitches2)

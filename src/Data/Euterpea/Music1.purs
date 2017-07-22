@@ -7,10 +7,7 @@ import Data.List (List(..), (:))
 import Data.Array ((!!))
 import Data.Maybe ( fromMaybe)
 import Data.Generic.Rep as G
-import Data.Generic.Rep.Eq as GEq
-import Data.Generic.Rep.Ord as GOrd
 import Data.Generic.Rep.Show as GShow
-import Data.Generic.Rep.Bounded as GBounded
 
 
 -- | We have difficulty with polymorphism in Music here

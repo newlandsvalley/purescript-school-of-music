@@ -26,7 +26,8 @@ import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex,
 import Text.Parsing.StringParser.Combinators (between, choice, many1, optionMaybe, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..),
-       NoteAttribute(..), PhraseAttribute(..), Dynamic(..), Control(..)) as Eut
+       NoteAttribute(..), PhraseAttribute(..), Control(..)) as Eut
+import Data.Euterpea.Dynamics (Dynamic(..), StdLoudness, read) as Dyn
 import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
 import Data.Euterpea.Instrument (InstrumentName, read)
 import Data.Euterpea.Notes as Eutn
@@ -140,22 +141,32 @@ phraseAttribute :: Parser Eut.PhraseAttribute
 phraseAttribute =
   choice
     [ loudness
+    , stdLoudness
     , crescendo
     , diminuendo
+    , accent
     ]
     -- more to follow
 
 loudness :: Parser Eut.PhraseAttribute
 loudness =
-  Eut.Dyn <$> Eut.Loudness <$> (keyWord "Loudness" *> (try fraction <|> vulgar))
+  Eut.Dyn <$> Dyn.Loudness <$> (keyWord "Loudness" *> (try fraction <|> vulgar))
+
+stdLoudness :: Parser Eut.PhraseAttribute
+stdLoudness =
+  Eut.Dyn <$> Dyn.StdLoudness <$> (keyWord "StdLoudness" *> dynamicMarking)
 
 crescendo :: Parser Eut.PhraseAttribute
 crescendo =
-  Eut.Dyn <$> Eut.Crescendo <$> (keyWord "Crescendo" *> (try fraction <|> vulgar))
+  Eut.Dyn <$> Dyn.Crescendo <$> (keyWord "Crescendo" *> (try fraction <|> vulgar))
 
 diminuendo :: Parser Eut.PhraseAttribute
 diminuendo =
-  Eut.Dyn <$> Eut.Diminuendo <$> (keyWord "Diminuendo" *> (try fraction <|> vulgar))
+  Eut.Dyn <$> Dyn.Diminuendo <$> (keyWord "Diminuendo" *> (try fraction <|> vulgar))
+
+accent :: Parser Eut.PhraseAttribute
+accent =
+  Eut.Dyn <$> Dyn.Accent <$> (keyWord "Accent" *> (try fraction <|> vulgar))
 
 instrument :: Parser InstrumentName
 instrument =
@@ -469,6 +480,12 @@ vulgar :: Parser Rational
 vulgar =
   fromInt <$> int <* skipSpaces
 
+dynamicMarking :: Parser Dyn.StdLoudness
+dynamicMarking =
+  (regex "[A-Z]+" <* skipSpaces >>= (\name ->
+    checkDynamicMarking name)
+  ) <?> "dynamic marking"
+
 anyString :: Parser String
 anyString = fromCharList <$> many1 anyChar
 
@@ -524,6 +541,14 @@ checkInstrument name  =
   case read name of
     Just i -> pure i
     _ -> fail $ "instrument: " <> name <> " not known"
+
+-- | check a dynamic marking against those allowed in the ADT
+checkDynamicMarking :: String -> Parser Dyn.StdLoudness
+checkDynamicMarking name  =
+  case Dyn.read name of
+    Just i -> pure i
+    _ -> fail $ "dynamic marking: " <> name <> " not known"
+
 
 -- | a parse error and its accompanying position in the text
 newtype PositionedParseError = PositionedParseError

@@ -16,7 +16,7 @@ Current State of Progress
 
 The editor is built using polyphonic soundfonts which must be pre-loaded for selected instruments before anything plays.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. 
 
-The following control mechanisms have been implemented in the DSL - set the instrument, transpose, set the tempo and some of the change volume instructions. 
+The following control mechanisms have been implemented in the DSL - set the instrument, transpose, set the tempo and set dynamics. 
 
 Supported Instruments
 ---------------------
@@ -66,8 +66,7 @@ PSoM melodies are presented to the browser using a DSL with the following syntax
     pitchClass = 'Cff' | 'Cf' | 'C' | 'Cs' | 'Css' | 'Dff' .....
 
     octave = int
-
-The DSL is very experimental and likely to change.  
+    
     control = 'Instrument' instrumentName | 'Transpose' int | 'Tempo' (fraction | int) 
                 | 'PhraseAtts' phraseAttributes
 
@@ -122,7 +121,6 @@ To Do
 -----
 
 *  Allow variable definitions to refer to other variables defined earlier in the same scope
-*  Add the other dynamic markings to the DSL - Accent, StdLoudness
 *  Add the Ritardando and Accelerando tempo markings to the DSL
 *  Add Staccato, Legato and Slurred articulations to the DSL
 *  Load and save scores

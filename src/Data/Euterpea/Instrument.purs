@@ -147,7 +147,7 @@ gleitzmanName inst =
         else
          (toLower c) : acc
 
--- | all this rigmarole is because there's no generic deriving for Read or Wnum
+-- | all this rigmarole is because there's no generic deriving for Read or Enum
 -- | at the moment in purescript.  Replace this if and when it arrives.
 names :: Map.Map String InstrumentName
 names =

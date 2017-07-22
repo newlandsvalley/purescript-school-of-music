@@ -34,7 +34,7 @@ dynamicsSuite :: forall t. Free (TestF t) Unit
 dynamicsSuite =
   suite "dynamics" do
     test "loudness" do
-      assertPerformance  "PhraseAtts Loudness 50 ( Line Note qn C 1 100 )" loudness50
+      assertPerformance  "PhraseAtts Loudness 50 ( Line Note qn C 1 100 )" (loudness 50)
     -- test "voices" do
     --    assertPerformance  voicesSource Nil
     -- crescendo seems to start to loud at max MIDI velocity in HSoM !
@@ -42,11 +42,17 @@ dynamicsSuite =
     --  assertPerformance  "PhraseAtts Crescendo 1/2 ( Line Note qn C 1 50, Note qn C 1 50, Note qn C 1 50)" loudness50
     test "diminuendo" do
         assertPerformance  "PhraseAtts Diminuendo 1/2 ( Line Note qn C 1 50, Note qn C 1 50, Note qn C 1 50)" diminuendoResult
+    test "accent" do
+        assertPerformance  "PhraseAtts Accent 1/2 ( Line Note qn C 1 50 )" (loudness 64)
+    test "FFF" do
+        assertPerformance  "PhraseAtts StdLoudness FFF ( Line Note qn C 1 50 )" (loudness 120)
+    test "PPP" do
+        assertPerformance  "PhraseAtts StdLoudness PPP ( Line Note qn C 1 50 )" (loudness 40)
 
 
-loudness50  :: Performance
-loudness50 =
-  ((MEvent { eDur: 1 % 2, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 0 % 1, eVol: 50 }) : Nil)
+loudness  :: Int -> Performance
+loudness v =
+  ((MEvent { eDur: 1 % 2, eInst: AcousticGrandPiano, eParams: Nil, ePitch: 24, eTime: 0 % 1, eVol: v }) : Nil)
 
 diminuendoResult :: Performance
 diminuendoResult =

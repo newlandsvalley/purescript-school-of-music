@@ -86,6 +86,10 @@ noteSuite =
       assertParses  "Tempo 1/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
     test "loudness up" do
       assertParses  "PhraseAtts Loudness 2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+    test "std loudness" do
+      assertParses  "PhraseAtts StdLoudness FFF ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
+    test "accent" do
+      assertParses  "PhraseAtts Accent 3/2 ( Line Note qn C 1 100, Note qn D 1 100, Rest qn )"
     --test "loudness down" do
     --  assertMusic  "PhraseAtts Loudness 1/4 Line Note qn C 1 100, Note qn D 1 100, Rest qn" line
 

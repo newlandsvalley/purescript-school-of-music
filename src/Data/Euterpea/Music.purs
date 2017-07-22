@@ -10,6 +10,7 @@ import Data.Generic.Rep.Ord as GOrd
 import Data.Generic.Rep.Show as GShow
 import Data.Generic.Rep.Bounded as GBounded
 import Data.Euterpea.Instrument (InstrumentName(..))
+import Data.Euterpea.Dynamics (Dynamic(..), StdLoudness(..))
 
 
 infixr 5 Seq as :+:
@@ -112,31 +113,6 @@ instance eqPhraseAttribute :: Eq PhraseAttribute where
 instance ordPhraseAttribute :: Ord PhraseAttribute where
   compare x y = GOrd.genericCompare x y
 instance showPhraseAttribute :: Show PhraseAttribute where
-  show x = GShow.genericShow x
-
-data Dynamic  =
-    Accent Rational
-  | Crescendo Rational
-  | Diminuendo Rational
-  | StdLoudness StdLoudness
-  | Loudness Rational
-
-derive instance genericDynamic :: G.Generic Dynamic _
-instance eqDynamic :: Eq Dynamic where
-  eq x y = GEq.genericEq x y
-instance ordDynamic :: Ord Dynamic where
-  compare x y = GOrd.genericCompare x y
-instance showDynamic :: Show Dynamic where
-  show x = GShow.genericShow x
-
-data StdLoudness = PPP | PP | P | MP | SF | MF | NF | FF | FFF
-
-derive instance genericStdLoudness :: G.Generic StdLoudness _
-instance eqStdLoudness :: Eq StdLoudness where
-  eq x y = GEq.genericEq x y
-instance ordStdLoudness :: Ord StdLoudness where
-  compare x y = GOrd.genericCompare x y
-instance showStdLoudness :: Show StdLoudness where
   show x = GShow.genericShow x
 
 data Tempo =
