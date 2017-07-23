@@ -67,15 +67,16 @@ PSoM melodies are presented to the browser using a DSL with the following syntax
 
     octave = int
     
-    control = 'Instrument' instrumentName | 'Transpose' int | 'Tempo' (fraction | int) 
-                | 'PhraseAtts' phraseAttributes
-
-    instrumentName = 'violin' | 'viola' ....
 ```
+where control mechanisms are:
 
-where phrase attributes are:
 
 ```
+   control =   'Instrument' instrumentName 
+             | 'Transpose' int 
+             | 'Tempo' (fraction | int) 
+             | 'PhraseAtts' phraseAttributes
+
    phraseAttributes = phraseAttribute, ( phraseAttribute }
    
    phraseAttribute =   'Loudness' int
@@ -88,6 +89,9 @@ where phrase attributes are:
                      | 'Staccato' ( fraction | int ) 
                      | 'Legato' ( fraction | int ) 
                      | 'Slurred' ( fraction | int ) 
+                     
+
+    instrumentName = 'violin' | 'viola' ....                     
                      
 ```
 
