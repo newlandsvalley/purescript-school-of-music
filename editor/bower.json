@@ -20,7 +20,7 @@
     "purescript-foreign": "^4.0.0",
     "purescript-functions": "^3.0.0",
     "purescript-school-of-music": "../../purescript-school-of-music",
-    "purescript-midi-player": "https://github.com/newlandsvalley/purescript-midi-player.git",
+    "purescript-midi-player": "https://github.com/newlandsvalley/purescript-psom-player.git",
     "purescript-debug": "^3.0.0"
   },
   "devDependencies": {

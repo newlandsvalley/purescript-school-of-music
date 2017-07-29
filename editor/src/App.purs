@@ -1,8 +1,8 @@
 module App where
 
-
 import Audio.SoundFont (AUDIO)
-import Data.Midi.Player as MidiPlayer
+import Audio.Euterpea.Player as Player
+import Audio.BasePlayer (PlaybackState(..)) as BasePlayer
 import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
@@ -30,9 +30,6 @@ import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, MEvent(..), perform1)
 import Data.Euterpea.Instrument (InstrumentMap(..))
 
--- import Temp (perf2melody)
-import ToMelody (perf2melody)
-
 
 -- import Debug.Trace (trace, traceShow, traceShowM)
 
@@ -43,7 +40,7 @@ data Event
     -- | RequestFileUpload
     -- | RequestFileDownload
     -- | FileLoaded Filespec
-    | PlayerEvent MidiPlayer.Event
+    | PlayerEvent Player.Event
     | Example String
     | Clear
 
@@ -53,7 +50,7 @@ type State = {
   -- , fileName :: Maybe String
   , tuneResult :: Either PositionedParseError Music1
   , performance :: Performance
-  , playerState :: Maybe MidiPlayer.State
+  , playerState :: Maybe Player.State
 }
 
 
@@ -121,7 +118,7 @@ foldp Clear state =
 foldp (PlayerEvent e) state =
   case state.playerState of
     Just pstate ->
-      MidiPlayer.foldp e pstate
+      Player.foldp e pstate
         # mapEffects PlayerEvent
         # mapState \pst -> state { playerState = Just pst }
     _ ->
@@ -145,18 +142,15 @@ onChangedEuterpea polyphony state =
   in
     case tuneResult of
       Right tune ->
-        let
-           melody = perf2melody state.availableInstruments performance
-        in
-          { state: newState { playerState = Just MidiPlayer.initialState}
-             , effects:
-               [
-                do
-                  pure $ Just (PlayerEvent (MidiPlayer.SetMelody melody))
-              ]
-          }
+        { state: newState { playerState = Just (Player.initialState initialInstruments)}
+           , effects:
+             [
+              do
+                pure $ Just (PlayerEvent (Player.SetPerformance performance))
+            ]
+        }
       Left err ->
-        noEffects newState
+        noEffects $ newState { playerState = Nothing }
 
 -- | make sure everything is notified if a new file is loaded
 {-}
@@ -248,18 +242,20 @@ viewPlayer :: State -> HTML Event
 viewPlayer state =
   case state.playerState of
     Just pstate ->
-      child PlayerEvent MidiPlayer.view $ pstate
+      child PlayerEvent Player.view $ pstate
     _ ->
       mempty
-
 
 -- | is the player playing ?
 isPlaying :: State -> Boolean
 isPlaying state =
   case state.playerState of
-    Just ps -> (ps.playing == MidiPlayer.PLAYING)
+    Just ps ->
+      let
+        playbackState = ps.basePlayer.playing
+      in
+        (playbackState == BasePlayer.PLAYING)
     _ -> false
-
 
 view :: State -> HTML Event
 view state =

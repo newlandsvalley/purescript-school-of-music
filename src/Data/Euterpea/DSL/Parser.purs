@@ -203,16 +203,17 @@ instrument =
 
 lines :: BindingMap ->  Parser Eut1.Music1
 lines bnds =
-  Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (lineOrVariableOrControl bnds))
-  -- Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (lineOrVariable bnds))
+  Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (linesOptions bnds))
 
 -- | perhaps ditch this in favour of the next one?
+{-}
 lineOrVariable :: BindingMap -> Parser Eut1.Music1
 lineOrVariable bnds =
   line <|> (variable bnds)
+-}
 
-lineOrVariableOrControl :: BindingMap -> Parser Eut1.Music1
-lineOrVariableOrControl bnds =
+linesOptions :: BindingMap -> Parser Eut1.Music1
+linesOptions bnds =
   line <|> (variable bnds) <|> (control bnds)
 
 line :: Parser Eut1.Music1
