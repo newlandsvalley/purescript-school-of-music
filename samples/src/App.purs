@@ -37,9 +37,6 @@ import Data.Euterpea.Instrument (InstrumentMap(..))
 data Event
     = NoOp
     | Euterpea String
-    -- | RequestFileUpload
-    -- | RequestFileDownload
-    -- | FileLoaded Filespec
     | PlayerEvent Player.Event
     | Example String
     | Clear
@@ -72,7 +69,6 @@ initialState :: State
 initialState = {
     polyphony : ""
   , availableInstruments : initialInstruments
-  -- , fileName : Nothing
   , tuneResult : nullTune
   , performance : List.Nil
   , playerState : Nothing
@@ -83,30 +79,6 @@ foldp :: Event -> State -> EffModel State Event (fileio :: FILEIO, au :: AUDIO)
 foldp NoOp state =  noEffects $ state
 foldp (Euterpea s) state =  onChangedEuterpea s state
 foldp (Example example) state =  onChangedEuterpea example state
-{-}
-foldp RequestFileUpload state =
- { state: state
-   , effects:
-     [ do
-         filespec <- loadTextFile
-         pure $ Just (FileLoaded filespec)
-     ]
-  }
-foldp (FileLoaded filespec) state =
-  onChangedFile filespec state
-foldp RequestFileDownload state =
-   { state: state
-     , effects:
-       [ do
-           let
-             -- fileName = fromMaybe "unknown.abc" state.fileName
-             fileName = getFileName state
-             fsp = { name: fileName, contents : state.abc} :: Filespec
-           res <- liftEff $ saveTextFile fsp
-           pure $ (Just NoOp)
-       ]
-    }
--}
 foldp Clear state =
   onChangedEuterpea ""
     (state { polyphony = ""
@@ -151,52 +123,6 @@ onChangedEuterpea polyphony state =
         }
       Left err ->
         noEffects $ newState { playerState = Nothing }
-
--- | make sure everything is notified if a new file is loaded
-{-}
-onChangedFile :: forall e. Filespec -> State -> EffModel State Event (fileio :: FILEIO, vt :: VexScore.VEXTAB| e)
-onChangedFile filespec state =
-  let
-    newState =
-      state { fileName = Just filespec.name}
-  in
-    onChangedAbc filespec.contents newState
--}
-
--- | get the file name from the previously loaded ABC or from the ABC itseelf
-{-}
-getFileName :: State -> String
-getFileName state =
-  case state.fileName of
-    Just name ->
-      name
-    _ ->
-      case state.tuneResult of
-        Right tune ->
-          (fromMaybe "untitled" $ getTitle tune) <> ".abc"
-        _ ->
-          "untitled.abc"
--}
-
-{-
-debugPlayer :: State -> HTML Event
-debugPlayer state =
-  case state.playerState of
-    Nothing ->
-      do
-        text ("no player state")
-    Just pstate ->
-      do
-       text ("player melody size: " <> (show $ length pstate.melody))
--}
-
-{-}
-viewFileName :: State -> HTML Event
-viewFileName state =
-      text name
-    _ ->
-      mempty
--}
 
 -- | display a snippet of text with the error highlighted
 viewParseError :: State -> HTML Event
@@ -266,18 +192,6 @@ view state =
       h1 ! centreStyle $ text "PSoM Samples"
       -- the options and buttons on the left
       div ! leftPaneStyle $ do
-        {-}
-        div ! leftPanelComponentStyle $ do
-          label ! labelAlignmentStyle $ do
-            text "load a Euterpea file:"
-          label ! inputLabelStyle ! At.className "hoverable" ! At.for "fileinput" $ text "choose"
-          input ! inputStyle ! At.type' "file" ! At.id "fileinput" ! At.accept ".abc, .txt"
-               #! onChange (const RequestFileUpload)
-        -}
-        {-}
-        div ! leftPanelComponentStyle $ do
-          viewFileName state
-        -}
         div ! leftPanelComponentStyle  $ do
           label ! labelAlignmentStyle $ do
             -- text  "save or clear Euterpea:"
