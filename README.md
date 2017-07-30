@@ -28,7 +28,9 @@ Front End
 
 PSoM melodies are presented to the browser using a DSL with the following syntax:
 
-```    
+``` 
+    psom = title musicProcedure
+
     musicProcedure = complexMusic | music
     
     complexMusic = 'Let' bindings 'In' music
@@ -66,6 +68,8 @@ PSoM melodies are presented to the browser using a DSL with the following syntax
     pitchClass = 'Cff' | 'Cf' | 'C' | 'Cs' | 'Css' | 'Dff' .....
 
     octave = int
+    
+    title = quoted string
     
 ```
 where control mechanisms are:
@@ -111,6 +115,11 @@ Editor
 ------
 
 The __editor__ sub-project is an editor for music written with the Euterpea DSL.  At the moment, this parses the DSL text and either displays an error or else the results of converting it to a PSoM Performance. It checks the instrument names entered into the DSL and associates each with the MIDI channel for that instrument (if loaded) or to channel 0 (if not). It then allows the melody to be played.
+
+Samples
+------
+
+The __samples__ sub-project is a cut-down editor which includes a set of editable sample PSoM melodies in order to give some concrete examples of the PSoM DSL.
 
 Design Questions
 ----------------

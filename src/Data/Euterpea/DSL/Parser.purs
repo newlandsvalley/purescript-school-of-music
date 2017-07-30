@@ -1,5 +1,6 @@
 module Data.Euterpea.DSL.Parser
-        ( PositionedParseError(..)
+        ( PSoM
+        , PositionedParseError(..)
         , Binding
         , BindingMap
         , parse
@@ -32,6 +33,12 @@ import Data.Euterpea.Instrument (InstrumentName, read)
 import Data.Euterpea.Notes as Eutn
 import Data.Euterpea.Transform as Eutt
 
+
+type PSoM =
+  {  title :: String
+  ,  music :: Eut1.Music1
+  }
+
 -- | investigation of a Parser DSL that includes let bindings
 -- | that define 'variables' holding music sequences which can be placed
 -- | int the body of the score by using a 'call'
@@ -43,7 +50,12 @@ type BindingMap =
 defaultVolume :: Int
 defaultVolume = 100
 
--- | top level production
+psom ::Parser PSoM
+psom =
+  buildPSoM <$>
+    quotedString <*> (musicProcedure Map.empty)
+
+-- | a music procedure (the top level music production)
 musicProcedure :: BindingMap -> Parser Eut1.Music1
 musicProcedure bnds =
   complexMusic bnds <|> simpleMusic bnds
@@ -510,8 +522,10 @@ dynamicMarking =
     checkDynamicMarking name)
   ) <?> "dynamic marking"
 
+{-}
 anyString :: Parser String
 anyString = fromCharList <$> many1 anyChar
+-}
 
 fromCharList :: forall f. Foldable f => f Char -> String
 fromCharList = S.fromCharArray <<< fromFoldable
@@ -522,6 +536,13 @@ keyWord target =
 
 identifier :: Parser String
 identifier = regex "[a-z][a-zA-Z0-9]*" <* skipSpaces
+
+quotedString :: Parser String
+quotedString =
+  string "\""
+     *> regex "(\\\\\"|[^\"\n])*"
+     <* (string "\"" <* skipSpaces)
+     <?> "quoted string"
 
 digit :: Parser Int
 digit = (fromMaybe 0 <<< fromString <<< S.singleton) <$> anyDigit
@@ -550,6 +571,12 @@ buildSignedInt sign val =
   case sign of
     Just "-" -> (0 - val)
     _ -> val
+
+buildPSoM :: String -> Eut1.Music1 -> PSoM
+buildPSoM title music =
+  { title : title
+  , music : music
+  }
 
 -- | macro expand a 'function' name to give the function
 -- | contents (which is Music).  Fail if the name is unknown
@@ -595,9 +622,9 @@ runParser1 (Parser p) s =
     bimap formatErr _.result (p { str: s, pos: 0 })
 
 -- | Entry point - Parse a Euterpea DSL score.
-parse :: String -> Either PositionedParseError Eut1.Music1
+parse :: String -> Either PositionedParseError PSoM
 parse s =
-  case runParser1 (musicProcedure Map.empty) s of
+  case runParser1 psom s of
     Right n ->
       Right n
 

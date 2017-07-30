@@ -37,9 +37,9 @@ import Data.Euterpea.Instrument (InstrumentMap(..))
 data Event
     = NoOp
     | Euterpea String
-    | RequestFileUpload
-    | RequestFileDownload
-    | FileLoaded Filespec
+    -- | RequestFileUpload
+    -- | RequestFileDownload
+    -- | FileLoaded Filespec
     | PlayerEvent Player.Event
     | Example String
     | Clear
@@ -47,7 +47,7 @@ data Event
 type State = {
     polyphony :: String
   , availableInstruments :: InstrumentMap
-  , fileName :: Maybe String
+  -- , fileName :: Maybe String
   , tuneResult :: Either PositionedParseError Music1
   , performance :: Performance
   , playerState :: Maybe Player.State
@@ -72,7 +72,7 @@ initialState :: State
 initialState = {
     polyphony : ""
   , availableInstruments : initialInstruments
-  , fileName : Nothing
+  -- , fileName : Nothing
   , tuneResult : nullTune
   , performance : List.Nil
   , playerState : Nothing
@@ -83,6 +83,7 @@ foldp :: Event -> State -> EffModel State Event (fileio :: FILEIO, au :: AUDIO)
 foldp NoOp state =  noEffects $ state
 foldp (Euterpea s) state =  onChangedEuterpea s state
 foldp (Example example) state =  onChangedEuterpea example state
+{-}
 foldp RequestFileUpload state =
  { state: state
    , effects:
@@ -98,12 +99,14 @@ foldp RequestFileDownload state =
      , effects:
        [ do
            let
+             -- fileName = fromMaybe "unknown.abc" state.fileName
              fileName = getFileName state
-             fsp = { name: fileName, contents : state.polyphony} :: Filespec
+             fsp = { name: fileName, contents : state.abc} :: Filespec
            res <- liftEff $ saveTextFile fsp
            pure $ (Just NoOp)
        ]
     }
+-}
 foldp Clear state =
   onChangedEuterpea ""
     (state { polyphony = ""
@@ -150,16 +153,18 @@ onChangedEuterpea polyphony state =
         noEffects $ newState { playerState = Nothing }
 
 -- | make sure everything is notified if a new file is loaded
-onChangedFile :: forall e. Filespec -> State -> EffModel State Event (fileio :: FILEIO | e)
+{-}
+onChangedFile :: forall e. Filespec -> State -> EffModel State Event (fileio :: FILEIO, vt :: VexScore.VEXTAB| e)
 onChangedFile filespec state =
   let
     newState =
       state { fileName = Just filespec.name}
   in
-    onChangedEuterpea filespec.contents newState
+    onChangedAbc filespec.contents newState
+-}
 
-
--- | get the file name
+-- | get the file name from the previously loaded ABC or from the ABC itseelf
+{-}
 getFileName :: State -> String
 getFileName state =
   case state.fileName of
@@ -168,11 +173,10 @@ getFileName state =
     _ ->
       case state.tuneResult of
         Right tune ->
-          -- not finished
-          "untitled.psom"
+          (fromMaybe "untitled" $ getTitle tune) <> ".abc"
         _ ->
-          "untitled.psom"
-
+          "untitled.abc"
+-}
 
 {-
 debugPlayer :: State -> HTML Event
@@ -186,15 +190,13 @@ debugPlayer state =
        text ("player melody size: " <> (show $ length pstate.melody))
 -}
 
-
+{-}
 viewFileName :: State -> HTML Event
 viewFileName state =
-  case state.fileName of
-    Just name ->
       text name
     _ ->
       mempty
-
+-}
 
 -- | display a snippet of text with the error highlighted
 viewParseError :: State -> HTML Event
@@ -261,24 +263,57 @@ view state =
     isEnabled = isRight state.tuneResult
   in
     div $ do
-      h1 ! centreStyle $ text "Euterpea DSL Editor"
+      h1 ! centreStyle $ text "PSoM Samples"
       -- the options and buttons on the left
       div ! leftPaneStyle $ do
+        {-}
         div ! leftPanelComponentStyle $ do
           label ! labelAlignmentStyle $ do
             text "load a Euterpea file:"
           label ! inputLabelStyle ! At.className "hoverable" ! At.for "fileinput" $ text "choose"
-          input ! inputStyle ! At.type' "file" ! At.id "fileinput" ! At.accept ".psom, .txt"
+          input ! inputStyle ! At.type' "file" ! At.id "fileinput" ! At.accept ".abc, .txt"
                #! onChange (const RequestFileUpload)
-
+        -}
+        {-}
         div ! leftPanelComponentStyle $ do
           viewFileName state
+        -}
         div ! leftPanelComponentStyle  $ do
           label ! labelAlignmentStyle $ do
             -- text  "save or clear Euterpea:"
-            text  "save or clear:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const RequestFileDownload) $ text "save"
+            text  "clear Euterpea:"
+          -- button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const RequestFileDownload) $ text "save"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const Clear) $ text "clear"
+          label ! labelAlignmentStyle $ do
+              text  "simple line:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example1) $ text "example 1"
+          label ! labelAlignmentStyle $ do
+              text  "simple chords:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example2) $ text "example 2"
+          label ! labelAlignmentStyle $ do
+              text  "change tempo:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example3) $ text "example 3"
+          label ! labelAlignmentStyle $ do
+              text  "polska voice 1:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example4) $ text "example 4"
+          label ! labelAlignmentStyle $ do
+              text  "polska voice 2:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example5) $ text "example 5"
+          label ! labelAlignmentStyle $ do
+              text  "polska polyphony:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example6) $ text "example 6"
+          label ! labelAlignmentStyle $ do
+              text  "frere Jacques:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example7) $ text "example 7"
+          label ! labelAlignmentStyle $ do
+              text  "loudness:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example8) $ text "example 8"
+          label ! labelAlignmentStyle $ do
+              text  "diminuendo:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example9) $ text "example 9"
+          label ! labelAlignmentStyle $ do
+              text  "accelerate/decelerate:"
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example10) $ text "example 10"
 
 
         div ! leftPanelComponentStyle $ do
@@ -295,3 +330,110 @@ view state =
 
       div! rightPaneStyle $ do
         viewPerformance state
+
+
+-- | some examples
+example1 :: String
+example1 = "Line Note qn C 3, Note qn D 3, Note hn E 3, Note hn F 3"
+
+example2 :: String
+example2 = "Line Chord [ Note dhn A 4, Note dhn C 4, Note dhn E 3 ], Note qn B 4, Note hn A 4,\r\n" <>
+           "    Note hn G 4, Chord [ Note wn E 5, Note wn B 4, Note wn G 4, Note wn E 4 ]\r\n"
+
+example3 :: String
+example3 =
+  "Let \r\n" <>
+  "  ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3  \r\n" <>
+  " In \r\n" <>
+  "   Par \r\n" <>
+  "     Instrument acoustic_bass ( Transpose -12 ( Seq ln1 ln1 ln1 ln1 )) \r\n" <>
+  "     Instrument vibraphone ( Tempo 1/2 ( Seq ln1 ln1 ))"
+
+example4 :: String
+example4 =
+  "Let \r\n" <>
+  "    v1 = \r\n" <>
+  "       Line Note qn Bf 5, Note qn A 5, Note qn G 5, \r\n" <>
+  "         Note sn D 5, Note sn E 5, Note sn Fs 5, Note sn G 5, Note en A 5, \r\n" <>
+  "         Note sn A 5, Note sn C 6, Note en Bf 5, Note en A 5, \r\n" <>
+  "         Note en G 5, Note sn Ef 6, Note sn D 6, Note en C 6, Note en Bf 5, \r\n" <>
+  "         Note en A 5, Note en G 5, \r\n" <>
+  "         Note sn Fs 5, Note sn G 5, Note sn A 5 \r\n" <>
+  "    end1 = \r\n" <>
+  "         Line Note sn G 5, Note en Fs 5, Note en A 5, Note en G 5,  Note en A 5 \r\n" <>
+  "    end2 = \r\n" <>
+  "         Line Note sn Fs 5, Note qn G 5, Note qn G 4 \r\n" <>
+  " In \r\n" <>
+  "    Seq v1 end1 v1 end2 v1 end1 v1 end2"
+
+example5 :: String
+example5 =
+  "Let \r\n" <>
+  "    v2 = \r\n" <>
+  "      Line Note qn G 5, Note qn Fs 5, Note qn D 5, \r\n" <>
+  "        Note en A 4, Note en D 5, Note en Fs 5, \r\n" <>
+  "        Note sn Fs 5, Note sn A 5, Note en G 5, Note en Fs 5, \r\n" <>
+  "        Note en D 5, Note sn C 6, Note sn Bf 5, Note en A 5, Note en G 5, \r\n" <>
+  "        Note en Fs 5, Note en D 5, \r\n" <>
+  "        Note sn D 5, Note sn E 5, Note sn Fs 5, Note sn D 5 \r\n" <>
+  "    end1 = \r\n" <>
+  "     Line Note en D 5, Note en Fs 5, Note en D 5, Note en Fs 5 \r\n" <>
+  "    end2 = \r\n" <>
+  "     Line Note qn Bf 4, Note qn G 4 \r\n" <>
+  "  In \r\n" <>
+  "    Instrument vibraphone ( Seq v2 end1 v2 end2 v2 end1 v2 end2 )"
+
+
+example6 :: String
+example6 =
+  "Par \r\n" <>
+    example4 <> "\r\n" <> example5
+
+example7 :: String
+example7 =
+  "Let \r\n" <>
+  "    ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3  \r\n" <>
+  "    ln2 = Line Note qn B 3, Note qn C 4, Note hn D 4 \r\n" <>
+  "    ln3 = Line Note en D 4, Note en E 4, Note en D 4, Note en C 4, Note qn B 3, Note qn G 3 \r\n" <>
+  "    ln4 = Line Note qn G 3, Note qn D 3, Note hn G 3 \r\n" <>
+  "    rest = Line Rest wn \r\n" <>
+  "In \r\n" <>
+  "  Par \r\n" <>
+  "     Instrument acoustic_bass ( Transpose -12 ( Seq ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 )) \r\n" <>
+  "     Instrument vibraphone ( Seq rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 )\r\n" <>
+  "     Seq rest rest rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 "
+
+example8 :: String
+example8 =
+  "Let \r\n" <>
+  "  ln1 = Instrument acoustic_bass (Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3 ) \r\n" <>
+  "In \r\n" <>
+  "  Seq \r\n" <>
+  "    PhraseAtts Loudness 120 ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts Loudness 90 ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts Loudness 60 ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts Loudness 30 ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts StdLoudness PPP ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts StdLoudness PP ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts StdLoudness MF ( Seq ln1 ) \r\n" <>
+  "    PhraseAtts StdLoudness FFF ( Seq ln1 ) \r\n"
+
+example9 :: String
+example9 =
+  "Let \r\n" <>
+  "  ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn C 4, " <>
+  "  Note qn D 4, Note qn E 4, Note qn Fs 4, Note qn G 4  \r\n" <>
+  "In \r\n" <>
+  "  Seq \r\n" <>
+  "    PhraseAtts Diminuendo 7/8 ( Seq ln1 ) \r\n"
+
+example10 :: String
+example10 =
+  "Let \r\n" <>
+  "  ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn C 4, " <>
+  "  Note qn D 4, Note qn E 4, Note qn Fs 4, Note qn G 4  \r\n" <>
+  "In \r\n" <>
+  "  Seq \r\n" <>
+  "    ln1 \r\n" <>
+  "    PhraseAtts Ritardando 1/2 ( Seq ln1 ) \r\n"  <>
+  "    PhraseAtts Accelerando 1/2 ( Seq ln1 ) \r\n"

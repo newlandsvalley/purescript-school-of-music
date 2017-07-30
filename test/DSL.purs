@@ -4,7 +4,7 @@ import Prelude (Unit, discard, show, (<>))
 import Control.Monad.Free (Free)
 
 import Data.Either (Either(..))
-import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
+import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
 import Data.Euterpea.Instrument (InstrumentName(..))
 
 import Data.Euterpea.Music
@@ -18,7 +18,7 @@ import Test.Unit.Assert as Assert
 assertParses :: forall e. String -> Test e
 assertParses s =
   case parse s of
-    Right music ->
+    Right psom ->
       success
 
     Left err ->
@@ -27,7 +27,7 @@ assertParses s =
 assertFails :: forall e. String -> String -> Test e
 assertFails s msg =
   case parse s of
-    Right music ->
+    Right psom ->
       failure ("parse should have failed")
     Left (PositionedParseError err) ->
       Assert.equal msg err.error
@@ -35,7 +35,7 @@ assertFails s msg =
 assertMusic :: forall e. String -> Music1 -> Test e
 assertMusic s target =
   case parse s of
-    Right music ->
+    Right { title, music } ->
       Assert.equal (show target) (show music)
 
     Left err ->
@@ -49,57 +49,57 @@ noteSuite :: forall t. Free (TestF t) Unit
 noteSuite =
   suite "notes" do
     test "note" do
-      assertMusic  "Note qn C 1" (cq 100)
+      assertMusic  "\"Test\" Note qn C 1" (cq 100)
     test "rest" do
-      assertMusic  "Rest qn" rq
+      assertMusic  "\"Test\" Rest qn" rq
     test "line" do
-      assertMusic  "Line Note qn C 1, Note qn D 1, Rest qn" line
+      assertMusic  "\"Test\" Line Note qn C 1, Note qn D 1, Rest qn" line
     test "chord" do
-      assertMusic  "Chord [ Note qn C 1, Note qn D 1 ]" chord
+      assertMusic  "\"Test\" Chord [ Note qn C 1, Note qn D 1 ]" chord
     test "line with chord" do
-      assertMusic  "Line Note qn C 1, Note qn D 1, Chord [ Note qn C 1, Note qn D 1 ], Rest qn" lineWithChord
+      assertMusic  "\"Test\" Line Note qn C 1, Note qn D 1, Chord [ Note qn C 1, Note qn D 1 ], Rest qn" lineWithChord
     test "lines" do
-      assertMusic  "Seq Line Note qn C 1, Note qn D 1, Rest qn Line Note qn C 1, Note qn D 1, Rest qn" lines
+      assertMusic  "\"Test\" Seq Line Note qn C 1, Note qn D 1, Rest qn Line Note qn C 1, Note qn D 1, Rest qn" lines
     test "simple voices" do
-      assertMusic "Par Seq Line Note qn C 1, Note qn D 1, Rest qn Seq Line Note qn C 1, Note qn D 1, Rest qn" simpleVoices
+      assertMusic "\"Test\" Par Seq Line Note qn C 1, Note qn D 1, Rest qn Seq Line Note qn C 1, Note qn D 1, Rest qn" simpleVoices
     test "complex voices" do
-      assertMusic complexVoicesSource complexVoices
+      assertMusic ("\"Test\"" <> complexVoicesSource) complexVoices
     test "repeats" do
-      assertMusic repeatsSource lines
+      assertMusic ("\"Test\"" <> repeatsSource) lines
     test "round" do
-      assertParses roundSource
+      assertParses ("\"Test\"" <> roundSource)
     test "instruments" do
-      assertMusic instrumentsSource instruments
+      assertMusic ("\"Test\"" <> instrumentsSource) instruments
     test "set marimba" do
-      assertParses "Instrument marimba ( Note qn C 1 )"
+      assertParses "\"Test\" Instrument marimba ( Note qn C 1 )"
     test "set acoustic_grand_piano" do
-      assertParses "Instrument acoustic_grand_piano ( Note qn C 1 )"
+      assertParses "\"Test\" Instrument acoustic_grand_piano ( Note qn C 1 )"
     test "set unknown instrument" do
-      assertFails "Instrument foobar ( Note qn C 1 )" "instrument: foobar not known"
+      assertFails "\"Test\" Instrument foobar ( Note qn C 1 )" "instrument: foobar not known"
     test "transpose up" do
-      assertParses  "Transpose 12 ( Line Note qn C 1, Note qn D 1, Rest qn )"
+      assertParses  "\"Test\" Transpose 12 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "transpose down" do
-      assertParses  "Transpose -12 ( Line Note qn C 2, Note qn D 2, Rest qn )"
+      assertParses  "\"Test\" Transpose -12 ( Line Note qn C 2, Note qn D 2, Rest qn )"
     test "tempo up" do
-      assertParses  "Tempo 3 ( Line Note qn C 2, Note qn D 2, Rest qn )"
+      assertParses  "\"Test\" Tempo 3 ( Line Note qn C 2, Note qn D 2, Rest qn )"
     test "tempo down" do
-      assertParses  "Tempo 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
+      assertParses  "\"Test\" Tempo 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "loudness up" do
-      assertParses  "PhraseAtts Loudness 2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
+      assertParses  "\"Test\" PhraseAtts Loudness 2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "std loudness" do
-      assertParses  "PhraseAtts StdLoudness FFF ( Line Note qn C 1, Note qn D 1, Rest qn )"
+      assertParses  "\"Test\" PhraseAtts StdLoudness FFF ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "accent" do
-      assertParses  "PhraseAtts Accent 3/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
+      assertParses  "\"Test\" PhraseAtts Accent 3/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "ritardando" do
-      assertParses  "PhraseAtts Ritardando 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
+      assertParses  "\"Test\" PhraseAtts Ritardando 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "accelerando" do
-      assertParses  "PhraseAtts Accelerando 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
+      assertParses  "\"Test\" PhraseAtts Accelerando 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "staccato" do
-      assertParses  "PhraseAtts Staccato 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
+      assertParses  "\"Test\" PhraseAtts Staccato 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "legato" do
-      assertParses  "PhraseAtts Legato 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
+      assertParses  "\"Test\" PhraseAtts Legato 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "slurred" do
-      assertParses  "PhraseAtts Slurred 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
+      assertParses  "\"Test\" PhraseAtts Slurred 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
 
 complexVoicesSource :: String
 complexVoicesSource =

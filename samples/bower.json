@@ -1,0 +1,29 @@
+{
+  "name": "purescript-psom-editor",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-prelude": "^3.0.0",
+    "purescript-console": "^3.0.0",
+    "purescript-eff": "^3.1.0",
+    "purescript-exceptions": "^3.0.0",
+    "purescript-pux": "^9.1.0",
+    "purescript-tuples": "^4.0.0",
+    "purescript-integers": "^3.1.0",
+    "purescript-maybe": "^3.0.0",
+    "purescript-aff": "^3.0.0",
+    "purescript-either": "^3.0.0",
+    "purescript-foreign": "^4.0.0",
+    "purescript-functions": "^3.0.0",
+    "purescript-school-of-music": "../../purescript-school-of-music",
+    "purescript-midi-player": "https://github.com/newlandsvalley/purescript-psom-player.git",
+    "purescript-debug": "^3.0.0"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^3.0.0"
+  }
+}
