@@ -26,7 +26,7 @@ import Text.Smolder.HTML.Attributes as At
 import Text.Smolder.Markup (text, (#!), (!), (!?))
 import Data.Euterpea.Music
 import Data.Euterpea.Music1 (Music1, Note1(..))
-import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
+import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, MEvent(..), perform1)
 import Data.Euterpea.Instrument (InstrumentMap(..))
 
@@ -48,14 +48,14 @@ type State = {
     polyphony :: String
   , availableInstruments :: InstrumentMap
   , fileName :: Maybe String
-  , tuneResult :: Either PositionedParseError Music1
+  , tuneResult :: Either PositionedParseError PSoM
   , performance :: Performance
   , playerState :: Maybe Player.State
 }
 
 
 -- | there is no tune yet
-nullTune :: Either PositionedParseError Music1
+nullTune :: Either PositionedParseError PSoM
 nullTune =
   Left (PositionedParseError { pos : 0, error : "" })
 
@@ -131,14 +131,14 @@ onChangedEuterpea polyphony state =
       parse polyphony
     performance =
       case tuneResult of
-        Right mus -> perform1 mus
+        Right { title, music } -> perform1 music
         _ -> List.Nil
 
     newState =
       state { tuneResult = tuneResult, polyphony = polyphony, performance = performance }
   in
     case tuneResult of
-      Right tune ->
+      Right _ ->
         { state: newState { playerState = Just (Player.initialState initialInstruments)}
            , effects:
              [
@@ -167,9 +167,8 @@ getFileName state =
       name
     _ ->
       case state.tuneResult of
-        Right tune ->
-          -- not finished
-          "untitled.psom"
+        Right { title, music } ->
+          title <> ".psom"
         _ ->
           "untitled.psom"
 

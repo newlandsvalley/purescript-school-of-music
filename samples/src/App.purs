@@ -26,7 +26,7 @@ import Text.Smolder.HTML.Attributes as At
 import Text.Smolder.Markup (text, (#!), (!), (!?))
 import Data.Euterpea.Music
 import Data.Euterpea.Music1 (Music1, Note1(..))
-import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
+import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, MEvent(..), perform1)
 import Data.Euterpea.Instrument (InstrumentMap(..))
 
@@ -48,14 +48,14 @@ type State = {
     polyphony :: String
   , availableInstruments :: InstrumentMap
   -- , fileName :: Maybe String
-  , tuneResult :: Either PositionedParseError Music1
+  , tuneResult :: Either PositionedParseError PSoM
   , performance :: Performance
   , playerState :: Maybe Player.State
 }
 
 
 -- | there is no tune yet
-nullTune :: Either PositionedParseError Music1
+nullTune :: Either PositionedParseError PSoM
 nullTune =
   Left (PositionedParseError { pos : 0, error : "" })
 
@@ -134,14 +134,14 @@ onChangedEuterpea polyphony state =
       parse polyphony
     performance =
       case tuneResult of
-        Right mus -> perform1 mus
+        Right { title, music } -> perform1 music
         _ -> List.Nil
 
     newState =
       state { tuneResult = tuneResult, polyphony = polyphony, performance = performance }
   in
     case tuneResult of
-      Right tune ->
+      Right _ ->
         { state: newState { playerState = Just (Player.initialState initialInstruments)}
            , effects:
              [
@@ -334,14 +334,15 @@ view state =
 
 -- | some examples
 example1 :: String
-example1 = "Line Note qn C 3, Note qn D 3, Note hn E 3, Note hn F 3"
+example1 = "\"line\"\r\n Line Note qn C 3, Note qn D 3, Note hn E 3, Note hn F 3"
 
 example2 :: String
-example2 = "Line Chord [ Note dhn A 4, Note dhn C 4, Note dhn E 3 ], Note qn B 4, Note hn A 4,\r\n" <>
+example2 = "\"Chord\"\r\n Line Chord [ Note dhn A 4, Note dhn C 4, Note dhn E 3 ], Note qn B 4, Note hn A 4,\r\n" <>
            "    Note hn G 4, Chord [ Note wn E 5, Note wn B 4, Note wn G 4, Note wn E 4 ]\r\n"
 
 example3 :: String
 example3 =
+  "\"Change Tempo\"\r\n" <>
   "Let \r\n" <>
   "  ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3  \r\n" <>
   " In \r\n" <>
@@ -351,6 +352,10 @@ example3 =
 
 example4 :: String
 example4 =
+  "\"Polska Voice 1\"\r\n" <> example4Music
+
+example4Music :: String
+example4Music =
   "Let \r\n" <>
   "    v1 = \r\n" <>
   "       Line Note qn Bf 5, Note qn A 5, Note qn G 5, \r\n" <>
@@ -368,6 +373,10 @@ example4 =
 
 example5 :: String
 example5 =
+  "\"Polska Voice 2\"\r\n" <> example5Music
+
+example5Music :: String
+example5Music =
   "Let \r\n" <>
   "    v2 = \r\n" <>
   "      Line Note qn G 5, Note qn Fs 5, Note qn D 5, \r\n" <>
@@ -386,11 +395,13 @@ example5 =
 
 example6 :: String
 example6 =
+  "\"Polska\"\r\n" <>
   "Par \r\n" <>
-    example4 <> "\r\n" <> example5
+    example4Music <> "\r\n" <> example5Music
 
 example7 :: String
 example7 =
+  "\"Frere Jacques\"\r\n" <>
   "Let \r\n" <>
   "    ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3  \r\n" <>
   "    ln2 = Line Note qn B 3, Note qn C 4, Note hn D 4 \r\n" <>
@@ -405,6 +416,7 @@ example7 =
 
 example8 :: String
 example8 =
+  "\"Loudness\"\r\n" <>
   "Let \r\n" <>
   "  ln1 = Instrument acoustic_bass (Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3 ) \r\n" <>
   "In \r\n" <>
@@ -420,6 +432,7 @@ example8 =
 
 example9 :: String
 example9 =
+  "\"Diminuendo\"\r\n" <>
   "Let \r\n" <>
   "  ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn C 4, " <>
   "  Note qn D 4, Note qn E 4, Note qn Fs 4, Note qn G 4  \r\n" <>
@@ -429,6 +442,7 @@ example9 =
 
 example10 :: String
 example10 =
+  "\"Accelerate/Decelerate\"\r\n" <>
   "Let \r\n" <>
   "  ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn C 4, " <>
   "  Note qn D 4, Note qn E 4, Note qn Fs 4, Note qn G 4  \r\n" <>
