@@ -21,6 +21,7 @@
     "purescript-functions": "^3.0.0",
     "purescript-school-of-music": "../../purescript-school-of-music",
     "purescript-midi-player": "https://github.com/newlandsvalley/purescript-psom-player.git",
+    "purescript-multiple-select": "https://github.com/newlandsvalley/purescript-multiple-select.git",
     "purescript-debug": "^3.0.0"
   },
   "devDependencies": {

@@ -4,6 +4,7 @@ import App (foldp, initialState, view)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Aff (Canceler, launchAff)
 import Audio.SoundFont (AUDIO, loadRemoteSoundFont, loadRemoteSoundFonts)
+import Dom.SelectElement (DOM)
 import FileIO.FileIO (FILEIO)
 import Control.Monad.Eff (Eff)
 import Prelude (Unit, bind)
@@ -18,7 +19,7 @@ initialiseApp = do
 
 -- | Start and render the app
 -- main :: ∀ fx. Eff (CoreEffects (fileio :: FILEIO, au :: AUDIO, vt :: VexScore.VEXTAB| fx)) Unit
-main :: Eff (CoreEffects (fileio :: FILEIO, au:: AUDIO )) Unit
+main :: Eff (CoreEffects (fileio :: FILEIO, au:: AUDIO, dom :: DOM )) Unit
 main = do
 
   _ <- initialiseApp

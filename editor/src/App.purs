@@ -3,6 +3,8 @@ module App where
 import Audio.SoundFont (AUDIO)
 import Audio.Euterpea.Player as Player
 import Audio.BasePlayer (PlaybackState(..)) as BasePlayer
+import MultipleSelect (Event, State, foldp, initialState, view) as MS
+import Dom.SelectElement (DOM)
 import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
@@ -41,11 +43,12 @@ data Event
     | RequestFileDownload
     | FileLoaded Filespec
     | PlayerEvent Player.Event
-    | Example String
+    | InstrumentEvent MS.Event
     | Clear
 
 type State = {
     polyphony :: String
+  , instrumentChoices :: MS.State
   , availableInstruments :: InstrumentMap
   , fileName :: Maybe String
   , tuneResult :: Either PositionedParseError PSoM
@@ -68,9 +71,24 @@ initialInstruments =
     , Tuple "acoustic_bass" 2
     ]
 
+-- | very temporary
+instruments :: Array String
+instruments =
+  [ "acoustic_grand_piano"
+  , "cello"
+  , "harpsichord"
+  , "marimba"
+  , "trombone"
+  , "trumpet"
+  , "vibraphone"
+  , "viola"
+  , "violin"
+  ]
+
 initialState :: State
 initialState = {
     polyphony : ""
+  , instrumentChoices : MS.initialState "add an instrument" "Instrument Palette:" instruments
   , availableInstruments : initialInstruments
   , fileName : Nothing
   , tuneResult : nullTune
@@ -79,10 +97,9 @@ initialState = {
   }
 
 
-foldp :: Event -> State -> EffModel State Event (fileio :: FILEIO, au :: AUDIO)
+foldp :: Event -> State -> EffModel State Event (fileio :: FILEIO, au :: AUDIO, dom :: DOM)
 foldp NoOp state =  noEffects $ state
 foldp (Euterpea s) state =  onChangedEuterpea s state
-foldp (Example example) state =  onChangedEuterpea example state
 foldp RequestFileUpload state =
  { state: state
    , effects:
@@ -120,6 +137,10 @@ foldp (PlayerEvent e) state =
         # mapState \pst -> state { playerState = Just pst }
     _ ->
       noEffects state
+foldp (InstrumentEvent e) state =
+  MS.foldp e state.instrumentChoices
+    # mapEffects InstrumentEvent
+    # mapState \inst -> state { instrumentChoices = inst }
 
 
 -- | make sure everything is notified if the Euterpea Music changes for any reason
@@ -254,6 +275,10 @@ isPlaying state =
         (playbackState == BasePlayer.PLAYING)
     _ -> false
 
+viewInstrumentSelect :: State -> HTML Event
+viewInstrumentSelect state =
+  child InstrumentEvent MS.view $ state.instrumentChoices
+
 view :: State -> HTML Event
 view state =
   let
@@ -279,6 +304,8 @@ view state =
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const RequestFileDownload) $ text "save"
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const Clear) $ text "clear"
 
+        div ! leftPanelComponentStyle $ do
+          viewInstrumentSelect state
 
         div ! leftPanelComponentStyle $ do
           viewPlayer state
