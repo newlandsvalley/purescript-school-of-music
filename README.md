@@ -140,6 +140,7 @@ To Do
 -----
 
 *  Allow variable definitions to refer to other variables defined earlier in the same scope
+*  Add construction for optional comments to the DSL
 *  Add option to re-select the loaded soundfonts
 *  Add quickcheck style tests to the PSoM library
 

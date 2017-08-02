@@ -1,7 +1,7 @@
 module Data.Euterpea.Music where
 
 
-import Prelude (class Show, class Eq, class Ord, class Bounded, class Functor, (<>), show)
+import Prelude (class Show, class Eq, class Ord, class Bounded)
 import Data.Rational (Rational)
 import Data.List (List)
 import Data.Generic.Rep as G
@@ -9,8 +9,8 @@ import Data.Generic.Rep.Eq as GEq
 import Data.Generic.Rep.Ord as GOrd
 import Data.Generic.Rep.Show as GShow
 import Data.Generic.Rep.Bounded as GBounded
-import Data.Euterpea.Instrument (InstrumentName(..))
-import Data.Euterpea.Dynamics (Dynamic(..), StdLoudness(..))
+import Data.Euterpea.Instrument (InstrumentName)
+import Data.Euterpea.Dynamics (Dynamic)
 
 
 infixr 5 Seq as :+:

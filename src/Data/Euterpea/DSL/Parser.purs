@@ -22,7 +22,7 @@ import Data.Tuple (Tuple(..))
 import Data.Foldable (class Foldable)
 import Data.Rational (Rational, fromInt, rational)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try, fail)
-import Text.Parsing.StringParser.String (anyChar, anyDigit, char, string, regex, skipSpaces)
+import Text.Parsing.StringParser.String (anyDigit, char, string, regex, skipSpaces)
 import Text.Parsing.StringParser.Combinators (between, choice, many1, optionMaybe, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..),
@@ -573,9 +573,9 @@ buildSignedInt sign val =
     _ -> val
 
 buildPSoM :: String -> Eut1.Music1 -> PSoM
-buildPSoM title music =
+buildPSoM title mus =
   { title : title
-  , music : music
+  , music : mus
   }
 
 -- | macro expand a 'function' name to give the function
