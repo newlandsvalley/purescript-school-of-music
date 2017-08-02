@@ -4,17 +4,18 @@ import Audio.SoundFont (AUDIO)
 import Audio.Euterpea.Player as Player
 import Audio.BasePlayer (PlaybackState(..)) as BasePlayer
 import MultipleSelect (Event, State, foldp, initialState, view) as MS
-import Dom.SelectElement (DOM)
+import MultipleSelect.Dom (DOM)
 import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array (length, slice)
 import Data.Either (Either(..), isLeft, isRight)
 import Data.List as List
+import Data.Foldable (traverse_)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Int (fromString)
 import Data.Monoid (mempty)
-import Data.Map (Map(..), fromFoldable)
+import Data.Map (Map(..), fromFoldable, keys)
 import Data.Tuple (Tuple(..))
 import Data.String (fromCharArray, toCharArray)
 import View.CSS
@@ -23,14 +24,14 @@ import Prelude (bind, const, discard, id, max, min, not, pure, show, ($), (#), (
 import Pux (EffModel, noEffects, mapEffects, mapState)
 import Pux.DOM.Events (DOMEvent, onClick, onChange, onInput, targetValue)
 import Pux.DOM.HTML (HTML, child)
-import Text.Smolder.HTML (button, canvas, div, h1, input, label, p, span, select, textarea)
+import Text.Smolder.HTML (button, canvas, div, h1, input, label, p, span, select, textarea, ul, li)
 import Text.Smolder.HTML.Attributes as At
 import Text.Smolder.Markup (text, (#!), (!), (!?))
 import Data.Euterpea.Music
 import Data.Euterpea.Music1 (Music1, Note1(..))
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, MEvent(..), perform1)
-import Data.Euterpea.Instrument (InstrumentMap(..))
+import Data.Euterpea.Instrument (InstrumentMap(..), instruments)
 
 
 -- import Debug.Trace (trace, traceShow, traceShowM)
@@ -71,24 +72,10 @@ initialInstruments =
     , Tuple "acoustic_bass" 2
     ]
 
--- | very temporary
-instruments :: Array String
-instruments =
-  [ "acoustic_grand_piano"
-  , "cello"
-  , "harpsichord"
-  , "marimba"
-  , "trombone"
-  , "trumpet"
-  , "vibraphone"
-  , "viola"
-  , "violin"
-  ]
-
 initialState :: State
 initialState = {
     polyphony : ""
-  , instrumentChoices : MS.initialState "add an instrument" "Instrument Palette:" instruments
+  , instrumentChoices : MS.initialState "add an instrument" instruments
   , availableInstruments : initialInstruments
   , fileName : Nothing
   , tuneResult : nullTune
@@ -279,13 +266,26 @@ viewInstrumentSelect :: State -> HTML Event
 viewInstrumentSelect state =
   child InstrumentEvent MS.view $ state.instrumentChoices
 
+viewInstrumentsLoaded :: State -> HTML Event
+viewInstrumentsLoaded state =
+  let
+    instruments = keys initialInstruments
+    f s =
+      li ! At.className "msListItem" $ do
+        span ! At.className "msListItemLabel" $ do
+          text s
+  in
+    ul ! At.className "msList" $ do
+      traverse_ f instruments
+
+
 view :: State -> HTML Event
 view state =
   let
     isEnabled = isRight state.tuneResult
   in
     div $ do
-      h1 ! centreStyle $ text "Euterpea DSL Editor"
+      h1 ! centreStyle $ text "PureScript School of Music Editor"
       -- the options and buttons on the left
       div ! leftPaneStyle $ do
         div ! leftPanelComponentStyle $ do
@@ -306,6 +306,10 @@ view state =
 
         div ! leftPanelComponentStyle $ do
           viewInstrumentSelect state
+        div ! leftPanelComponentStyle $ do
+          label ! labelAlignmentStyle $ do
+            text "loaded instruments:"
+          viewInstrumentsLoaded state
 
         div ! leftPanelComponentStyle $ do
           viewPlayer state
