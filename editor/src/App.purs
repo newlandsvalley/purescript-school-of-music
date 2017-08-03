@@ -1,6 +1,6 @@
 module App where
 
-import Audio.SoundFont (AUDIO)
+import Audio.SoundFont (AUDIO, LoadResult, loadRemoteSoundFonts)
 import Audio.Euterpea.Player as Player
 import Audio.BasePlayer (PlaybackState(..)) as BasePlayer
 import MultipleSelect (Event, State, foldp, initialState, view) as MS
@@ -8,14 +8,14 @@ import MultipleSelect.Dom (DOM)
 import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
-import Data.Array (length, slice)
+import Data.Array (length, fromFoldable, slice) as A
 import Data.Either (Either(..), isLeft, isRight)
-import Data.List as List
+import Data.List (List(..), null, (:))
 import Data.Foldable (traverse_)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Int (fromString)
 import Data.Monoid (mempty)
-import Data.Map (Map(..), fromFoldable, keys)
+import Data.Map (Map(..), empty, fromFoldable, insert, keys)
 import Data.Tuple (Tuple(..))
 import Data.String (fromCharArray, toCharArray)
 import View.CSS
@@ -42,7 +42,9 @@ data Event
     | Euterpea String
     | RequestFileUpload
     | RequestFileDownload
+    | RequestLoadFonts
     | FileLoaded Filespec
+    | FontLoaded LoadResult
     | PlayerEvent Player.Event
     | InstrumentEvent MS.Event
     | Clear
@@ -67,19 +69,20 @@ nullTune =
 initialInstruments :: InstrumentMap
 initialInstruments =
   fromFoldable
-    [ Tuple "acoustic_grand_piano" 0
-    , Tuple "vibraphone" 1
-    , Tuple "acoustic_bass" 2
-    ]
+    ( Tuple "acoustic_grand_piano" 0
+    : Tuple "vibraphone" 1
+    : Tuple "acoustic_bass" 2
+    : Nil
+    )
 
 initialState :: State
 initialState = {
-    polyphony : ""
+    polyphony : frereJacques
   , instrumentChoices : MS.initialState "add an instrument" instruments
   , availableInstruments : initialInstruments
   , fileName : Nothing
   , tuneResult : nullTune
-  , performance : List.Nil
+  , performance : Nil
   , playerState : Nothing
   }
 
@@ -108,11 +111,30 @@ foldp RequestFileDownload state =
            pure $ (Just NoOp)
        ]
     }
+foldp RequestLoadFonts state =
+  let
+    selections :: Array String
+    selections = A.fromFoldable state.instrumentChoices.selected
+    effects =
+      [
+        do  -- request the fonts are loaded
+          msg <- loadRemoteSoundFonts selections
+          pure $ Just (FontLoaded msg)
+      ]
+    nilInstrumentChoices = state.instrumentChoices { selected = Nil }
+    newState = state { instrumentChoices = nilInstrumentChoices, availableInstruments = empty }
+  in
+    {state: newState, effects: effects}
+foldp (FontLoaded loadResult) state =
+  let
+    availableInstruments = insert loadResult.instrument loadResult.channel state.availableInstruments
+  in
+    noEffects $ state { availableInstruments = availableInstruments}
 foldp Clear state =
   onChangedEuterpea ""
     (state { polyphony = ""
            , tuneResult = nullTune
-           , performance = List.Nil
+           , performance = Nil
            , playerState = Nothing
            }
     )
@@ -140,7 +162,7 @@ onChangedEuterpea polyphony state =
     performance =
       case tuneResult of
         Right { title, music } -> perform1 music
-        _ -> List.Nil
+        _ -> Nil
 
     newState =
       state { tuneResult = tuneResult, polyphony = polyphony, performance = performance }
@@ -218,15 +240,15 @@ viewParseError state =
           startPhrase =
             max (pe.pos - textRange) 0
           errorPrefix =
-            slice startPhrase pe.pos txt
+            A.slice startPhrase pe.pos txt
           startSuffix =
-            min (pe.pos + 1) (length txt)
+            min (pe.pos + 1) (A.length txt)
           endSuffix =
-            min (pe.pos + textRange + 1) (length txt)
+            min (pe.pos + textRange + 1) (A.length txt)
           errorSuffix =
-            slice startSuffix endSuffix txt
+            A.slice startSuffix endSuffix txt
           errorChar =
-            slice pe.pos (pe.pos + 1) txt
+            A.slice pe.pos (pe.pos + 1) txt
         in
           p do
               text $ pe.error <> " - "
@@ -251,6 +273,16 @@ viewPlayer state =
     _ ->
       mempty
 
+loadSoundfontsButton :: State -> HTML Event
+loadSoundfontsButton state =
+  if (null state.instrumentChoices.selected) then
+    mempty
+  else
+    div $ do
+      label ! labelAlignmentStyle $ do
+        text  "replace instruments:"
+      button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const RequestLoadFonts) $ text "load"
+
 -- | is the player playing ?
 isPlaying :: State -> Boolean
 isPlaying state =
@@ -269,7 +301,7 @@ viewInstrumentSelect state =
 viewInstrumentsLoaded :: State -> HTML Event
 viewInstrumentsLoaded state =
   let
-    instruments = keys initialInstruments
+    instruments = keys state.availableInstruments
     f s =
       li ! At.className "msListItem" $ do
         span ! At.className "msListItemLabel" $ do
@@ -306,6 +338,7 @@ view state =
 
         div ! leftPanelComponentStyle $ do
           viewInstrumentSelect state
+          loadSoundfontsButton state
         div ! leftPanelComponentStyle $ do
           label ! labelAlignmentStyle $ do
             text "loaded instruments:"
@@ -325,3 +358,18 @@ view state =
 
       div! rightPaneStyle $ do
         viewPerformance state
+
+frereJacques :: String
+frereJacques =
+  "\"Frere Jacques\"\r\n" <>
+  "Let \r\n" <>
+  "    ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3  \r\n" <>
+  "    ln2 = Line Note qn B 3, Note qn C 4, Note hn D 4 \r\n" <>
+  "    ln3 = Line Note en D 4, Note en E 4, Note en D 4, Note en C 4, Note qn B 3, Note qn G 3 \r\n" <>
+  "    ln4 = Line Note qn G 3, Note qn D 3, Note hn G 3 \r\n" <>
+  "    rest = Line Rest wn \r\n" <>
+  "In \r\n" <>
+  "  Par \r\n" <>
+  "     Instrument acoustic_bass ( Transpose -12 ( Seq ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 )) \r\n" <>
+  "     Instrument vibraphone ( Seq rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 )\r\n" <>
+  "     Seq rest rest rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 "
