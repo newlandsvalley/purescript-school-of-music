@@ -15,12 +15,12 @@ import Data.Foldable (traverse_)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Int (fromString)
 import Data.Monoid (mempty)
-import Data.Map (Map(..), empty, fromFoldable, insert, keys)
+import Data.Map (Map(..), empty, fromFoldable, insert, lookup, keys)
 import Data.Tuple (Tuple(..))
 import Data.String (fromCharArray, toCharArray)
 import View.CSS
 import FileIO.FileIO (FILEIO, Filespec, loadTextFile, saveTextFile)
-import Prelude (bind, const, discard, id, max, min, not, pure, show, ($), (#), (<>), (+), (-), (==), (<<<))
+import Prelude (bind, const, discard, id, max, min, negate, not, pure, show, ($), (#), (<>), (+), (-), (==), (<<<))
 import Pux (EffModel, noEffects, mapEffects, mapState)
 import Pux.DOM.Events (DOMEvent, onClick, onChange, onInput, targetValue)
 import Pux.DOM.HTML (HTML, child)
@@ -77,7 +77,7 @@ initialInstruments =
 
 initialState :: State
 initialState = {
-    polyphony : frereJacques
+    polyphony : ""
   , instrumentChoices : MS.initialState "add an instrument" instruments
   , availableInstruments : initialInstruments
   , fileName : Nothing
@@ -85,6 +85,26 @@ initialState = {
   , performance : Nil
   , playerState : Nothing
   }
+
+{-}
+initialState :: State
+initialState = {
+    polyphony : frereJacques
+  , instrumentChoices : MS.initialState "add an instrument" instruments
+  , availableInstruments : initialInstruments
+  , fileName : Nothing
+  , tuneResult : parse frereJacques
+  , performance : initialPerformance
+  , playerState : Just (Player.initialState initialInstruments)
+  }
+
+initialPerformance :: Performance
+initialPerformance =
+  case parse frereJacques of
+    Right { title, music } -> perform1 music
+    _ -> Nil
+-}
+
 
 
 foldp :: Event -> State -> EffModel State Event (fileio :: FILEIO, au :: AUDIO, dom :: DOM)
@@ -128,8 +148,12 @@ foldp RequestLoadFonts state =
 foldp (FontLoaded loadResult) state =
   let
     availableInstruments = insert loadResult.instrument loadResult.channel state.availableInstruments
+    playerState = Just (Player.initialState availableInstruments)
   in
-    noEffects $ state { availableInstruments = availableInstruments}
+    -- noEffects $ state { availableInstruments = availableInstruments, playerState = playerState }
+    -- we need to react to a changed Euterpea after each instrument font loads.  This is because the user may edit
+    -- the tine text to incorporate the new instrument names before loading their soundfonts
+    onChangedEuterpea state.polyphony $ state { availableInstruments = availableInstruments, playerState = playerState }
 foldp Clear state =
   onChangedEuterpea ""
     (state { polyphony = ""
@@ -169,7 +193,7 @@ onChangedEuterpea polyphony state =
   in
     case tuneResult of
       Right _ ->
-        { state: newState { playerState = Just (Player.initialState initialInstruments)}
+        { state: newState { playerState = Just (Player.initialState state.availableInstruments)}
            , effects:
              [
               do
@@ -302,10 +326,11 @@ viewInstrumentsLoaded :: State -> HTML Event
 viewInstrumentsLoaded state =
   let
     instruments = keys state.availableInstruments
+    channel s = fromMaybe (-1) $ lookup s state.availableInstruments
     f s =
       li ! At.className "msListItem" $ do
         span ! At.className "msListItemLabel" $ do
-          text s
+          text $ s <> ": channel " <> (show $ channel s)
   in
     ul ! At.className "msList" $ do
       traverse_ f instruments
@@ -322,10 +347,11 @@ view state =
       div ! leftPaneStyle $ do
         div ! leftPanelComponentStyle $ do
           label ! labelAlignmentStyle $ do
-            text "load a Euterpea file:"
+            text "load PSoM:"
           label ! inputLabelStyle ! At.className "hoverable" ! At.for "fileinput" $ text "choose"
           input ! inputStyle ! At.type' "file" ! At.id "fileinput" ! At.accept ".psom, .txt"
                #! onChange (const RequestFileUpload)
+          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Euterpea frereJacques) $ text "example"
 
         div ! leftPanelComponentStyle $ do
           viewFileName state
@@ -372,4 +398,4 @@ frereJacques =
   "  Par \r\n" <>
   "     Instrument acoustic_bass ( Transpose -12 ( Seq ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 )) \r\n" <>
   "     Instrument vibraphone ( Seq rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 )\r\n" <>
-  "     Seq rest rest rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 "
+  "     Instrument acoustic_grand_piano ( Seq rest rest rest rest ln1 ln1 ln2 ln2 ln3 ln3 ln4 ln4 )"

@@ -14,7 +14,7 @@ It consists of a PSoM library (ported from HSoM) together with an editor that ru
 Current State of Progress
 -------------------------
 
-The editor is built using polyphonic soundfonts which must be pre-loaded for selected instruments before anything plays.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. 
+The editor is built using polyphonic soundfonts.  An initial set is pre-loaded but you have the choice of replacing them at any time. If you do so, you must alter the instrument names accordingly in the tune text.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. 
 
 As far as I am aware, all features of the Music ADT which are fully supported by HSoM have been carried across to the DSL.
 
@@ -99,10 +99,7 @@ where control mechanisms are:
                      
 ```
 
-All keywords start with an upper-case letter.  Variables (which represent a repeatable section of music) start with a lower-case letter.
-
-
-The DSL attempts to give a convenient representation for lines of music and chords, whilst still retaining the ability to control whole phrases (however built). It is very experimental and likely to change.  
+All keywords start with an upper-case letter.  Variables (which represent a repeatable section of music) start with a lower-case letter. The DSL attempts to give a convenient representation for lines of music and chords, whilst still retaining the ability to control whole phrases (however built). It is very experimental and likely to change.  
 
 See the DSL tests and editor examples for example usage.
 
@@ -114,7 +111,7 @@ A PSoM melody is converted (via PSoM's __MEvent__) into a [MIDI Melody](https://
 Editor
 ------
 
-The __editor__ sub-project is an editor for music written with the Euterpea DSL.  At the moment, this parses the DSL text and either displays an error or else the results of converting it to a PSoM Performance. It checks the instrument names entered into the DSL and associates each with the MIDI channel for that instrument (if loaded) or to channel 0 (if not). It then allows the melody to be played.
+The __editor__ sub-project is an editor for music written with the Euterpea DSL.  This parses the DSL text and either displays an error or else the results of converting it to a PSoM Performance. It checks the instrument names entered into the DSL and associates each with the MIDI channel for that instrument (if loaded) or to channel 0 (if not). It then allows the melody to be played through the soundfonts that are currently loaded.
 
 Samples
 ------
@@ -128,10 +125,6 @@ Design Questions
 
 What features would make the DSL pleasant and convenient to use?
 
-### Soundfonts
-
-What options should we give the user for (re-)loading soundfonts?
-
 ### Volume
 
 What would be a sensible default value for a note volume (currently 100)?
@@ -141,7 +134,7 @@ To Do
 
 *  Allow variable definitions to refer to other variables defined earlier in the same scope
 *  Add construction for optional comments to the DSL
-*  Add option to re-select the loaded soundfonts
+*  Remove Line from the DSL in favour of Seq (everywhere) ?
 *  Add quickcheck style tests to the PSoM library
 
 The following control mechanisms are unimplemented because they also have not been implemented in HSoM:
