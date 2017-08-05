@@ -133,8 +133,6 @@ To Do
 -----
 
 *  Allow variable definitions to refer to other variables defined earlier in the same scope
-*  Add construction for optional comments to the DSL
-*  Remove Line from the DSL in favour of Seq (everywhere) ?
 *  Add quickcheck style tests to the PSoM library
 
 The following control mechanisms are unimplemented because they also have not been implemented in HSoM:

@@ -23,7 +23,7 @@ import Data.Foldable (class Foldable)
 import Data.Rational (Rational, fromInt, rational)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try, fail)
 import Text.Parsing.StringParser.String (anyDigit, char, string, regex, skipSpaces)
-import Text.Parsing.StringParser.Combinators (between, choice, many1, optionMaybe, (<?>))
+import Text.Parsing.StringParser.Combinators (between, choice, many1, optional, optionMaybe, optionMaybe, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..),
        NoteAttribute(..), PhraseAttribute(..), Control(..), Tempo(..), Articulation(..)) as Eut
@@ -32,6 +32,8 @@ import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
 import Data.Euterpea.Instrument (InstrumentName, read)
 import Data.Euterpea.Notes as Eutn
 import Data.Euterpea.Transform as Eutt
+
+import Debug.Trace (trace, traceShow)
 
 
 type PSoM =
@@ -107,8 +109,7 @@ bracketedMusic bnds =
 voices :: BindingMap -> Parser Eut1.Music1
 voices bnds =
   fix \unit ->
-     -- buildVoices <$> (keyWord "Par") <*> many1Nel (musicProcedure bnds)
-     buildVoices <$> (keyWord "Par") <*> many1Nel (procedureOrVariable bnds)
+    Eutt.chord1 <$> ((keyWord "Par") *> (try $ optional comment) *> many1Nel (procedureOrVariable bnds))
 
 procedureOrVariable :: BindingMap -> Parser Eut1.Music1
 procedureOrVariable bnds =
@@ -150,22 +151,23 @@ tempo =
 phraseAttributes :: Parser Eut.Control
 phraseAttributes =
   Eut.Phrase <$> (keyWord "PhraseAtts" *> (many1 phraseAttribute))
+    <?> "phrase attributes"
 
 phraseAttribute :: Parser Eut.PhraseAttribute
 phraseAttribute =
-  choice
-    [ loudness
-    , stdLoudness
-    , crescendo
-    , diminuendo
-    , accent
-    , ritardando
-    , accelerando
-    , staccato
-    , legato
-    , slurred
+  (choice
+     [ loudness
+     , stdLoudness
+     , crescendo
+     , diminuendo
+     , accent
+     , ritardando
+     , accelerando
+     , staccato
+     , legato
+     , slurred
     ]
-    -- more to follow
+  ) <?> "phrase attribute"
 
 loudness :: Parser Eut.PhraseAttribute
 loudness =
@@ -215,14 +217,7 @@ instrument =
 
 lines :: BindingMap ->  Parser Eut1.Music1
 lines bnds =
-  Eutt.line1 <$> ((keyWord "Seq") *> many1Nel (linesOptions bnds))
-
--- | perhaps ditch this in favour of the next one?
-{-}
-lineOrVariable :: BindingMap -> Parser Eut1.Music1
-lineOrVariable bnds =
-  line <|> (variable bnds)
--}
+  Eutt.line1 <$> ((keyWord "Seq") *> (try $ optional comment) *> many1Nel (linesOptions bnds))
 
 linesOptions :: BindingMap -> Parser Eut1.Music1
 linesOptions bnds =
@@ -522,11 +517,6 @@ dynamicMarking =
     checkDynamicMarking name)
   ) <?> "dynamic marking"
 
-{-}
-anyString :: Parser String
-anyString = fromCharList <$> many1 anyChar
--}
-
 fromCharList :: forall f. Foldable f => f Char -> String
 fromCharList = S.fromCharArray <<< fromFoldable
 
@@ -537,12 +527,26 @@ keyWord target =
 identifier :: Parser String
 identifier = regex "[a-z][a-zA-Z0-9]*" <* skipSpaces
 
+commentChars :: Parser String
+commentChars = regex "[ -,a-zA-Z0-9/./-]+"
+
 quotedString :: Parser String
 quotedString =
   string "\""
      *> regex "(\\\\\"|[^\"\n])*"
      <* (string "\"" <* skipSpaces)
      <?> "quoted string"
+
+-- | single line comment
+comment :: Parser String
+comment =
+  string "--" *> commentChars <* endOfLine <* skipSpaces
+    <?> "comment"
+
+endOfLine :: Parser String
+endOfLine =
+  string "\r\n"
+    <?> "endOfLine"
 
 digit :: Parser Int
 digit = (fromMaybe 0 <<< fromString <<< S.singleton) <$> anyDigit
@@ -557,10 +561,6 @@ buildBinding name _ mus =
 buildBindings :: String -> Nel.NonEmptyList Binding -> String -> BindingMap
 buildBindings  _ bnds _ =
   Map.fromFoldable bnds
-
-buildVoices :: String -> Nel.NonEmptyList Eut1.Music1 -> Eut1.Music1
-buildVoices _ vs =
-  Eutt.chord1 vs
 
 buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Eut.Primitive Eut1.Note1
 buildNote1 _ dur p  =

@@ -100,6 +100,8 @@ noteSuite =
       assertParses  "\"Test\" PhraseAtts Legato 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
     test "slurred" do
       assertParses  "\"Test\" PhraseAtts Slurred 1/2 ( Line Note qn C 1, Note qn D 1, Rest qn )"
+    test "comments" do
+      assertParses commentsSource
 
 complexVoicesSource :: String
 complexVoicesSource =
@@ -137,7 +139,18 @@ roundSource =
       "Seq ln1 ln1 ln2 ln2 " <>
       "Seq rest rest ln1 ln1 "
 
-
+commentsSource :: String
+commentsSource =
+   "\"Test\"\r\n" <>
+   "Par" <>
+     "-- comments can appear after Par \r\n" <>
+     "Seq" <>
+       "-- and also after Seq \r\n" <>
+       " Line Note qn C 1, Note qn D 1, Rest qn " <>
+       "Line Note qn C 1, Note qn D 1, Rest qn " <>
+     "Seq " <>
+       "Line Note qn C 1, Note qn D 1, Rest qn" <>
+       "Line Note qn C 1, Note qn D 1, Chord [ Note qn C 1, Note qn D 1 ], Rest qn"
 
 cq :: Volume -> Music1
 cq v = Prim (Note (1 % 4) (Note1 (Pitch C 1) ((Volume v) : Nil)))
