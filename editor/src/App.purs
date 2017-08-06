@@ -5,37 +5,29 @@ import Audio.Euterpea.Player as Player
 import Audio.BasePlayer (PlaybackState(..)) as BasePlayer
 import MultipleSelect (Event, State, foldp, initialState, view) as MS
 import MultipleSelect.Dom (DOM)
-import Control.Monad.Aff (Aff)
-import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Data.Array (length, fromFoldable, slice) as A
-import Data.Either (Either(..), isLeft, isRight)
+import Data.Either (Either(..), isRight)
 import Data.List (List(..), null, (:))
 import Data.Foldable (traverse_)
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Int (fromString)
+import Data.Maybe (Maybe(..))
 import Data.Monoid (mempty)
-import Data.Map (Map(..), empty, fromFoldable, insert, lookup, keys)
+import Data.Map (empty, fromFoldable, insert, keys)
 import Data.Tuple (Tuple(..))
 import Data.String (fromCharArray, toCharArray)
-import View.CSS
 import FileIO.FileIO (FILEIO, Filespec, loadTextFile, saveTextFile)
-import Prelude (bind, const, discard, id, max, min, negate, not, pure, show, ($), (#), (<>), (+), (-), (==), (<<<))
+import Prelude (bind, const, discard, max, min, pure, show, ($), (#), (<>), (+), (-), (==))
 import Pux (EffModel, noEffects, mapEffects, mapState)
-import Pux.DOM.Events (DOMEvent, onClick, onChange, onInput, targetValue)
+import Pux.DOM.Events (onClick, onChange, onInput, targetValue)
 import Pux.DOM.HTML (HTML, child)
-import Text.Smolder.HTML (button, canvas, div, h1, input, label, p, span, select, textarea, ul, li)
+import Text.Smolder.HTML (button, div, h1, input, label, p, span, textarea, ul, li)
 import Text.Smolder.HTML.Attributes as At
-import Text.Smolder.Markup (text, (#!), (!), (!?))
-import Data.Euterpea.Music
-import Data.Euterpea.Music1 (Music1, Note1(..))
+import Text.Smolder.Markup (text, (#!), (!))
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
-import Data.Euterpea.Midi.MEvent (Performance, MEvent(..), perform1)
-import Data.Euterpea.Instrument (InstrumentMap(..), instruments)
-
-
--- import Debug.Trace (trace, traceShow, traceShowM)
-
+import Data.Euterpea.Midi.MEvent (Performance, perform1)
+import Data.Euterpea.Instrument (InstrumentMap, instruments)
+import View.CSS (buttonStyle, centreStyle, errorHighlightStyle, inputLabelStyle, inputStyle, labelAlignmentStyle,
+     leftPaneStyle, leftPanelComponentStyle, rightPaneStyle, taStyle)
 
 data Event
     = NoOp
@@ -326,15 +318,13 @@ viewInstrumentsLoaded :: State -> HTML Event
 viewInstrumentsLoaded state =
   let
     instruments = keys state.availableInstruments
-    channel s = fromMaybe (-1) $ lookup s state.availableInstruments
     f s =
       li ! At.className "msListItem" $ do
         span ! At.className "msListItemLabel" $ do
-          text $ s <> ": channel " <> (show $ channel s)
+          text s
   in
     ul ! At.className "msList" $ do
       traverse_ f instruments
-
 
 view :: State -> HTML Event
 view state =
@@ -353,8 +343,10 @@ view state =
                #! onChange (const RequestFileUpload)
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Euterpea frereJacques) $ text "example"
 
+        {-}
         div ! leftPanelComponentStyle $ do
           viewFileName state
+        -}
         div ! leftPanelComponentStyle  $ do
           label ! labelAlignmentStyle $ do
             -- text  "save or clear Euterpea:"
@@ -373,7 +365,6 @@ view state =
         div ! leftPanelComponentStyle $ do
           viewPlayer state
 
-
       -- the editable text on the right
       div ! rightPaneStyle $ do
         -- p $ text $ fromMaybe "no file chosen" state.fileName
@@ -382,12 +373,15 @@ view state =
           #! onInput (\e -> Euterpea (targetValue e) ) $ mempty
         viewParseError state
 
+      {- debug
       div! rightPaneStyle $ do
         viewPerformance state
+      -}
 
 frereJacques :: String
 frereJacques =
   "\"Frere Jacques\"\r\n" <>
+  "-- More examples at https://github.com/newlandsvalley/purescript-school-of-music/tree/master/editor \r\n" <>
   "Let \r\n" <>
   "    ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3  \r\n" <>
   "    ln2 = Line Note qn B 3, Note qn C 4, Note hn D 4 \r\n" <>

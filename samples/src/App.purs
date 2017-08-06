@@ -15,23 +15,22 @@ import Data.Monoid (mempty)
 import Data.Map (Map(..), fromFoldable)
 import Data.Tuple (Tuple(..))
 import Data.String (fromCharArray, toCharArray)
-import View.CSS
 import FileIO.FileIO (FILEIO, Filespec, loadTextFile, saveTextFile)
 import Prelude (bind, const, discard, id, max, min, not, pure, show, ($), (#), (<>), (+), (-), (==), (<<<))
 import Pux (EffModel, noEffects, mapEffects, mapState)
 import Pux.DOM.Events (DOMEvent, onClick, onChange, onInput, targetValue)
 import Pux.DOM.HTML (HTML, child)
-import Text.Smolder.HTML (button, canvas, div, h1, input, label, p, span, select, textarea)
+import Text.Smolder.HTML (button, div, h1, label, p, span, textarea)
 import Text.Smolder.HTML.Attributes as At
-import Text.Smolder.Markup (text, (#!), (!), (!?))
+import Text.Smolder.Markup (text, (#!), (!))
 import Data.Euterpea.Music
 import Data.Euterpea.Music1 (Music1, Note1(..))
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, MEvent(..), perform1)
 import Data.Euterpea.Instrument (InstrumentMap(..))
+import View.CSS (buttonStyle, centreStyle, errorHighlightStyle, labelAlignmentStyle, leftPaneStyle, leftPanelComponentStyle,
+  rightPaneStyle, taStyle)
 
-
--- import Debug.Trace (trace, traceShow, traceShowM)
 
 
 data Event

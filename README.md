@@ -1,32 +1,21 @@
 Purescript School of Music (PSoM)
 =================================
 
-WORK IN PROGRESS
-
-
 Try it out [here](http://www.tradtunedb.org.uk:8600/).
 
 This is another attempt at porting the music notation part of the [Haskell School of Music](https://github.com/Euterpea/Euterpea2) (HSoM) to the browser. It follows an [abortive attempt in Elm](https://github.com/danigb/elm-school-of-music) in conjunction with danigb.  This failed largely because of the lack of type classes in Elm but also because of the time delays inherent in Elm's port system when requesting that a sound should actually be played.
 
-It consists of a PSoM library (ported from HSoM) together with an editor that runs in the browser. This allows you to enter melodies using a DSL which attempts to be a simple interface to the PSoM API.
-
-
-Current State of Progress
--------------------------
-
-The editor is built using polyphonic soundfonts.  An initial set is pre-loaded but you have the choice of replacing them at any time. If you do so, you must alter the instrument names accordingly in the tune text.  The PSoM score is translated to a Melody (as accepted by the [MIDI player](https://github.com/newlandsvalley/purescript-midi-player)) which is an interruptible series of MIDI phrases.  Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect. 
-
-As far as I am aware, all features of the Music ADT which are fully supported by HSoM have been carried across to the DSL.
+It consists of a PSoM library (ported from HSoM) together with an editor that runs in the browser. This allows you to enter melodies using a DSL (intended to be a natural interface into the PSoM API) and then play them.
 
 Supported Instruments
 ---------------------
 
 PSoM uses instruments from [Benjamin Gleitzman's soundfont library](https://github.com/gleitz/midi-js-soundfonts).  It recognizes all the instruments listed [here](http://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/names.json).  The names differ slightly from those originally used by HSoM - the mapping between the two is shown [here](https://github.com/newlandsvalley/purescript-school-of-music/blob/master/HSoM_INSTRUMENTS.md).  MIDI allows up to 10 such instruments to be available for any given melody.
 
-Front End
----------
+DSL
+---
 
-PSoM melodies are presented to the browser using a DSL with the following syntax:
+Melodies are presented to the browser using a DSL with the following syntax:
 
 ``` 
     psom = title musicProcedure
@@ -74,7 +63,6 @@ PSoM melodies are presented to the browser using a DSL with the following syntax
 ```
 where control mechanisms are:
 
-
 ```
    control =   'Instrument' instrumentName 
              | 'Transpose' int 
@@ -99,22 +87,24 @@ where control mechanisms are:
                      
 ```
 
-All keywords start with an upper-case letter.  Variables (which represent a repeatable section of music) start with a lower-case letter. The DSL attempts to give a convenient representation for lines of music and chords, whilst still retaining the ability to control whole phrases (however built). It is very experimental and likely to change.  
+All keywords start with an upper-case letter.  Variables (which represent a repeatable section of music) start with a lower-case letter. Comments are supported after the title or after the _Par_ and _Seq_ keywords. The DSL attempts to give a convenient representation for lines of music and chords, whilst still retaining the ability to control whole phrases (however built). It is very experimental and likely to change. As far as I am aware, all features of the Music ADT which are fully supported by HSoM have been carried across to the DSL.
 
 See the DSL tests and editor examples for example usage.
 
-Back End
---------
+Interpretation
+--------------
 
-A PSoM melody is converted (via PSoM's __MEvent__) into a [MIDI Melody](https://github.com/newlandsvalley/purescript-midi-player/blob/master/src/Data/Midi/Player/HybridPerformance.purs). This supports up to 10 channels, each dedicated to a particular MIDI instrument.  This is then capable of being played using  [purescript-polyphonic-soundfonts](https://github.com/newlandsvalley/purescript-polyphonic-soundfonts) .
+Two sub-projects, the __Editor__ and the set of __Samples__ indicate how the DSL is used.
+
+In both, a PSoM melody is converted (via PSoM's __MEvent__) into a [MIDI Melody](https://github.com/newlandsvalley/purescript-midi-player/blob/master/src/Data/Midi/Player/HybridPerformance.purs). This supports up to 10 channels, each dedicated to a particular MIDI instrument.  This is then played using  the [PSoM Player](https://github.com/newlandsvalley/purescript-psom-player) which in turn uses [purescript-polyphonic-soundfonts](https://github.com/newlandsvalley/purescript-polyphonic-soundfonts).
 
 Editor
 ------
 
-The __editor__ sub-project is an editor for music written with the Euterpea DSL.  This parses the DSL text and either displays an error or else the results of converting it to a PSoM Performance. It checks the instrument names entered into the DSL and associates each with the MIDI channel for that instrument (if loaded) or to channel 0 (if not). It then allows the melody to be played through the soundfonts that are currently loaded.
+The __editor__ sub-project pre-loads a set of instrument soundfonts, the first such being the default. You have the choice of replacing them at any time. It parses the DSL text after each keystroke and checks each instrument name against those that have been loaded.  If an instrument is not mentioned, or its sounfont has not been loaded, the default is used. Any errors in the DSL text are displayed, otherwise, the player is made visible,  If you press play, the parsed tune is converted to a Melody which is an interruptible series of MIDI phrases. It then plays the melody using the appropriate soundfonts. Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect.
 
 Samples
-------
+-------
 
 The __samples__ sub-project is a cut-down editor which includes a set of editable sample PSoM melodies in order to give some concrete examples of the PSoM DSL.
 

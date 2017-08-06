@@ -3,7 +3,7 @@ module Main where
 import App (foldp, initialState, view)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Aff (Canceler, launchAff)
-import Audio.SoundFont (AUDIO, loadRemoteSoundFont, loadRemoteSoundFonts)
+import Audio.SoundFont (AUDIO, loadRemoteSoundFonts)
 import FileIO.FileIO (FILEIO)
 import Control.Monad.Eff (Eff)
 import Prelude (Unit, bind)

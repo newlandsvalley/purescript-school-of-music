@@ -1,0 +1,19 @@
+"Fastan"
+Let 
+    triplet1 = Tempo 2/3 ( Line Rest en, Note en F 3, Note en G 3 )
+    triplet2 = Tempo 2/3 ( Line Note sn C 4, Note sn D 4, Note en Bf 3, Note en C 4 )
+    triplet3 = Tempo 2/3 ( Line Note en F 3, Note en E 3, Note en D 3 )
+    triplet4 = Tempo 2/3 ( Line Note en F 3, Note en E 3, Note en F 3 )
+    ln1 = Line Note qn A 3, Note qn Bf 3
+    ln2 = Line Note qn A 3, Note qn F 3
+    ln3 = Line Note qn Bf 2, Note qn D 3
+    ln4 = Line Note tn E 3, Note den A 3, Note wn A 3
+    ln5 = Line Note qn G 3, Note qn A 3
+    ln6 = Line Note tn A 3, Note den F 3, Note wn F 3
+In
+  Instrument vibraphone ( Seq
+    triplet1 ln1 triplet2 ln2 triplet3 ln3 ln4 
+    triplet1 ln1 triplet2 ln2 triplet4 ln5 ln6 
+    triplet1 ln1 triplet2 ln2 triplet3 ln3 ln4 
+    triplet1 ln1 triplet2 ln2 triplet4 ln5 ln6 
+    )

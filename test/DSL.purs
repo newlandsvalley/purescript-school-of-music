@@ -144,7 +144,7 @@ commentsSource =
    "\"Test\"\r\n" <>
    "-- comments can appear after the title \r\n" <>
    "Par" <>
-     "-- and also after Par \r\n" <>
+     "-- and also after Par - perhaps just terminated by newline \n" <>
      "Seq" <>
        "-- and also after Seq \r\n" <>
        " Line Note qn C 1, Note qn D 1, Rest qn " <>

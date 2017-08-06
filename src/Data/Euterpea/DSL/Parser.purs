@@ -23,7 +23,7 @@ import Data.Foldable (class Foldable)
 import Data.Rational (Rational, fromInt, rational)
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try, fail)
 import Text.Parsing.StringParser.String (anyDigit, char, string, regex, skipSpaces)
-import Text.Parsing.StringParser.Combinators (between, choice, many1, optional, optionMaybe, optionMaybe, (<?>))
+import Text.Parsing.StringParser.Combinators (between, choice, many1, optional, optionMaybe, (<?>))
 import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..),
        NoteAttribute(..), PhraseAttribute(..), Control(..), Tempo(..), Articulation(..)) as Eut
@@ -540,9 +540,10 @@ comment =
   string "--" *> commentChars <* endOfLine <* skipSpaces
     <?> "comment"
 
+-- | support both from file and in-browser text area
 endOfLine :: Parser String
 endOfLine =
-  string "\r\n"
+  (string "\r" <|> string "\n")
     <?> "endOfLine"
 
 digit :: Parser Int

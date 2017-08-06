@@ -4,7 +4,6 @@
 /output/
 /generated-docs/
 /deprecated/
-/editor/examples/
 /editor/dist/psom-editor.js
 /samples/dist/psom-samples.js
 /.psc*
