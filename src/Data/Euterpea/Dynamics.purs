@@ -5,7 +5,7 @@ module Data.Euterpea.Dynamics
   ) where
 
 
-import Prelude (class Show, class Eq, class Ord, ($), show)
+import Prelude (class Show, class Eq, class Ord, show)
 import Data.Rational (Rational)
 import Data.Tuple (Tuple(..))
 import Data.Map (Map, fromFoldable, lookup) as Map

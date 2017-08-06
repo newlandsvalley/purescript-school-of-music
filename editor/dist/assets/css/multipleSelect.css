@@ -6,6 +6,12 @@ label {
   color: #444;
 }
 
+.msSelect {
+  /* this is the selection dropdown */
+  background-color: #cccc99;
+  height: 28px;
+}
+
 .msList {
   /* html list that contains selected items */
   margin: 0.25em 0 1em 0;

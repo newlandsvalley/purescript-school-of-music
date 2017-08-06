@@ -381,7 +381,7 @@ view state =
 frereJacques :: String
 frereJacques =
   "\"Frere Jacques\"\r\n" <>
-  "-- More examples at https://github.com/newlandsvalley/purescript-school-of-music/tree/master/editor \r\n" <>
+  "-- More examples at https://github.com/newlandsvalley/purescript-school-of-music/tree/master/editor/examples \r\n" <>
   "Let \r\n" <>
   "    ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3  \r\n" <>
   "    ln2 = Line Note qn B 3, Note qn C 4, Note hn D 4 \r\n" <>

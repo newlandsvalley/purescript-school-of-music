@@ -525,7 +525,7 @@ identifier :: Parser String
 identifier = regex "[a-z][a-zA-Z0-9]*" <* skipSpaces
 
 commentChars :: Parser String
-commentChars = regex "[ -,a-zA-Z0-9/./-]+"
+commentChars = regex "[ -,:-@a-zA-Z0-9/./-]+"
 
 quotedString :: Parser String
 quotedString =
