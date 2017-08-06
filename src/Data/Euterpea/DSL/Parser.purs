@@ -33,9 +33,6 @@ import Data.Euterpea.Instrument (InstrumentName, read)
 import Data.Euterpea.Notes as Eutn
 import Data.Euterpea.Transform as Eutt
 
-import Debug.Trace (trace, traceShow)
-
-
 type PSoM =
   {  title :: String
   ,  music :: Eut1.Music1
@@ -55,7 +52,7 @@ defaultVolume = 100
 psom ::Parser PSoM
 psom =
   buildPSoM <$>
-    quotedString <*> (musicProcedure Map.empty)
+    quotedString <*> (try $ optional comment *> musicProcedure Map.empty)
 
 -- | a music procedure (the top level music production)
 musicProcedure :: BindingMap -> Parser Eut1.Music1
