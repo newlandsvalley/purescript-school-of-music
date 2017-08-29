@@ -1,7 +1,7 @@
 module Test.Instrument (instrumentSuite) where
 
 
-import Prelude (Unit, bind, discard)
+import Prelude (Unit, discard)
 import Control.Monad.Free (Free)
 import Data.Maybe (Maybe(..))
 

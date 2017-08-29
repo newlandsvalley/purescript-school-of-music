@@ -20,7 +20,7 @@ import Data.Maybe (Maybe(Just), fromMaybe)
 import Data.Array (fromFoldable)
 import Data.Tuple (Tuple(..))
 import Data.Foldable (class Foldable)
-import Data.Rational (Rational, fromInt, rational)
+import Data.Rational (Rational, fromInt, (%))
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try, fail)
 import Text.Parsing.StringParser.String (anyDigit, char, string, regex, skipSpaces)
 import Text.Parsing.StringParser.Combinators (between, choice, many1, optional, optionMaybe, (<?>))
@@ -501,7 +501,7 @@ anyInt =
 
 fraction :: Parser Rational
 fraction =
-  rational <$> int <* char '/' <*> int <* skipSpaces
+  (%) <$> int <* char '/' <*> int <* skipSpaces
 
 -- | an integer presented as a vulgar fraction
 vulgar :: Parser Rational

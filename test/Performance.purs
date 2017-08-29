@@ -5,16 +5,13 @@ import Control.Monad.Free (Free)
 
 import Data.Either (Either(..))
 
-
-import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
-import Data.Euterpea.Music
-import Data.Euterpea.Music1 (Music1, Note1(..))
+import Data.Euterpea.DSL.Parser (parse)
 import Data.Euterpea.Midi.MEvent (MEvent(..), Performance, perform1)
 import Data.Euterpea.Instrument (InstrumentName(..))
 import Data.Rational ((%))
 import Data.List (List(..), (:))
 
-import Test.Unit (Test, TestF, suite, test, failure, success)
+import Test.Unit (Test, TestF, suite, test, failure)
 import Test.Unit.Assert as Assert
 
 assertPerformance :: forall e. String -> Performance -> Test e
