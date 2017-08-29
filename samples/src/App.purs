@@ -3,34 +3,27 @@ module App where
 import Audio.SoundFont (AUDIO)
 import Audio.Euterpea.Player as Player
 import Audio.BasePlayer (PlaybackState(..)) as BasePlayer
-import Control.Monad.Aff (Aff)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
 import Data.Array (length, slice)
-import Data.Either (Either(..), isLeft, isRight)
+import Data.Either (Either(..), isRight)
 import Data.List as List
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Int (fromString)
+import Data.Maybe (Maybe(..))
 import Data.Monoid (mempty)
-import Data.Map (Map(..), fromFoldable)
+import Data.Map (fromFoldable)
 import Data.Tuple (Tuple(..))
 import Data.String (fromCharArray, toCharArray)
-import FileIO.FileIO (FILEIO, Filespec, loadTextFile, saveTextFile)
-import Prelude (bind, const, discard, id, max, min, not, pure, show, ($), (#), (<>), (+), (-), (==), (<<<))
+import FileIO.FileIO (FILEIO)
+import Prelude (const, discard, max, min, pure, show, ($), (#), (<>), (+), (-), (==))
 import Pux (EffModel, noEffects, mapEffects, mapState)
-import Pux.DOM.Events (DOMEvent, onClick, onChange, onInput, targetValue)
+import Pux.DOM.Events (onClick, onInput, targetValue)
 import Pux.DOM.HTML (HTML, child)
 import Text.Smolder.HTML (button, div, h1, label, p, span, textarea)
 import Text.Smolder.HTML.Attributes as At
 import Text.Smolder.Markup (text, (#!), (!))
-import Data.Euterpea.Music
-import Data.Euterpea.Music1 (Music1, Note1(..))
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
-import Data.Euterpea.Midi.MEvent (Performance, MEvent(..), perform1)
-import Data.Euterpea.Instrument (InstrumentMap(..))
+import Data.Euterpea.Midi.MEvent (Performance, perform1)
+import Data.Euterpea.Instrument (InstrumentMap)
 import View.CSS (buttonStyle, centreStyle, errorHighlightStyle, labelAlignmentStyle, leftPaneStyle, leftPanelComponentStyle,
   rightPaneStyle, taStyle)
-
 
 
 data Event
