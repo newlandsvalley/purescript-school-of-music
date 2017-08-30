@@ -92,7 +92,7 @@ music bnds =
       [
         prim
       , lines bnds
-      , line
+      , line bnds
       , chord
       , voices bnds
       , control bnds
@@ -218,14 +218,15 @@ lines bnds =
 
 linesOptions :: BindingMap -> Parser Eut1.Music1
 linesOptions bnds =
-  line <|> (variable bnds) <|> (control bnds)
+  (line bnds) <|> (variable bnds) <|> (control bnds)
 
-line :: Parser Eut1.Music1
-line =
-  Eutt.line1 <$> ((keyWord "Line") *> sepBy1Nel chordOrPrim separator)
+line ::  BindingMap -> Parser Eut1.Music1
+line bnds =
+  Eutt.line1 <$> ((keyWord "Line") *> sepBy1Nel (lineOptions bnds) separator)
 
-chordOrPrim :: Parser Eut1.Music1
-chordOrPrim = chord <|> prim
+lineOptions :: BindingMap -> Parser Eut1.Music1
+lineOptions bnds =
+  chord <|> prim <|> (control bnds)
 
 chord :: Parser (Eut1.Music1)
 chord =

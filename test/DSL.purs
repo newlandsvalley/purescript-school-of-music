@@ -58,6 +58,8 @@ noteSuite =
       assertMusic  "\"Test\" Chord [ Note qn C 1, Note qn D 1 ]" chord
     test "line with chord" do
       assertMusic  "\"Test\" Line Note qn C 1, Note qn D 1, Chord [ Note qn C 1, Note qn D 1 ], Rest qn" lineWithChord
+    test "line with control" do
+      assertMusic  "\"Test\" Line Note qn C 1, Note qn D 1, Tempo 2/3 ( Line Note qn C 1, Note qn D 1, Rest qn ), Rest qn" lineWithControl
     test "lines" do
       assertMusic  "\"Test\" Seq Line Note qn C 1, Note qn D 1, Rest qn Line Note qn C 1, Note qn D 1, Rest qn" lines
     test "simple voices" do
@@ -171,12 +173,18 @@ lineAtVol v = Seq (cq v) (Seq (dq v) rq)
 lineWithChord :: Music1
 lineWithChord = Seq (cq 100) (Seq (dq 100) (Seq chord rq))
 
+lineWithControl :: Music1
+lineWithControl = Seq (cq 100) (Seq (dq 100) (Seq (tempo line) rq))
+
 lines :: Music1
 lines =
   Seq line line
 
 chord :: Music1
 chord = Par (cq 100) (dq 100)
+
+tempo :: Music1 -> Music1
+tempo = Modify (Tempo (2 % 3))
 
 violin :: Music1 -> Music1
 violin = Modify (Instrument Violin)

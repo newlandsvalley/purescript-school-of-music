@@ -32,13 +32,13 @@ Melodies are presented to the browser using a DSL with the following syntax:
 
     voices = 'Par' musicProcedure, { musicProcedure }
 
-    lines = 'Seq' seqOptions, { lineOrVariable }
+    lines = 'Seq' seqOptions, { seqOptions }
 
-    line = 'Line' chordorprim, { chordorprim }
+    line = 'Line' lineOptions, { lineOptions }
     
     seqOptions = line | variable | control
 
-    chordorprim = chord | prim
+    lineOptions = chord | prim | control
 
     chord = 'Chord' '[' prim, { prim } ']'
 
