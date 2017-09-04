@@ -280,6 +280,9 @@ mapping =
    : Tuple (gleitzmanName Timpani) Timpani
    : Tuple (gleitzmanName TinkleBell) TinkleBell
    : Tuple (gleitzmanName TremoloStrings) TremoloStrings
+   : Tuple (gleitzmanName Trombone) Trombone
+   : Tuple (gleitzmanName Trumpet) Trumpet
+   : Tuple (gleitzmanName Tuba) Tuba
    : Tuple (gleitzmanName TubularBells) TubularBells
    : Tuple (gleitzmanName Vibraphone) Vibraphone
    : Tuple (gleitzmanName Viola) Viola

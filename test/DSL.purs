@@ -4,7 +4,7 @@ import Prelude (Unit, discard, show, (<>))
 import Control.Monad.Free (Free)
 
 import Data.Either (Either(..))
-import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
+import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
 import Data.Euterpea.Instrument (InstrumentName(..))
 
 import Data.Euterpea.Music
