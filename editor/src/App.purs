@@ -16,7 +16,7 @@ import Data.Map (empty, fromFoldable, insert, keys)
 import Data.Tuple (Tuple(..))
 import Data.String (fromCharArray, toCharArray)
 import FileIO.FileIO (FILEIO, Filespec, loadTextFile, saveTextFile)
-import Prelude (bind, const, discard, max, min, pure, show, ($), (#), (<>), (+), (-), (==))
+import Prelude (bind, const, discard, max, min, pure, show, ($), (#), (<>), (+), (-), (==), (<<<))
 import Pux (EffModel, noEffects, mapEffects, mapState)
 import Pux.DOM.Events (onClick, onChange, onInput, targetValue)
 import Pux.DOM.HTML (HTML, child)
@@ -26,6 +26,9 @@ import Text.Smolder.Markup (text, (#!), (!))
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, perform1)
 import Data.Euterpea.Instrument (InstrumentMap, instruments)
+import Data.Abc.Parser (parse) as ABC
+import Data.Abc.PSoM.Translation (toPSoM)
+import Data.Abc.PSoM.DSL (toDSL)
 import View.CSS (buttonStyle, centreStyle, errorHighlightStyle, inputLabelStyle, inputStyle, labelAlignmentStyle,
      leftPaneStyle, leftPanelComponentStyle, rightPaneStyle, taStyle)
 
@@ -34,8 +37,10 @@ data Event
     | Euterpea String
     | RequestFileUpload
     | RequestFileDownload
+    | RequestAbcImport
     | RequestLoadFonts
     | FileLoaded Filespec
+    | AbcLoaded Filespec
     | FontLoaded LoadResult
     | PlayerEvent Player.Event
     | InstrumentEvent MS.Event
@@ -78,27 +83,6 @@ initialState = {
   , playerState : Nothing
   }
 
-{-}
-initialState :: State
-initialState = {
-    polyphony : frereJacques
-  , instrumentChoices : MS.initialState "add an instrument" instruments
-  , availableInstruments : initialInstruments
-  , fileName : Nothing
-  , tuneResult : parse frereJacques
-  , performance : initialPerformance
-  , playerState : Just (Player.initialState initialInstruments)
-  }
-
-initialPerformance :: Performance
-initialPerformance =
-  case parse frereJacques of
-    Right { title, music } -> perform1 music
-    _ -> Nil
--}
-
-
-
 foldp :: Event -> State -> EffModel State Event (fileio :: FILEIO, au :: AUDIO, dom :: DOM)
 foldp NoOp state =  noEffects $ state
 foldp (Euterpea s) state =  onChangedEuterpea s state
@@ -106,7 +90,7 @@ foldp RequestFileUpload state =
  { state: state
    , effects:
      [ do
-         filespec <- loadTextFile
+         filespec <- loadTextFile "psominput"
          pure $ Just (FileLoaded filespec)
      ]
   }
@@ -123,6 +107,16 @@ foldp RequestFileDownload state =
            pure $ (Just NoOp)
        ]
     }
+foldp RequestAbcImport state =
+  { state: state
+    , effects:
+      [ do
+          filespec <- loadTextFile "abcinput"
+          pure $ Just (AbcLoaded filespec)
+      ]
+   }
+foldp (AbcLoaded filespec) state =
+  onLoadAbcFile filespec state
 foldp RequestLoadFonts state =
   let
     selections :: Array String
@@ -204,6 +198,20 @@ onChangedFile filespec state =
   in
     onChangedEuterpea filespec.contents newState
 
+-- | make sure everything is notified if an ABC file is loaded for import
+onLoadAbcFile :: forall e. Filespec -> State -> EffModel State Event (fileio :: FILEIO | e)
+onLoadAbcFile filespec state =
+  let
+    psomText =
+      case (ABC.parse $ filespec.contents <> "\r\n") of
+        Right tune ->
+          (toDSL <<< toPSoM) tune
+        Left err ->
+          "\"" <> filespec.name <> "\"\r\n" <> "-- error in ABC: " <> (show err)
+    newState =
+      state { fileName = Nothing}
+  in
+    onChangedEuterpea psomText newState
 
 -- | get the file name
 getFileName :: State -> String
@@ -338,10 +346,17 @@ view state =
         div ! leftPanelComponentStyle $ do
           label ! labelAlignmentStyle $ do
             text "load PSoM:"
-          label ! inputLabelStyle ! At.className "hoverable" ! At.for "fileinput" $ text "choose"
-          input ! inputStyle ! At.type' "file" ! At.id "fileinput" ! At.accept ".psom, .txt"
+          label ! inputLabelStyle ! At.className "hoverable" ! At.for "psominput" $ text "choose"
+          input ! inputStyle ! At.type' "file" ! At.id "psominput" ! At.accept ".psom, .txt"
                #! onChange (const RequestFileUpload)
           button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Euterpea frereJacques) $ text "example"
+
+        div ! leftPanelComponentStyle  $ do
+          label ! labelAlignmentStyle $ do
+            text "import ABC:"
+          label ! inputLabelStyle ! At.className "hoverable" ! At.for "abcinput" $ text "choose"
+          input ! inputStyle ! At.type' "file" ! At.id "abcinput" ! At.accept ".abc, .txt"
+               #! onChange (const RequestAbcImport)
 
         {-}
         div ! leftPanelComponentStyle $ do

@@ -18,9 +18,9 @@ type Filespec =
 -- | File IO Effect
 foreign import data FILEIO :: Effect
 
-foreign import loadTextFileImpl :: forall e. (Filespec -> Eff e Unit) -> Eff e Unit
+foreign import loadTextFileImpl :: forall e. String -> (Filespec -> Eff e Unit) -> Eff e Unit
 
-loadTextFile :: forall e. Aff e Filespec
-loadTextFile = makeAff (\error success -> loadTextFileImpl success)
+loadTextFile :: forall e. String -> Aff e Filespec
+loadTextFile id = makeAff (\error success -> (loadTextFileImpl id) success)
 
 foreign import saveTextFile :: forall eff. Filespec -> Eff (fileio :: FILEIO | eff) Unit
