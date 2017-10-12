@@ -25,7 +25,7 @@ import Text.Smolder.HTML.Attributes as At
 import Text.Smolder.Markup (text, (#!), (!))
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, perform1)
-import Data.Euterpea.Instrument (InstrumentMap, instruments)
+import Data.Midi.Instrument (InstrumentMap, instruments)
 import Data.Abc.Parser (parse) as ABC
 import Data.Abc.PSoM.Translation (toPSoM)
 import Data.Abc.PSoM.DSL (toDSL)
