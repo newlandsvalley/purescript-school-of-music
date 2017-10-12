@@ -29,9 +29,9 @@ import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..
        NoteAttribute(..), PhraseAttribute(..), Control(..), Tempo(..), Articulation(..)) as Eut
 import Data.Euterpea.Dynamics (Dynamic(..), StdLoudness, read) as Dyn
 import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
-import Data.Euterpea.Instrument (InstrumentName, read)
 import Data.Euterpea.Notes as Eutn
 import Data.Euterpea.Transform as Eutt
+import Data.Midi.Instrument (InstrumentName, read)
 
 type PSoM =
   {  title :: String

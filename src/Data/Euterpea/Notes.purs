@@ -3,7 +3,7 @@ module Data.Euterpea.Notes where
 import Prelude (negate, (*), (+))
 import Data.Euterpea.Music
 import Data.Euterpea.Music1 (pitch)
-import Data.Euterpea.Instrument (InstrumentName)
+import Data.Midi.Instrument (InstrumentName)
 import Data.Rational (fromInt, (%))
 import Data.List (List)
 

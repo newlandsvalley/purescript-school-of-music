@@ -5,7 +5,7 @@ import Control.Monad.Free (Free)
 
 import Data.Either (Either(..))
 import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
-import Data.Euterpea.Instrument (InstrumentName(..))
+import Data.Midi.Instrument (InstrumentName(..))
 
 import Data.Euterpea.Music
 import Data.Euterpea.Music1 (Music1, Note1(..))

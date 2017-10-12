@@ -6,6 +6,7 @@
 /deprecated/
 /editor/dist/psom-editor.js
 /samples/dist/psom-samples.js
+/PSoM2/
 /.psc*
 /.purs*
 /.psa*

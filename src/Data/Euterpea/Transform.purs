@@ -4,7 +4,7 @@ import Prelude (const, flip, map, (+), (-), (*), (/), (>), (<), (<>), (<=), ($))
 import Data.Euterpea.Music
 import Data.Euterpea.Music1 (Note1(..), mMap, pitch)
 import Data.Euterpea.Notes (absPitch, note, rest, tempo, trans)
-import Data.Euterpea.Instrument (InstrumentName)
+import Data.Midi.Instrument (InstrumentName)
 import Data.Maybe (Maybe(..))
 import Data.Foldable (foldr)
 import Data.Rational (Rational, fromInt, toNumber)

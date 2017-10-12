@@ -9,9 +9,8 @@ import Data.Generic.Rep.Eq as GEq
 import Data.Generic.Rep.Ord as GOrd
 import Data.Generic.Rep.Show as GShow
 import Data.Generic.Rep.Bounded as GBounded
-import Data.Euterpea.Instrument (InstrumentName)
 import Data.Euterpea.Dynamics (Dynamic)
-
+import Data.Midi.Instrument (InstrumentName)
 
 infixr 5 Seq as :+:
 infixr 5 Par as :=:

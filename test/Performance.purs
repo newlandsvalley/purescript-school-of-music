@@ -7,7 +7,7 @@ import Data.Either (Either(..))
 
 import Data.Euterpea.DSL.Parser (parse)
 import Data.Euterpea.Midi.MEvent (MEvent(..), Performance, perform1)
-import Data.Euterpea.Instrument (InstrumentName(..))
+import Data.Midi.Instrument (InstrumentName(..))
 import Data.Rational ((%))
 import Data.List (List(..), (:))
 
