@@ -20,9 +20,9 @@
     "purescript-foreign": "^4.0.0",
     "purescript-functions": "^3.0.0",
     "purescript-school-of-music": "../../purescript-school-of-music",
-    "purescript-midi-player": "https://github.com/newlandsvalley/purescript-psom-player.git",
-    "purescript-multiple-select": "https://github.com/newlandsvalley/purescript-multiple-select.git",
-    "purescript-abc-parser": "https://github.com/newlandsvalley/purescript-abc-parser.git",
+    "purescript-midi-player": "https://github.com/newlandsvalley/purescript-psom-player.git#1.0.0",
+    "purescript-multiple-select": "https://github.com/newlandsvalley/purescript-multiple-select.git#1.0.0",
+    "purescript-abc-parser": "https://github.com/newlandsvalley/purescript-abc-parser.git#1.0.0",
     "purescript-debug": "^3.0.0"
   },
   "devDependencies": {

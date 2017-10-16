@@ -19,7 +19,7 @@
     "purescript-math": "^2.0.0",
     "purescript-unicode": "^3.0.1",
     "purescript-string-parsers": "^3.0.1",
-    "purescript-midi": "https://github.com/newlandsvalley/purescript-midi.git",
+    "purescript-midi": "https://github.com/newlandsvalley/purescript-midi.git#1.0.0",
     "purescript-debug": "^3.0.0"
   },
   "devDependencies": {
