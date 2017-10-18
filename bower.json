@@ -7,20 +7,10 @@
     "output"
   ],
   "dependencies": {
-    "purescript-prelude": "^3.0.0",
-    "purescript-generics-rep": "^5.1.0",
     "purescript-rationals": "^4.0.0",
-    "purescript-tuples": "^4.1.0",
-    "purescript-arrays": "^4.1.1",
-    "purescript-lists": "^4.7.0",
-    "purescript-foldable-traversable": "^3.3.0",
-    "purescript-maybe": "^3.0.0",
-    "purescript-integers": "^3.0.0",
+    "purescript-foldable-traversable": "^3.4.0",
     "purescript-math": "^2.0.0",
-    "purescript-unicode": "^3.0.1",
-    "purescript-string-parsers": "^3.0.1",
-    "purescript-midi": "https://github.com/newlandsvalley/purescript-midi.git#1.0.0",
-    "purescript-debug": "^3.0.0"
+    "purescript-midi": "https://github.com/newlandsvalley/purescript-midi.git#1.1.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0",
