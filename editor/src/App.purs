@@ -1,36 +1,34 @@
 module App where
 
-import Audio.SoundFont (AUDIO, LoadResult, loadRemoteSoundFonts)
 import Audio.Euterpea.Player as Player
+import Text.Smolder.HTML.Attributes as At
 import Audio.BasePlayer (PlaybackState(..)) as BasePlayer
-import MultipleSelect (Event, State, foldp, initialState, view) as MS
-import MultipleSelect.Dom (DOM)
+import Audio.SoundFont (AUDIO, Instrument, loadRemoteSoundFonts)
 import Control.Monad.Eff.Class (liftEff)
+import Data.Abc.PSoM.DSL (toDSL)
+import Data.Abc.PSoM.Translation (toPSoM)
+import Data.Abc.Parser (parse) as ABC
 import Data.Array (length, fromFoldable, slice) as A
 import Data.Either (Either(..), isRight)
-import Data.List (List(..), null, (:))
+import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
+import Data.Euterpea.Midi.MEvent (Performance, perform1)
 import Data.Foldable (traverse_)
-import Data.Maybe (Maybe(..))
-import Data.Monoid (mempty)
-import Data.Map (empty, fromFoldable, insert, keys)
-import Data.Tuple (Tuple(..))
-import Data.String (fromCharArray, toCharArray)
-import FileIO.FileIO (FILEIO, Filespec, loadTextFile, saveTextFile)
-import Prelude (bind, const, discard, max, min, pure, show, ($), (#), (<>), (+), (-), (==), (<<<))
+import Data.List (List(..), null)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, instruments, read)
+import Data.String (fromCharArray, toCharArray, null) as S
+import Data.Tuple (Tuple(..), fst)
+import JS.FileIO (FILEIO, Filespec, loadTextFile, saveTextFile)
+import MultipleSelect (Event, State, foldp, initialState, view) as MS
+import MultipleSelect.Dom (DOM)
+import Network.HTTP.Affjax (AJAX)
+import Prelude (bind, const, discard, map, max, min, pure, show, ($), (#), (<>), (+), (-), (==), (<<<))
 import Pux (EffModel, noEffects, mapEffects, mapState)
 import Pux.DOM.Events (onClick, onChange, onInput, targetValue)
 import Pux.DOM.HTML (HTML, child)
 import Text.Smolder.HTML (button, div, h1, input, label, p, span, textarea, ul, li)
-import Text.Smolder.HTML.Attributes as At
-import Text.Smolder.Markup (text, (#!), (!))
-import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
-import Data.Euterpea.Midi.MEvent (Performance, perform1)
-import Data.Midi.Instrument (InstrumentMap, instruments)
-import Data.Abc.Parser (parse) as ABC
-import Data.Abc.PSoM.Translation (toPSoM)
-import Data.Abc.PSoM.DSL (toDSL)
-import View.CSS (buttonStyle, centreStyle, errorHighlightStyle, inputLabelStyle, inputStyle, labelAlignmentStyle,
-     leftPaneStyle, leftPanelComponentStyle, rightPaneStyle, taStyle)
+import Text.Smolder.Markup (attribute, text, (#!), (!))
+import View.CSS (buttonStyle, centreStyle, errorHighlightStyle, inputLabelStyle, inputStyle, labelAlignmentStyle, leftPaneStyle, leftPanelComponentStyle, rightPaneStyle, taStyle)
 
 data Event
     = NoOp
@@ -38,10 +36,10 @@ data Event
     | RequestFileUpload
     | RequestFileDownload
     | RequestAbcImport
-    | RequestLoadFonts
+    | RequestLoadFonts (Array InstrumentName)
     | FileLoaded Filespec
     | AbcLoaded Filespec
-    | FontLoaded LoadResult
+    | FontsLoaded (Array Instrument)
     | PlayerEvent Player.Event
     | InstrumentEvent MS.Event
     | Clear
@@ -49,11 +47,11 @@ data Event
 type State = {
     polyphony :: String
   , instrumentChoices :: MS.State
-  , availableInstruments :: InstrumentMap
   , fileName :: Maybe String
   , tuneResult :: Either PositionedParseError PSoM
   , performance :: Performance
-  , playerState :: Maybe Player.State
+  , playerState :: Player.State
+  , debug :: String
 }
 
 
@@ -62,30 +60,22 @@ nullTune :: Either PositionedParseError PSoM
 nullTune =
   Left (PositionedParseError { pos : 0, error : "" })
 
--- | hard-code the instrument map while we're still developing
-initialInstruments :: InstrumentMap
-initialInstruments =
-  fromFoldable
-    ( Tuple "acoustic_grand_piano" 0
-    : Tuple "vibraphone" 1
-    : Tuple "acoustic_bass" 2
-    : Nil
-    )
-
 initialState :: State
 initialState = {
     polyphony : ""
   , instrumentChoices : MS.initialState "add an instrument" instruments
-  , availableInstruments : initialInstruments
   , fileName : Nothing
   , tuneResult : nullTune
   , performance : Nil
-  , playerState : Nothing
+  , playerState : Player.initialState []
+  , debug : ""
   }
 
-foldp :: Event -> State -> EffModel State Event (fileio :: FILEIO, au :: AUDIO, dom :: DOM)
+foldp :: Event -> State -> EffModel State Event (ajax :: AJAX, fileio :: FILEIO, au :: AUDIO, dom :: DOM)
 foldp NoOp state =  noEffects $ state
 foldp (Euterpea s) state =  onChangedEuterpea s state
+-- foldp (Euterpea s) state =
+--  noEffects $ state { debug = s }
 foldp RequestFileUpload state =
  { state: state
    , effects:
@@ -117,45 +107,37 @@ foldp RequestAbcImport state =
    }
 foldp (AbcLoaded filespec) state =
   onLoadAbcFile filespec state
-foldp RequestLoadFonts state =
+foldp (RequestLoadFonts instrumentNames) state =
   let
-    selections :: Array String
-    selections = A.fromFoldable state.instrumentChoices.selected
     effects =
       [
         do  -- request the fonts are loaded
-          msg <- loadRemoteSoundFonts selections
-          pure $ Just (FontLoaded msg)
+          instruments <- loadRemoteSoundFonts instrumentNames
+          pure $ Just (FontsLoaded instruments)
       ]
     nilInstrumentChoices = state.instrumentChoices { selected = Nil }
-    newState = state { instrumentChoices = nilInstrumentChoices, availableInstruments = empty }
+    newState = state { instrumentChoices = nilInstrumentChoices }
   in
     {state: newState, effects: effects}
-foldp (FontLoaded loadResult) state =
+foldp (FontsLoaded instruments) state =
   let
-    availableInstruments = insert loadResult.instrument loadResult.channel state.availableInstruments
-    playerState = Just (Player.initialState availableInstruments)
+    playerState = Player.initialState instruments
   in
-    -- noEffects $ state { availableInstruments = availableInstruments, playerState = playerState }
     -- we need to react to a changed Euterpea after each instrument font loads.  This is because the user may edit
-    -- the tine text to incorporate the new instrument names before loading their soundfonts
-    onChangedEuterpea state.polyphony $ state { availableInstruments = availableInstruments, playerState = playerState }
+    -- the tne text to incorporate the new instrument names before loading their soundfonts
+    onChangedEuterpea state.polyphony $ state { playerState = playerState }
 foldp Clear state =
   onChangedEuterpea ""
     (state { polyphony = ""
            , tuneResult = nullTune
            , performance = Nil
-           , playerState = Nothing
+           --, playerState = Nothing
            }
     )
 foldp (PlayerEvent e) state =
-  case state.playerState of
-    Just pstate ->
-      Player.foldp e pstate
-        # mapEffects PlayerEvent
-        # mapState \pst -> state { playerState = Just pst }
-    _ ->
-      noEffects state
+  Player.foldp e state.playerState
+    # mapEffects PlayerEvent
+    # mapState \pst -> state { playerState = pst }
 foldp (InstrumentEvent e) state =
   MS.foldp e state.instrumentChoices
     # mapEffects InstrumentEvent
@@ -173,13 +155,17 @@ onChangedEuterpea polyphony state =
       case tuneResult of
         Right { title, music } -> perform1 music
         _ -> Nil
+    parseError =
+      case tuneResult of
+        Right _ -> ""
+        Left (PositionedParseError ppe) -> "parse error: " <> ppe.error
 
     newState =
-      state { tuneResult = tuneResult, polyphony = polyphony, performance = performance }
+      state { tuneResult = tuneResult, polyphony = polyphony, performance = performance, debug = polyphony }
   in
     case tuneResult of
       Right _ ->
-        { state: newState { playerState = Just (Player.initialState state.availableInstruments)}
+        { state: newState
            , effects:
              [
               do
@@ -187,7 +173,7 @@ onChangedEuterpea polyphony state =
             ]
         }
       Left err ->
-        noEffects $ newState { playerState = Nothing }
+        noEffects newState
 
 -- | make sure everything is notified if a new file is loaded
 onChangedFile :: forall e. Filespec -> State -> EffModel State Event (fileio :: FILEIO | e)
@@ -227,6 +213,10 @@ getFileName state =
           "untitled.psom"
 
 
+debugText :: State -> HTML Event
+debugText state =
+  text state.debug
+
 {-
 debugPlayer :: State -> HTML Event
 debugPlayer state =
@@ -239,6 +229,10 @@ debugPlayer state =
        text ("player melody size: " <> (show $ length pstate.melody))
 -}
 
+toInstrumentNames :: Array String -> Array InstrumentName
+toInstrumentNames  =
+  map (fromMaybe AcousticGrandPiano <<< read)
+
 
 viewFileName :: State -> HTML Event
 viewFileName state =
@@ -246,7 +240,7 @@ viewFileName state =
     Just name ->
       text name
     _ ->
-      mempty
+      text ""
 
 
 -- | display a snippet of text with the error highlighted
@@ -255,32 +249,35 @@ viewParseError state =
   let
     -- the range of characters to display around each side of the error position
     textRange = 10
-    txt = toCharArray state.polyphony
+    txt = S.toCharArray state.polyphony
   in
     case state.tuneResult of
       Left (PositionedParseError pe) ->
-        let
-          -- display a prefix of 5 characters before the error (if they're there) and a suffix of 5 after
-          startPhrase =
-            max (pe.pos - textRange) 0
-          errorPrefix =
-            A.slice startPhrase pe.pos txt
-          startSuffix =
-            min (pe.pos + 1) (A.length txt)
-          endSuffix =
-            min (pe.pos + textRange + 1) (A.length txt)
-          errorSuffix =
-            A.slice startSuffix endSuffix txt
-          errorChar =
-            A.slice pe.pos (pe.pos + 1) txt
-        in
-          p do
+        if (S.null state.polyphony) then
+          text ""
+        else
+          let
+            -- display a prefix of 5 characters before the error (if they're there) and a suffix of 5 after
+            startPhrase =
+              max (pe.pos - textRange) 0
+            errorPrefix =
+              A.slice startPhrase pe.pos txt
+            startSuffix =
+              min (pe.pos + 1) (A.length txt)
+            endSuffix =
+              min (pe.pos + textRange + 1) (A.length txt)
+            errorSuffix =
+              A.slice startSuffix endSuffix txt
+            errorChar =
+              A.slice pe.pos (pe.pos + 1) txt
+          in
+            p do
               text $ pe.error <> " - "
-              text $ fromCharArray errorPrefix
-              span ! errorHighlightStyle $ text (fromCharArray errorChar)
-              text $ fromCharArray errorSuffix
+              text $ S.fromCharArray errorPrefix
+              span ! errorHighlightStyle $ text (S.fromCharArray errorChar)
+              text $ S.fromCharArray errorSuffix
       _ ->
-        mempty
+        text ""
 
 -- | display the intermediate Performance state
 viewPerformance :: State -> HTML Event
@@ -291,32 +288,35 @@ viewPerformance state =
 -- | only display the player if we have a Melody
 viewPlayer :: State -> HTML Event
 viewPlayer state =
-  case state.playerState of
-    Just pstate ->
-      child PlayerEvent Player.view $ pstate
+  case state.tuneResult of
+    Right _ ->
+      child PlayerEvent Player.view $ state.playerState
     _ ->
-      mempty
+      text ""
+
 
 loadSoundfontsButton :: State -> HTML Event
 loadSoundfontsButton state =
   if (null state.instrumentChoices.selected) then
-    mempty
+    text ""
   else
-    div $ do
-      label ! labelAlignmentStyle $ do
-        text  "replace instruments:"
-      button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const RequestLoadFonts) $ text "load"
+    let
+      selections :: Array String
+      selections = A.fromFoldable state.instrumentChoices.selected
+      selectedNames = toInstrumentNames selections
+    in
+      div $ do
+        label ! labelAlignmentStyle $ do
+          text  "replace instruments:"
+        button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ RequestLoadFonts selectedNames) $ text "load"
 
 -- | is the player playing ?
 isPlaying :: State -> Boolean
 isPlaying state =
-  case state.playerState of
-    Just ps ->
-      let
-        playbackState = ps.basePlayer.playing
-      in
-        (playbackState == BasePlayer.PLAYING)
-    _ -> false
+  let
+    playbackState = state.playerState.basePlayer.playing
+  in
+    (playbackState == BasePlayer.PLAYING)
 
 viewInstrumentSelect :: State -> HTML Event
 viewInstrumentSelect state =
@@ -325,14 +325,20 @@ viewInstrumentSelect state =
 viewInstrumentsLoaded :: State -> HTML Event
 viewInstrumentsLoaded state =
   let
-    instruments = keys state.availableInstruments
-    f s =
+    instruments = state.playerState.basePlayer.instruments
+    f inst =
       li ! At.className "msListItem" $ do
         span ! At.className "msListItemLabel" $ do
-          text s
+          text $ gleitzmanName $ fst inst
   in
     ul ! At.className "msList" $ do
       traverse_ f instruments
+
+loadInstruction :: State -> String
+loadInstruction state =
+  case state.playerState.basePlayer.instruments of
+    [] -> "wait for instruments to load"
+    _ -> "loaded instruments:"
 
 view :: State -> HTML Event
 view state =
@@ -373,8 +379,8 @@ view state =
           viewInstrumentSelect state
           loadSoundfontsButton state
         div ! leftPanelComponentStyle $ do
-          label ! labelAlignmentStyle $ do
-            text "loaded instruments:"
+          label  $ do
+            text $ loadInstruction state
           viewInstrumentsLoaded state
 
         div ! leftPanelComponentStyle $ do
@@ -383,15 +389,17 @@ view state =
       -- the editable text on the right
       div ! rightPaneStyle $ do
         -- p $ text $ fromMaybe "no file chosen" state.fileName
-        textarea ! taStyle ! At.cols "70" ! At.rows "15" ! At.value state.polyphony
+        textarea ! taStyle ! At.cols "70" ! At.rows "15"
           ! At.spellcheck "false" ! At.autocomplete "false" ! At.autofocus "true"
-          #! onInput (\e -> Euterpea (targetValue e) ) $ mempty
+            ! At.value state.polyphony  ! At.wrap "hard"  ! (attribute "key" "polyphony" )
+          #! onInput (\e -> Euterpea (targetValue e) ) $ text ""
         viewParseError state
 
-      {- debug
+      {-
       div! rightPaneStyle $ do
-        viewPerformance state
+        debugText state
       -}
+
 
 frereJacques :: String
 frereJacques =

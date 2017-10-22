@@ -1,34 +1,65 @@
 module Main where
 
-import App (foldp, initialState, view)
+import App (Event(..), foldp, initialState, view)
 import Control.Monad.Eff.Exception (EXCEPTION)
-import Control.Monad.Aff (Canceler, launchAff)
-import Audio.SoundFont (AUDIO, loadRemoteSoundFonts)
+import Network.HTTP.Affjax (AJAX)
+import Audio.SoundFont (AUDIO)
 import MultipleSelect.Dom (DOM)
-import FileIO.FileIO (FILEIO)
+import JS.FileIO (FILEIO)
 import Control.Monad.Eff (Eff)
-import Prelude (Unit, bind)
+import Prelude (Unit, bind, ($))
 import Pux (CoreEffects, start)
 import Pux.Renderer.React (renderToDOM)
+import Data.Midi.Instrument (InstrumentName(..))
+import Signal (Signal, constant)
+import Signal.Channel (CHANNEL)
 
-initialiseApp :: forall e. Eff (exception :: EXCEPTION | e) (Canceler e)
+-- initialiseApp :: forall e. Eff (ajax :: AJAX, au :: AUDIO, exception :: EXCEPTION | e) (Canceler e)
+{-}
+initialiseApp ::
+  forall eff.
+        Eff
+          ( ajax :: AJAX
+          , au :: AUDIO
+          | eff
+          )
+          (Fiber
+             ( ajax :: AJAX
+             , au :: AUDIO
+             | eff
+             )
+             (Array (Tuple InstrumentName (Map Int AudioBuffer)))
+
 initialiseApp = do
-  -- launchAff (loadRemoteSoundFont "harpsichord")
   -- let's try the MJQ
-  launchAff (loadRemoteSoundFonts ["acoustic_grand_piano", "vibraphone", "acoustic_bass"])
+  loadRemoteSoundFonts [AcousticGrandPiano, Vibraphone, AcousticBass]
+          )
+-}
+
+initFonts :: Signal Event
+initFonts = constant $ RequestLoadFonts [AcousticGrandPiano, Vibraphone, AcousticBass]
+
 
 -- | Start and render the app
 -- main :: ∀ fx. Eff (CoreEffects (fileio :: FILEIO, au :: AUDIO, vt :: VexScore.VEXTAB| fx)) Unit
-main :: Eff (CoreEffects (fileio :: FILEIO, au:: AUDIO, dom :: DOM )) Unit
+-- main :: Eff (CoreEffects (ajax :: AJAX, fileio :: FILEIO, au:: AUDIO, dom :: DOM )) Unit
+main :: Eff
+        ( channel :: CHANNEL
+        , exception :: EXCEPTION
+        , ajax :: AJAX
+        , au :: AUDIO
+        , dom :: DOM
+        , fileio :: FILEIO
+        )
+        Unit
 main = do
 
-  _ <- initialiseApp
 
   app <- start
     { initialState: initialState
     , view
     , foldp
-    , inputs: []
+    , inputs: [ initFonts ]
     }
 
   renderToDOM "#app" app.markup app.input
