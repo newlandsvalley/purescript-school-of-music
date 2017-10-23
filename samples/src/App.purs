@@ -1,18 +1,15 @@
 module App where
 
-import Audio.SoundFont (AUDIO)
+import Audio.SoundFont (AUDIO, Instrument, loadRemoteSoundFonts)
 import Audio.Euterpea.Player as Player
 import Audio.BasePlayer (PlaybackState(..)) as BasePlayer
-import Data.Array (length, slice)
+import Data.Array (length, slice) as A
 import Data.Either (Either(..), isRight)
 import Data.List as List
 import Data.Maybe (Maybe(..))
-import Data.Monoid (mempty)
-import Data.Map (fromFoldable)
-import Data.Tuple (Tuple(..))
-import Data.String (fromCharArray, toCharArray)
-import FileIO.FileIO (FILEIO)
-import Prelude (const, discard, max, min, pure, show, ($), (#), (<>), (+), (-), (==))
+import Data.String (fromCharArray, toCharArray, null) as S
+import JS.FileIO (FILEIO)
+import Prelude (const, bind, discard, max, min, pure, show, ($), (#), (<>), (+), (-), (==))
 import Pux (EffModel, noEffects, mapEffects, mapState)
 import Pux.DOM.Events (onClick, onInput, targetValue)
 import Pux.DOM.HTML (HTML, child)
@@ -21,73 +18,73 @@ import Text.Smolder.HTML.Attributes as At
 import Text.Smolder.Markup (text, (#!), (!))
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
 import Data.Euterpea.Midi.MEvent (Performance, perform1)
-import Data.Euterpea.Instrument (InstrumentMap)
+import Data.Midi.Instrument (InstrumentName)
 import View.CSS (buttonStyle, centreStyle, errorHighlightStyle, labelAlignmentStyle, leftPaneStyle, leftPanelComponentStyle,
   rightPaneStyle, taStyle)
-
+import Network.HTTP.Affjax (AJAX)
 
 data Event
     = NoOp
     | Euterpea String
+    | RequestLoadFonts (Array InstrumentName)
+    | FontsLoaded (Array Instrument)
     | PlayerEvent Player.Event
     | Example String
     | Clear
 
 type State = {
     polyphony :: String
-  , availableInstruments :: InstrumentMap
   -- , fileName :: Maybe String
   , tuneResult :: Either PositionedParseError PSoM
   , performance :: Performance
-  , playerState :: Maybe Player.State
+  , playerState :: Player.State
 }
-
 
 -- | there is no tune yet
 nullTune :: Either PositionedParseError PSoM
 nullTune =
   Left (PositionedParseError { pos : 0, error : "" })
 
--- | hard-code the instrument map while we're still developing
-initialInstruments :: InstrumentMap
-initialInstruments =
-  fromFoldable
-    [ Tuple "acoustic_grand_piano" 0
-    , Tuple "vibraphone" 1
-    , Tuple "acoustic_bass" 2
-    ]
-
 initialState :: State
 initialState = {
     polyphony : ""
-  , availableInstruments : initialInstruments
   , tuneResult : nullTune
   , performance : List.Nil
-  , playerState : Nothing
+  , playerState : Player.initialState []
   }
 
-
-foldp :: Event -> State -> EffModel State Event (fileio :: FILEIO, au :: AUDIO)
+foldp :: Event -> State -> EffModel State Event (ajax :: AJAX, fileio :: FILEIO, au :: AUDIO)
 foldp NoOp state =  noEffects $ state
 foldp (Euterpea s) state =  onChangedEuterpea s state
+foldp (RequestLoadFonts instrumentNames) state =
+  let
+    effects =
+      [
+        do  -- request the fonts are loaded
+          instruments <- loadRemoteSoundFonts instrumentNames
+          pure $ Just (FontsLoaded instruments)
+      ]
+  in
+    {state: state, effects: effects}
+foldp (FontsLoaded instruments) state =
+  let
+    playerState = Player.initialState instruments
+  in
+    -- we need to react to a changed Euterpea after each instrument font loads.  This is because the user may edit
+    -- the tne text to incorporate the new instrument names before loading their soundfonts
+    onChangedEuterpea state.polyphony $ state { playerState = playerState }
 foldp (Example example) state =  onChangedEuterpea example state
 foldp Clear state =
   onChangedEuterpea ""
     (state { polyphony = ""
            , tuneResult = nullTune
            , performance = List.Nil
-           , playerState = Nothing
            }
     )
 foldp (PlayerEvent e) state =
-  case state.playerState of
-    Just pstate ->
-      Player.foldp e pstate
-        # mapEffects PlayerEvent
-        # mapState \pst -> state { playerState = Just pst }
-    _ ->
-      noEffects state
-
+  Player.foldp e state.playerState
+    # mapEffects PlayerEvent
+    # mapState \pst -> state { playerState = pst }
 
 -- | make sure everything is notified if the Euterpea Music changes for any reason
 -- | we'll eventually have to add effects
@@ -100,13 +97,12 @@ onChangedEuterpea polyphony state =
       case tuneResult of
         Right { title, music } -> perform1 music
         _ -> List.Nil
-
     newState =
       state { tuneResult = tuneResult, polyphony = polyphony, performance = performance }
   in
     case tuneResult of
       Right _ ->
-        { state: newState { playerState = Just (Player.initialState initialInstruments)}
+        { state: newState
            , effects:
              [
               do
@@ -114,7 +110,8 @@ onChangedEuterpea polyphony state =
             ]
         }
       Left err ->
-        noEffects $ newState { playerState = Nothing }
+        noEffects newState
+
 
 -- | display a snippet of text with the error highlighted
 viewParseError :: State -> HTML Event
@@ -122,32 +119,35 @@ viewParseError state =
   let
     -- the range of characters to display around each side of the error position
     textRange = 10
-    txt = toCharArray state.polyphony
+    txt = S.toCharArray state.polyphony
   in
     case state.tuneResult of
       Left (PositionedParseError pe) ->
-        let
-          -- display a prefix of 5 characters before the error (if they're there) and a suffix of 5 after
-          startPhrase =
-            max (pe.pos - textRange) 0
-          errorPrefix =
-            slice startPhrase pe.pos txt
-          startSuffix =
-            min (pe.pos + 1) (length txt)
-          endSuffix =
-            min (pe.pos + textRange + 1) (length txt)
-          errorSuffix =
-            slice startSuffix endSuffix txt
-          errorChar =
-            slice pe.pos (pe.pos + 1) txt
-        in
-          p do
+        if (S.null state.polyphony) then
+          text ""
+        else
+          let
+            -- display a prefix of 5 characters before the error (if they're there) and a suffix of 5 after
+            startPhrase =
+              max (pe.pos - textRange) 0
+            errorPrefix =
+              A.slice startPhrase pe.pos txt
+            startSuffix =
+              min (pe.pos + 1) (A.length txt)
+            endSuffix =
+              min (pe.pos + textRange + 1) (A.length txt)
+            errorSuffix =
+              A.slice startSuffix endSuffix txt
+            errorChar =
+              A.slice pe.pos (pe.pos + 1) txt
+          in
+            p do
               text $ pe.error <> " - "
-              text $ fromCharArray errorPrefix
-              span ! errorHighlightStyle $ text (fromCharArray errorChar)
-              text $ fromCharArray errorSuffix
+              text $ S.fromCharArray errorPrefix
+              span ! errorHighlightStyle $ text (S.fromCharArray errorChar)
+              text $ S.fromCharArray errorSuffix
       _ ->
-        mempty
+        text ""
 
 -- | display the intermediate Performance state
 viewPerformance :: State -> HTML Event
@@ -158,22 +158,62 @@ viewPerformance state =
 -- | only display the player if we have a Melody
 viewPlayer :: State -> HTML Event
 viewPlayer state =
-  case state.playerState of
-    Just pstate ->
-      child PlayerEvent Player.view $ pstate
+  case state.tuneResult of
+    Right _ ->
+      child PlayerEvent Player.view $ state.playerState
     _ ->
-      mempty
+      text ""
 
 -- | is the player playing ?
 isPlaying :: State -> Boolean
 isPlaying state =
-  case state.playerState of
-    Just ps ->
-      let
-        playbackState = ps.basePlayer.playing
-      in
-        (playbackState == BasePlayer.PLAYING)
-    _ -> false
+  let
+    playbackState = state.playerState.basePlayer.playing
+  in
+    (playbackState == BasePlayer.PLAYING)
+
+sampleButtons :: State -> HTML Event
+sampleButtons state =
+  case state.playerState.basePlayer.instruments of
+   [] -> text "loading instruments..."
+   _ ->
+     div ! leftPanelComponentStyle  $ do
+       label ! labelAlignmentStyle $ do
+         -- text  "save or clear Euterpea:"
+         text  "clear Euterpea:"
+       -- button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const RequestFileDownload) $ text "save"
+       button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const Clear) $ text "clear"
+       label ! labelAlignmentStyle $ do
+         text  "simple line:"
+       button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example1) $ text "example 1"
+       label ! labelAlignmentStyle $ do
+         text  "simple chords:"
+       button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example2) $ text "example 2"
+       label ! labelAlignmentStyle $ do
+         text  "change tempo:"
+       button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example3) $ text "example 3"
+       label ! labelAlignmentStyle $ do
+         text  "polska voice 1:"
+       button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example4) $ text "example 4"
+       label ! labelAlignmentStyle $ do
+         text  "polska voice 2:"
+       button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example5) $ text "example 5"
+       label ! labelAlignmentStyle $ do
+         text  "polska polyphony:"
+       button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example6) $ text "example 6"
+       label ! labelAlignmentStyle $ do
+         text  "frere Jacques:"
+       button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example7) $ text "example 7"
+       label ! labelAlignmentStyle $ do
+         text  "loudness:"
+       button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example8) $ text "example 8"
+       label ! labelAlignmentStyle $ do
+         text  "diminuendo:"
+       button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example9) $ text "example 9"
+       label ! labelAlignmentStyle $ do
+         text  "accelerate/decelerate:"
+       button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example10) $ text "example 10"
+
 
 view :: State -> HTML Event
 view state =
@@ -184,54 +224,17 @@ view state =
       h1 ! centreStyle $ text "PSoM Samples"
       -- the options and buttons on the left
       div ! leftPaneStyle $ do
-        div ! leftPanelComponentStyle  $ do
-          label ! labelAlignmentStyle $ do
-            -- text  "save or clear Euterpea:"
-            text  "clear Euterpea:"
-          -- button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const RequestFileDownload) $ text "save"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const Clear) $ text "clear"
-          label ! labelAlignmentStyle $ do
-              text  "simple line:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example1) $ text "example 1"
-          label ! labelAlignmentStyle $ do
-              text  "simple chords:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example2) $ text "example 2"
-          label ! labelAlignmentStyle $ do
-              text  "change tempo:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example3) $ text "example 3"
-          label ! labelAlignmentStyle $ do
-              text  "polska voice 1:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example4) $ text "example 4"
-          label ! labelAlignmentStyle $ do
-              text  "polska voice 2:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example5) $ text "example 5"
-          label ! labelAlignmentStyle $ do
-              text  "polska polyphony:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example6) $ text "example 6"
-          label ! labelAlignmentStyle $ do
-              text  "frere Jacques:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example7) $ text "example 7"
-          label ! labelAlignmentStyle $ do
-              text  "loudness:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example8) $ text "example 8"
-          label ! labelAlignmentStyle $ do
-              text  "diminuendo:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example9) $ text "example 9"
-          label ! labelAlignmentStyle $ do
-              text  "accelerate/decelerate:"
-          button ! (buttonStyle true) ! At.className "hoverable" #! onClick (const $ Example example10) $ text "example 10"
-
+        sampleButtons state
 
         div ! leftPanelComponentStyle $ do
           viewPlayer state
-
 
       -- the editable text on the right
       div ! rightPaneStyle $ do
         -- p $ text $ fromMaybe "no file chosen" state.fileName
         textarea ! taStyle ! At.cols "70" ! At.rows "15" ! At.value state.polyphony
           ! At.spellcheck "false" ! At.autocomplete "false" ! At.autofocus "true"
-          #! onInput (\e -> Euterpea (targetValue e) ) $ mempty
+          #! onInput (\e -> Euterpea (targetValue e) ) $ text ""
         viewParseError state
 
       div! rightPaneStyle $ do
@@ -324,7 +327,7 @@ example8 :: String
 example8 =
   "\"Loudness\"\r\n" <>
   "Let \r\n" <>
-  "  ln1 = Instrument acoustic_bass (Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3 ) \r\n" <>
+  "  ln1 = Instrument acoustic_bass (Line Note qn G 2, Note qn A 2, Note qn B 2, Note qn G 2 ) \r\n" <>
   "In \r\n" <>
   "  Seq \r\n" <>
   "    PhraseAtts Loudness 120 ( Seq ln1 ) \r\n" <>

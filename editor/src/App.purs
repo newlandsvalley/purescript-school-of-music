@@ -51,7 +51,6 @@ type State = {
   , tuneResult :: Either PositionedParseError PSoM
   , performance :: Performance
   , playerState :: Player.State
-  , debug :: String
 }
 
 
@@ -68,14 +67,11 @@ initialState = {
   , tuneResult : nullTune
   , performance : Nil
   , playerState : Player.initialState []
-  , debug : ""
   }
 
 foldp :: Event -> State -> EffModel State Event (ajax :: AJAX, fileio :: FILEIO, au :: AUDIO, dom :: DOM)
 foldp NoOp state =  noEffects $ state
 foldp (Euterpea s) state =  onChangedEuterpea s state
--- foldp (Euterpea s) state =
---  noEffects $ state { debug = s }
 foldp RequestFileUpload state =
  { state: state
    , effects:
@@ -161,7 +157,7 @@ onChangedEuterpea polyphony state =
         Left (PositionedParseError ppe) -> "parse error: " <> ppe.error
 
     newState =
-      state { tuneResult = tuneResult, polyphony = polyphony, performance = performance, debug = polyphony }
+      state { tuneResult = tuneResult, polyphony = polyphony, performance = performance }
   in
     case tuneResult of
       Right _ ->
@@ -212,10 +208,6 @@ getFileName state =
         _ ->
           "untitled.psom"
 
-
-debugText :: State -> HTML Event
-debugText state =
-  text state.debug
 
 {-
 debugPlayer :: State -> HTML Event
@@ -318,9 +310,14 @@ isPlaying state =
   in
     (playbackState == BasePlayer.PLAYING)
 
+-- | view the menu to select from multiple instruments
+-- | this is disabled if no soundfonts have yet loaded
 viewInstrumentSelect :: State -> HTML Event
 viewInstrumentSelect state =
-  child InstrumentEvent MS.view $ state.instrumentChoices
+  case state.playerState.basePlayer.instruments of
+    [] -> text ""
+    _ ->
+      child InstrumentEvent MS.view $ state.instrumentChoices
 
 viewInstrumentsLoaded :: State -> HTML Event
 viewInstrumentsLoaded state =
@@ -395,10 +392,6 @@ view state =
           #! onInput (\e -> Euterpea (targetValue e) ) $ text ""
         viewParseError state
 
-      {-
-      div! rightPaneStyle $ do
-        debugText state
-      -}
 
 
 frereJacques :: String

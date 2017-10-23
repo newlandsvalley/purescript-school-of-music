@@ -1,5 +1,5 @@
 {
-  "name": "purescript-psom-editor",
+  "name": "purescript-psom-samples",
   "ignore": [
     "**/.*",
     "node_modules",
@@ -7,20 +7,10 @@
     "output"
   ],
   "dependencies": {
-    "purescript-prelude": "^3.0.0",
-    "purescript-console": "^3.0.0",
-    "purescript-eff": "^3.1.0",
-    "purescript-exceptions": "^3.0.0",
-    "purescript-pux": "^9.1.0",
-    "purescript-tuples": "^4.0.0",
-    "purescript-integers": "^3.1.0",
-    "purescript-maybe": "^3.0.0",
-    "purescript-aff": "^3.0.0",
-    "purescript-either": "^3.0.0",
-    "purescript-foreign": "^4.0.0",
-    "purescript-functions": "^3.0.0",
-    "purescript-school-of-music": "../../purescript-school-of-music",
-    "purescript-midi-player": "https://github.com/newlandsvalley/purescript-psom-player.git",
+    "purescript-psom-player": "https://github.com/newlandsvalley/purescript-psom-player.git#1.1.3",
+    "purescript-abc-parser": "https://github.com/newlandsvalley/purescript-abc-parser.git#1.1.1",
+    "purescript-multiple-select": "https://github.com/newlandsvalley/purescript-multiple-select.git#1.1.0",
+    "purescript-js-fileio": "https://github.com/newlandsvalley/purescript-js-fileio.git#1.0.0",
     "purescript-debug": "^3.0.0"
   },
   "devDependencies": {
