@@ -17,7 +17,7 @@ import Data.List (List(..), null)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, instruments, read)
 import Data.String (fromCharArray, toCharArray, null) as S
-import Data.Tuple (Tuple(..), fst)
+import Data.Tuple (fst)
 import JS.FileIO (FILEIO, Filespec, loadTextFile, saveTextFile)
 import MultipleSelect (Event, State, foldp, initialState, view) as MS
 import MultipleSelect.Dom (DOM)

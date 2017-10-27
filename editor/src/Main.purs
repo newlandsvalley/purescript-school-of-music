@@ -8,33 +8,12 @@ import MultipleSelect.Dom (DOM)
 import JS.FileIO (FILEIO)
 import Control.Monad.Eff (Eff)
 import Prelude (Unit, bind, ($))
-import Pux (CoreEffects, start)
+import Pux (start)
 import Pux.Renderer.React (renderToDOM)
 import Data.Midi.Instrument (InstrumentName(..))
 import Signal (Signal, constant)
 import Signal.Channel (CHANNEL)
 
--- initialiseApp :: forall e. Eff (ajax :: AJAX, au :: AUDIO, exception :: EXCEPTION | e) (Canceler e)
-{-}
-initialiseApp ::
-  forall eff.
-        Eff
-          ( ajax :: AJAX
-          , au :: AUDIO
-          | eff
-          )
-          (Fiber
-             ( ajax :: AJAX
-             , au :: AUDIO
-             | eff
-             )
-             (Array (Tuple InstrumentName (Map Int AudioBuffer)))
-
-initialiseApp = do
-  -- let's try the MJQ
-  loadRemoteSoundFonts [AcousticGrandPiano, Vibraphone, AcousticBass]
-          )
--}
 
 initFonts :: Signal Event
 initFonts = constant $ RequestLoadFonts [AcousticGrandPiano, Vibraphone, AcousticBass]

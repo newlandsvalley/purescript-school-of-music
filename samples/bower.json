@@ -7,10 +7,10 @@
     "output"
   ],
   "dependencies": {
-    "purescript-psom-player": "https://github.com/newlandsvalley/purescript-psom-player.git#1.1.3",
+    "purescript-psom-player": "https://github.com/newlandsvalley/purescript-psom-player.git#1.1.4",
     "purescript-abc-parser": "https://github.com/newlandsvalley/purescript-abc-parser.git#1.1.1",
     "purescript-multiple-select": "https://github.com/newlandsvalley/purescript-multiple-select.git#1.1.0",
-    "purescript-js-fileio": "https://github.com/newlandsvalley/purescript-js-fileio.git#1.0.0",
+    "purescript-js-fileio": "https://github.com/newlandsvalley/purescript-js-fileio.git#1.0.2",
     "purescript-debug": "^3.0.0"
   },
   "devDependencies": {

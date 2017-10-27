@@ -1,10 +1,8 @@
 module Main where
 
 import App (Event(..), foldp, initialState, view)
-import Control.Monad.Eff.Exception (EXCEPTION)
 import Network.HTTP.Affjax (AJAX)
 import Audio.SoundFont (AUDIO)
-import MultipleSelect.Dom (DOM)
 import JS.FileIO (FILEIO)
 import Control.Monad.Eff (Eff)
 import Prelude (Unit, bind, ($))
@@ -12,7 +10,6 @@ import Pux (CoreEffects, start)
 import Pux.Renderer.React (renderToDOM)
 import Data.Midi.Instrument (InstrumentName(..))
 import Signal (Signal, constant)
-import Signal.Channel (CHANNEL)
 
 initFonts :: Signal Event
 initFonts = constant $ RequestLoadFonts [AcousticGrandPiano, Vibraphone, AcousticBass]
