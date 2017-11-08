@@ -94,46 +94,6 @@ All keywords start with an upper-case letter.  Variables (which represent a repe
 
 See the DSL tests and editor examples for example usage.
 
-Interpretation
---------------
-
-Two sub-projects, the __Editor__ and the set of __Samples__ indicate how the DSL is used.
-
-In both, a PSoM melody is converted (via PSoM's __MEvent__) into a [MIDI Melody](https://github.com/newlandsvalley/purescript-midi-player/blob/master/src/Data/Midi/Player/HybridPerformance.purs). This supports up to 10 channels, each dedicated to a particular MIDI instrument.  This is then played using  the [PSoM Player](https://github.com/newlandsvalley/purescript-psom-player) which in turn uses [purescript-polyphonic-soundfonts](https://github.com/newlandsvalley/purescript-polyphonic-soundfonts).
-
-Editor
-------
-
-The __editor__ sub-project pre-loads a set of instrument soundfonts, the first such being the default. You have the choice of replacing them at any time. It parses the DSL text after each keystroke and checks each instrument name against those that have been loaded.  If an instrument is not mentioned, or its sounfont has not been loaded, the default is used. Any errors in the DSL text are displayed, otherwise, the player is made visible,  If you press play, the parsed tune is converted to a Melody which is an interruptible series of MIDI phrases. It then plays the melody using the appropriate soundfonts. Interruption is only enacted at a phrase boundary, and so it will take a noticeable time for the current phrase to end before taking effect.
-
-It supports loading and saving of PSoM melodies and also the import of ABC text.
-
-### to build 
-
-   cd to editor
- 
-   bower install
-
-   ./build.sh
-
-   and then navigate to editor/dist/index.html
-
-Samples
--------
-
-The __samples__ sub-project is a cut-down editor which includes a set of editable sample PSoM melodies in order to give some concrete examples of the PSoM DSL.
-
-### to build 
-
-   cd to samples
- 
-   bower install
-
-   ./build.sh
-
-   and then navigate to samples/dist/index.html
-
-
 Design Questions
 ----------------
 
