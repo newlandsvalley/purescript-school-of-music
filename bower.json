@@ -1,16 +1,25 @@
 {
   "name": "purescript-school-of-music",
+  "description": "port of the Haskell School of Music",
+  "keywords": [
+    "purescript"
+  ],
+  "license": "MIT",
   "ignore": [
     "**/.*",
     "node_modules",
     "bower_components",
     "output"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/newlandsvalley/purescript-school-of-music.git"
+  },
   "dependencies": {
     "purescript-rationals": "^4.0.0",
     "purescript-foldable-traversable": "^3.4.0",
     "purescript-math": "^2.0.0",
-    "purescript-midi": "https://github.com/newlandsvalley/purescript-midi.git#1.1.0"
+    "newlandsvalley/purescript-midi": "^1.2.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0",
