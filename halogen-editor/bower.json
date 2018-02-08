@@ -1,0 +1,25 @@
+{
+  "name": "halogen-psom-editor",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-console": "^3.0.0",
+    "purescript-halogen": "^3.1.1",
+    "purescript-halogen-css": "^7.0.0",
+    "purescript-css": "^3.3.0",
+    "purescript-arraybuffer": "^6.0.0",
+    "purescript-soundfonts": "^1.2.0",
+    "purescript-school-of-music": "https://github.com/newlandsvalley/purescript-school-of-music.git#1.1.1",
+    "purescript-js-fileio": "https://github.com/newlandsvalley/purescript-js-fileio.git#1.0.2"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^3.0.0"
+  },
+  "resolutions": {
+    "purescript-arraybuffer-types": "^2.0.0"
+  }
+}

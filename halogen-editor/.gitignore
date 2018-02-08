@@ -3,11 +3,8 @@
 /.pulp-cache/
 /output/
 /generated-docs/
+/.psc-package/
 /deprecated/
-/editor/dist/psom-editor.js
-/samples/dist/psom-samples.js
-/halogen-editor/dist/app.js
-/PSoM2/
 /.psc*
 /.purs*
 /.psa*
