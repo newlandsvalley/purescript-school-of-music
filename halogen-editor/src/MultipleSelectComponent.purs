@@ -3,7 +3,7 @@ module MultipleSelectComponent where
 import Prelude
 
 import Data.Maybe (Maybe(..))
-import Data.List (List, elem, filter, reverse, toUnfoldable, (:))
+import Data.List (List(..), elem, filter, reverse, toUnfoldable, (:))
 import Data.Array (cons) as A
 import Control.Monad.Aff (Aff)
 
@@ -17,8 +17,11 @@ import MultipleSelect.Dom (SDOM, resetDefaultSelected)
 data Query a =
     AddSelection String a
   | RemoveSelection String a
+  | ClearSelections a
+  | CommitSelections a
   | GetSelections (List String -> a)
 
+data Message = CommittedSelections (List String)
 
 type State = {
     instruction :: String          -- the instruction on what to select
@@ -26,7 +29,7 @@ type State = {
   , selected  :: List String       -- currently selected options
   }
 
-component :: ∀ eff. State -> H.Component HH.HTML Query Unit Void (Aff (sdom :: SDOM | eff))
+component :: ∀ eff. State -> H.Component HH.HTML Query Unit Message (Aff (sdom :: SDOM | eff))
 component initialState =
   H.component
     { initialState: const $ initialState
@@ -53,16 +56,32 @@ component initialState =
             [ HP.disabled (elem s state.selected) ]
             [ HH.text s]
     in
-      HH.select
-        [ HP.class_ $ ClassName "msSelect"
-        , HP.id_  "selection-menu"
-        , HP.value state.instruction
-        , HE.onValueChange  (HE.input AddSelection)
-        ]
-        (A.cons
+      HH.div_
+      [
+        HH.select
+          [ HP.class_ $ ClassName "msSelect"
+          , HP.id_  "selection-menu"
+          , HP.value state.instruction
+          , HE.onValueChange  (HE.input AddSelection)
+          ]
+          (A.cons
             (HH.option [ HP.disabled true ] [ HH.text state.instruction])
             (map f $ toUnfoldable state.available)
-        )
+          )
+      , commitSelectionsButton state
+      ]
+
+  commitSelectionsButton :: State -> H.ComponentHTML Query
+  commitSelectionsButton state =
+    case state.selected of
+      Nil ->
+        HH.div_ []
+      _ ->
+        HH.div_
+          [ HH.button
+            [ HE.onClick (HE.input_ CommitSelections) ]
+            [ HH.text "commit selections" ]
+          ]
 
   -- list the currently selected options
   viewSelections :: State -> H.ComponentHTML Query
@@ -75,7 +94,6 @@ component initialState =
           [ HH.span
               [ HP.class_ $ ClassName  "msListItemLabel" ]
               [ HH.text s]
-
           , HH.a
               [ HP.class_ $ ClassName  "msListItemRemove"
               , HE.onClick (HE.input_ (RemoveSelection s))
@@ -87,14 +105,27 @@ component initialState =
         (map f $ toUnfoldable state.selected)
 
 
-  eval :: ∀ eff. Query ~> H.ComponentDSL State Query Void (Aff (sdom :: SDOM | eff))
+  eval :: ∀ eff. Query ~> H.ComponentDSL State Query Message (Aff (sdom :: SDOM | eff))
   eval = case _ of
     AddSelection s next -> do
       H.modify (\state -> state { selected = addSelection s state.selected })
       _ <- H.liftEff resetDefaultSelected
+      state <- H.get
+      -- H.raise $ CurrentSelections state.selected
       pure next
     RemoveSelection s next -> do
       H.modify (\state -> state { selected = removeSelection s state.selected })
+      state <- H.get
+      -- H.raise $ CurrentSelections state.selected
+      pure next
+    ClearSelections next -> do
+      H.modify (\state -> state { selected = Nil })
+      -- H.raise $ CurrentSelections Nil
+      pure next
+    CommitSelections next -> do
+      state <- H.get
+      H.raise $ CommittedSelections state.selected
+      H.modify (\state -> state { selected = Nil })
       pure next
     GetSelections reply -> do
       state <- H.get

@@ -130,6 +130,9 @@ component playable instruments =
                 , capsuleStyle
                 ] []
           ]
+          , HH.div_
+            [ HH.text ("melody length: " <> show (length state.melody))
+            , HH.text ("no of instruments: " <> show (length state.instruments))]
         ]
 
   eval :: ∀ eff p. Playable p => p -> Query ~> H.ComponentDSL State Query Void (Aff (au :: AUDIO | eff))
