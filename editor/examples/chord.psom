@@ -1,3 +1,0 @@
-"chord"
-Line Chord [ Note dhn A 4, Note dhn C 4, Note dhn E 3 ], Note qn B 4, Note hn A 4, 
-         Note hn G 4, Chord [ Note wn E 5, Note wn B 4, Note wn G 4, Note wn E 4 ]

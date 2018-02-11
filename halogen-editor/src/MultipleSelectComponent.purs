@@ -44,6 +44,7 @@ component initialState =
     HH.div_
       [ addSelectionDropdown state
       , viewSelections state
+      , commitSelectionsButton state
       ]
 
   -- allow the user to add a selection to the growing multi-select list
@@ -68,7 +69,6 @@ component initialState =
             (HH.option [ HP.disabled true ] [ HH.text state.instruction])
             (map f $ toUnfoldable state.available)
           )
-      , commitSelectionsButton state
       ]
 
   commitSelectionsButton :: State -> H.ComponentHTML Query
@@ -79,7 +79,8 @@ component initialState =
       _ ->
         HH.div_
           [ HH.button
-            [ HE.onClick (HE.input_ CommitSelections) ]
+            [ HP.class_ $ ClassName "msCommit"
+            , HE.onClick (HE.input_ CommitSelections) ]
             [ HH.text "commit selections" ]
           ]
 

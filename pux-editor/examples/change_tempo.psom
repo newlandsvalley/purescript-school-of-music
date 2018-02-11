@@ -1,0 +1,7 @@
+"change tempo"
+Let 
+  ln1 = Line Note qn G 3, Note qn A 3, Note qn B 3, Note qn G 3  
+ In 
+   Par 
+     Instrument acoustic_bass ( Transpose -12 ( Seq ln1 ln1 ln1 ln1 )) 
+     Instrument vibraphone ( Tempo 1/2 ( Seq ln1 ln1 ))

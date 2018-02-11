@@ -12,7 +12,7 @@
     "purescript-halogen-css": "^7.0.0",
     "purescript-css": "^3.3.0",
     "purescript-arraybuffer": "^6.0.0",
-    "purescript-soundfonts": "^1.2.0",
+    "purescript-soundfonts": "https://github.com/newlandsvalley/purescript-soundfonts.git#playable",
     "purescript-school-of-music": "https://github.com/newlandsvalley/purescript-school-of-music.git#1.1.1",
     "purescript-js-fileio": "https://github.com/newlandsvalley/purescript-js-fileio.git#1.0.2"
   },

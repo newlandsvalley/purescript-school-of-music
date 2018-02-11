@@ -2,7 +2,7 @@ module PlayerComponent where
 
 import Prelude
 
-import Audio.SoundFont (AUDIO, Instrument, playNotes)
+import Audio.SoundFont (AUDIO, Instrument, playNotes, instrumentChannels)
 import Control.Monad.Aff (Aff, delay)
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
@@ -208,7 +208,7 @@ establishMelody :: ∀ m eff p.
 establishMelody playable = do
   state <- H.get
   let
-    melody = toMelody playable
+    melody = toMelody playable (instrumentChannels state.instruments)
   H.modify (\state -> state { melody = melody})
   pure unit
 
