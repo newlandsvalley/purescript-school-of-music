@@ -40,6 +40,7 @@ type State =
 
 data Query a =
     HandleFICButton FIC.Message a
+  | HandleClearButton Button.Message a
   | HandleNewTuneText ED.Message a
   | HandleMultiSelectCommit MSC.Message a
 
@@ -76,6 +77,7 @@ type FileInputSlot = Unit
 type MultipleSelectSlot = Unit
 type PlayerSlot = Unit
 type ReplaceInstrumentsSlot = Unit
+type ClearTextSlot = Unit
 type EditorSlot = Unit
 
 type ChildSlot = Either5 Unit Unit Unit Unit Unit
@@ -89,8 +91,8 @@ psomFileSlotNo = CP.cp2
 instrumentSelectSlotNo :: CP.ChildPath MSC.Query ChildQuery MultipleSelectSlot ChildSlot
 instrumentSelectSlotNo = CP.cp3
 
-cpRISlotNo :: CP.ChildPath Button.Query ChildQuery ReplaceInstrumentsSlot ChildSlot
-cpRISlotNo = CP.cp4
+clearTextSlotNo :: CP.ChildPath Button.Query ChildQuery ReplaceInstrumentsSlot ChildSlot
+clearTextSlotNo = CP.cp4
 
 playerSlotNo :: CP.ChildPath PC.Query ChildQuery PlayerSlot ChildSlot
 playerSlotNo = CP.cp5
@@ -121,6 +123,11 @@ component =
         ]
     , HH.div
         [ HP.class_ (H.ClassName "box")]
+        [ HH.h1_ [ HH.text "Clear Text Component" ]
+        , HH.slot' clearTextSlotNo unit (Button.component "clear") unit (HE.input HandleClearButton)
+        ]
+    , HH.div
+        [ HP.class_ (H.ClassName "box")]
         [ HH.h1_ [ HH.text "File Input Component" ]
         , HH.slot' psomFileSlotNo unit (FIC.component fileInputCtx) unit (HE.input HandleFICButton)
         ]
@@ -134,7 +141,6 @@ component =
         [ HH.text "Last observed states:"]
     , HH.ul_
         [ HH.li_ [ HH.text ("instruments loaded: " <> show (length state.instruments)) ]
-        , HH.li_ [ HH.text ("tune errors: " <> (parseError state.tuneResult)) ]
         ]
     ]
 
@@ -153,6 +159,9 @@ component =
   eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff))
   eval (HandleFICButton (FIC.FileLoaded filespec) next) = do
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent filespec.contents)
+    pure next
+  eval (HandleClearButton (Button.Toggled _) next) = do
+    _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent "")
     pure next
   eval (HandleNewTuneText (ED.TuneResult r) next) = do
     H.modify (\st -> st { tuneResult = r} )
