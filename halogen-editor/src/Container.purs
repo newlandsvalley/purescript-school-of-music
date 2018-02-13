@@ -2,20 +2,22 @@ module Container where
 
 import Prelude
 
-import Audio.SoundFont (AUDIO, Instrument, loadRemoteSoundFonts)
+import Audio.Euterpea.Playable (PlayablePSoM(..))
+import Audio.SoundFont (AUDIO, Instrument, instrumentChannels, loadRemoteSoundFonts)
 import Audio.SoundFont.Melody.Class (class Playable, toMelody)
 import Control.Monad.Aff (Aff)
+import Data.Array (cons, length, null)
 import Data.Either (Either(..))
 import Data.Either.Nested (Either5)
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..))
-import Audio.Euterpea.Playable (PlayablePSoM(..))
+import Data.Foldable (foldl)
 import Data.Functor.Coproduct.Nested (Coproduct5)
 import Data.List (List(..))
 import Data.Maybe (Maybe(..))
-import Data.Array (cons, length)
-import Data.Foldable (foldl)
+import Data.Tuple (fst)
 import Data.MediaType (MediaType(..))
-import Data.Midi.Instrument (InstrumentName(..), gleitzmanNames, read)
+import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames, read)
+import EditorComponent as ED
 import FileInputComponent as FIC
 import Halogen as H
 import Halogen.Component.ChildPath as CP
@@ -25,11 +27,9 @@ import Halogen.HTML.Properties as HP
 import JS.FileIO (FILEIO, Filespec)
 import MultipleSelect.Dom (SDOM)
 import MultipleSelectComponent as MSC
-import PlayerComponent as PC
-import EditorComponent as ED
-import SimpleButtonComponent as Button
-
 import Network.HTTP.Affjax (AJAX)
+import PlayerComponent as PC
+import SimpleButtonComponent as Button
 
 type AppEffects eff = (ajax :: AJAX, au :: AUDIO, fileio :: FILEIO, sdom :: SDOM | eff)
 
@@ -137,11 +137,7 @@ component =
         , HH.slot' instrumentSelectSlotNo unit (MSC.component initialMultipleSelectState) unit (HE.input HandleMultiSelectCommit)
         ]
     , renderPlayer state
-    , HH.p_
-        [ HH.text "Last observed states:"]
-    , HH.ul_
-        [ HH.li_ [ HH.text ("instruments loaded: " <> show (length state.instruments)) ]
-        ]
+    , renderInstruments state
     ]
 
   renderPlayer ::  ∀ eff. State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (au :: AUDIO | eff))
@@ -154,6 +150,21 @@ component =
       Left err ->
         HH.div_
           [ HH.text "no tune to play" ]
+
+  renderInstruments :: State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
+  renderInstruments state =
+    if (null state.instruments) then
+      HH.div_ []
+    else
+      HH.div_
+        [ HH.text "loaded instruments"
+        , HH.ul_ $ map renderInstrument state.instruments
+        ]
+
+  renderInstrument :: Instrument -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
+  renderInstrument instrument =
+    HH.li_
+      [ HH.text $ (gleitzmanName <<< fst) instrument ]
 
 
   eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff))
