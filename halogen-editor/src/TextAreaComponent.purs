@@ -2,27 +2,27 @@ module TextAreaComponent where
 
 import Prelude
 
+import Data.Maybe (Maybe(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 
 type State = String
-type Input = String
 
 data Query a =
-    HandleInput String a
-  | SetOutput String a
+    UpdateContent String a
+  | GetState (String -> a)
 
 data Message = Contents String
 
-component :: forall m. String -> H.Component HH.HTML Query Input Message m
+component :: forall m. String -> H.Component HH.HTML Query Unit Message m
 component label =
   H.component
     { initialState: const initialState
     , render: render label
     , eval
-    , receiver: HE.input HandleInput
+    , receiver: const Nothing
     }
   where
 
@@ -37,16 +37,15 @@ component label =
         , HP.autofocus true
         , HP.value state
         -- , HP.wrap false
-        , HE.onValueChange (HE.input SetOutput)
+        , HE.onValueInput (HE.input UpdateContent)
         ]
 
   eval :: Query ~> H.ComponentDSL State Query Message m
   eval = case _ of
-    HandleInput input next -> do
-      oldS <- H.get
-      when (oldS /= input) $ H.put input
+    UpdateContent s next -> do
+      H.modify (\state -> s )
+      H.raise $ Contents s
       pure next
-    SetOutput s next -> do
+    GetState reply -> do
       state <- H.get
-      H.raise $ Contents state
-      pure next
+      pure (reply state)

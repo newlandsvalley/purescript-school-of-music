@@ -36,6 +36,7 @@ type AppEffects eff = (ajax :: AJAX, au :: AUDIO, fileio :: FILEIO, sdom :: SDOM
 type State =
   { instruments :: Array Instrument
   , tuneResult :: Either PositionedParseError PSoM
+  , temporaryText :: String
   }
 
 data Query a =
@@ -110,6 +111,7 @@ component =
   initialState :: State
   initialState = { instruments: []
                  , tuneResult: nullTune
+                 , temporaryText : ""
                  }
 
   render :: State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
@@ -117,7 +119,7 @@ component =
     [ HH.div
         [ HP.class_ (H.ClassName "box")]
         [ HH.h1_ [ HH.text "Text Area Component" ]
-        , HH.slot' editorSlotNo unit (TA.component "foo") "" (HE.input HandleNewText)
+        , HH.slot' editorSlotNo unit (TA.component "foo") unit (HE.input HandleNewText)
         ]
     , HH.div
         [ HP.class_ (H.ClassName "box")]
@@ -135,6 +137,7 @@ component =
         [ HH.text "Last observed states:"]
     , HH.ul_
         [ HH.li_ [ HH.text ("instruments loaded: " <> show (length state.instruments)) ]
+        , HH.li_ [ HH.text ("text area contents: " <> state.temporaryText) ]
         , HH.li_ [ HH.text ("tune errors: " <> (parseError state.tuneResult)) ]
         ]
     ]
@@ -168,9 +171,11 @@ component =
   eval (HandleFICButton (FIC.FileLoaded filespec) next) = do
     let
       tuneResult = parse filespec.contents
+    _ <- H.query' editorSlotNo unit $ H.action (TA.UpdateContent filespec.contents)
     H.modify (\st -> st { tuneResult = tuneResult})
     pure next
   eval (HandleNewText (TA.Contents s) next) = do
+    H.modify (\st -> st { temporaryText = s} )
     pure next
   eval (HandleMultiSelectCommit (MSC.CommittedSelections pendingInstrumentNames) next) = do
     -- state <- H.get
