@@ -1,8 +1,10 @@
-module TextAreaComponent where
+module EditorComponent where
 
 import Prelude
 
 import Data.Maybe (Maybe(..))
+import Data.Either (Either)
+import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError, parse)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -14,7 +16,7 @@ data Query a =
     UpdateContent String a
   | GetState (String -> a)
 
-data Message = Contents String
+data Message = TuneResult (Either PositionedParseError PSoM)
 
 component :: forall m. String -> H.Component HH.HTML Query Unit Message m
 component label =
@@ -44,7 +46,7 @@ component label =
   eval = case _ of
     UpdateContent s next -> do
       H.modify (\state -> s )
-      H.raise $ Contents s
+      H.raise $ TuneResult $ parse s
       pure next
     GetState reply -> do
       state <- H.get

@@ -7,7 +7,7 @@ import Audio.SoundFont.Melody.Class (class Playable, toMelody)
 import Control.Monad.Aff (Aff)
 import Data.Either (Either(..))
 import Data.Either.Nested (Either5)
-import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
+import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..))
 import Audio.Euterpea.Playable (PlayablePSoM(..))
 import Data.Functor.Coproduct.Nested (Coproduct5)
 import Data.List (List(..))
@@ -26,7 +26,7 @@ import JS.FileIO (FILEIO, Filespec)
 import MultipleSelect.Dom (SDOM)
 import MultipleSelectComponent as MSC
 import PlayerComponent as PC
-import TextAreaComponent as TA
+import EditorComponent as ED
 import SimpleButtonComponent as Button
 
 import Network.HTTP.Affjax (AJAX)
@@ -36,12 +36,11 @@ type AppEffects eff = (ajax :: AJAX, au :: AUDIO, fileio :: FILEIO, sdom :: SDOM
 type State =
   { instruments :: Array Instrument
   , tuneResult :: Either PositionedParseError PSoM
-  , temporaryText :: String
   }
 
 data Query a =
     HandleFICButton FIC.Message a
-  | HandleNewText TA.Message a
+  | HandleNewTuneText ED.Message a
   | HandleMultiSelectCommit MSC.Message a
 
 fileInputCtx :: FIC.FileInputContext
@@ -70,7 +69,7 @@ parseError tuneResult =
     Right _ -> "no errors"
     Left (PositionedParseError ppe) -> "parse error: " <> ppe.error
 
-type ChildQuery = Coproduct5 TA.Query FIC.Query MSC.Query Button.Query PC.Query
+type ChildQuery = Coproduct5 ED.Query FIC.Query MSC.Query Button.Query PC.Query
 
 -- slots and slot numbers
 type FileInputSlot = Unit
@@ -81,7 +80,7 @@ type EditorSlot = Unit
 
 type ChildSlot = Either5 Unit Unit Unit Unit Unit
 
-editorSlotNo :: CP.ChildPath TA.Query ChildQuery EditorSlot ChildSlot
+editorSlotNo :: CP.ChildPath ED.Query ChildQuery EditorSlot ChildSlot
 editorSlotNo = CP.cp1
 
 psomFileSlotNo :: CP.ChildPath FIC.Query ChildQuery FileInputSlot ChildSlot
@@ -111,7 +110,6 @@ component =
   initialState :: State
   initialState = { instruments: []
                  , tuneResult: nullTune
-                 , temporaryText : ""
                  }
 
   render :: State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
@@ -119,7 +117,7 @@ component =
     [ HH.div
         [ HP.class_ (H.ClassName "box")]
         [ HH.h1_ [ HH.text "Text Area Component" ]
-        , HH.slot' editorSlotNo unit (TA.component "foo") unit (HE.input HandleNewText)
+        , HH.slot' editorSlotNo unit (ED.component "foo") unit (HE.input HandleNewTuneText)
         ]
     , HH.div
         [ HP.class_ (H.ClassName "box")]
@@ -131,30 +129,14 @@ component =
         [ HH.h1_ [ HH.text "Multiple Select Component" ]
         , HH.slot' instrumentSelectSlotNo unit (MSC.component initialMultipleSelectState) unit (HE.input HandleMultiSelectCommit)
         ]
-    -- , renderReplaceInstruments state
     , renderPlayer state
     , HH.p_
         [ HH.text "Last observed states:"]
     , HH.ul_
         [ HH.li_ [ HH.text ("instruments loaded: " <> show (length state.instruments)) ]
-        , HH.li_ [ HH.text ("text area contents: " <> state.temporaryText) ]
         , HH.li_ [ HH.text ("tune errors: " <> (parseError state.tuneResult)) ]
         ]
     ]
-
-
-  {- no longer needed
-  renderReplaceInstruments ::  ∀ eff. State -> H.ParentHTML Query ChildQuery ChildSlot (Aff eff)
-  renderReplaceInstruments state =
-    case state.pendingInstrumentNames of
-      Nil ->
-        HH.div_
-         [ ]
-      _ ->
-        HH.div
-          [ HP.class_ (H.ClassName "box")]
-          [ HH.slot' cpRISlotNo unit (Button.component "change") unit (HE.input HandleReplaceInstruments) ]
-  -}
 
   renderPlayer ::  ∀ eff. State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (au :: AUDIO | eff))
   renderPlayer state =
@@ -166,16 +148,14 @@ component =
       Left err ->
         HH.div_
           [ HH.text "no tune to play" ]
+          
 
   eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff))
   eval (HandleFICButton (FIC.FileLoaded filespec) next) = do
-    let
-      tuneResult = parse filespec.contents
-    _ <- H.query' editorSlotNo unit $ H.action (TA.UpdateContent filespec.contents)
-    H.modify (\st -> st { tuneResult = tuneResult})
+    _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent filespec.contents)
     pure next
-  eval (HandleNewText (TA.Contents s) next) = do
-    H.modify (\st -> st { temporaryText = s} )
+  eval (HandleNewTuneText (ED.TuneResult r) next) = do
+    H.modify (\st -> st { tuneResult = r} )
     pure next
   eval (HandleMultiSelectCommit (MSC.CommittedSelections pendingInstrumentNames) next) = do
     -- state <- H.get
