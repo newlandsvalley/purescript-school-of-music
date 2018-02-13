@@ -148,7 +148,7 @@ component =
       Left err ->
         HH.div_
           [ HH.text "no tune to play" ]
-          
+
 
   eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff))
   eval (HandleFICButton (FIC.FileLoaded filespec) next) = do
