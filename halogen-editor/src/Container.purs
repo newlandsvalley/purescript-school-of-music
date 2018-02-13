@@ -8,10 +8,10 @@ import Audio.SoundFont.Melody.Class (class Playable, toMelody)
 import Control.Monad.Aff (Aff)
 import Data.Array (cons, length, null)
 import Data.Either (Either(..))
-import Data.Either.Nested (Either5)
+import Data.Either.Nested (Either6)
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..))
 import Data.Foldable (foldl)
-import Data.Functor.Coproduct.Nested (Coproduct5)
+import Data.Functor.Coproduct.Nested (Coproduct6)
 import Data.List (List(..))
 import Data.Maybe (Maybe(..))
 import Data.Tuple (fst)
@@ -39,18 +39,26 @@ type State =
   }
 
 data Query a =
-    HandleFICButton FIC.Message a
+    HandlePSoMFile FIC.Message a
   | HandleClearButton Button.Message a
   | HandleNewTuneText ED.Message a
   | HandleMultiSelectCommit MSC.Message a
 
-fileInputCtx :: FIC.FileInputContext
-fileInputCtx =
+psomFileInputCtx :: FIC.FileInputContext
+psomFileInputCtx =
   { componentId : "psominput"
   , isBinary : false
   , prompt : "load a PSoM file:"
   , accept : MediaType ".psom"
   }
+
+abcFileInputCtx :: FIC.FileInputContext
+abcFileInputCtx =
+    { componentId : "abcinput"
+    , isBinary : false
+    , prompt : "import an ABC file:"
+    , accept : MediaType ".abc"
+    }
 
 initialMultipleSelectState :: MSC.State
 initialMultipleSelectState =
@@ -70,7 +78,7 @@ parseError tuneResult =
     Right _ -> "no errors"
     Left (PositionedParseError ppe) -> "parse error: " <> ppe.error
 
-type ChildQuery = Coproduct5 ED.Query FIC.Query MSC.Query Button.Query PC.Query
+type ChildQuery = Coproduct6 ED.Query FIC.Query FIC.Query MSC.Query Button.Query PC.Query
 
 -- slots and slot numbers
 type FileInputSlot = Unit
@@ -78,9 +86,10 @@ type MultipleSelectSlot = Unit
 type PlayerSlot = Unit
 type ReplaceInstrumentsSlot = Unit
 type ClearTextSlot = Unit
+type AbcImportSlot = Unit
 type EditorSlot = Unit
 
-type ChildSlot = Either5 Unit Unit Unit Unit Unit
+type ChildSlot = Either6 Unit Unit Unit Unit Unit Unit
 
 editorSlotNo :: CP.ChildPath ED.Query ChildQuery EditorSlot ChildSlot
 editorSlotNo = CP.cp1
@@ -88,14 +97,17 @@ editorSlotNo = CP.cp1
 psomFileSlotNo :: CP.ChildPath FIC.Query ChildQuery FileInputSlot ChildSlot
 psomFileSlotNo = CP.cp2
 
-instrumentSelectSlotNo :: CP.ChildPath MSC.Query ChildQuery MultipleSelectSlot ChildSlot
-instrumentSelectSlotNo = CP.cp3
+importAbcSlotNo :: CP.ChildPath FIC.Query ChildQuery AbcImportSlot ChildSlot
+importAbcSlotNo = CP.cp3
 
-clearTextSlotNo :: CP.ChildPath Button.Query ChildQuery ReplaceInstrumentsSlot ChildSlot
-clearTextSlotNo = CP.cp4
+instrumentSelectSlotNo :: CP.ChildPath MSC.Query ChildQuery MultipleSelectSlot ChildSlot
+instrumentSelectSlotNo = CP.cp4
+
+clearTextSlotNo :: CP.ChildPath Button.Query ChildQuery ClearTextSlot ChildSlot
+clearTextSlotNo = CP.cp5
 
 playerSlotNo :: CP.ChildPath PC.Query ChildQuery PlayerSlot ChildSlot
-playerSlotNo = CP.cp5
+playerSlotNo = CP.cp6
 
 
 component ::  ∀ eff. H.Component HH.HTML Query Unit Void (Aff (AppEffects eff))
@@ -129,7 +141,7 @@ component =
     , HH.div
         [ HP.class_ (H.ClassName "box")]
         [ HH.h1_ [ HH.text "File Input Component" ]
-        , HH.slot' psomFileSlotNo unit (FIC.component fileInputCtx) unit (HE.input HandleFICButton)
+        , HH.slot' psomFileSlotNo unit (FIC.component psomFileInputCtx) unit (HE.input HandlePSoMFile)
         ]
     , HH.div
         [ HP.class_ (H.ClassName "box")]
@@ -154,7 +166,7 @@ component =
   renderInstruments :: State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
   renderInstruments state =
     if (null state.instruments) then
-      HH.div_ []
+      HH.div_ [ HH.text "wait for instruments to load"]
     else
       HH.div_
         [ HH.text "loaded instruments"
@@ -168,7 +180,7 @@ component =
 
 
   eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff))
-  eval (HandleFICButton (FIC.FileLoaded filespec) next) = do
+  eval (HandlePSoMFile (FIC.FileLoaded filespec) next) = do
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent filespec.contents)
     pure next
   eval (HandleClearButton (Button.Toggled _) next) = do

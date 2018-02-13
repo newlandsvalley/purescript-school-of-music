@@ -125,8 +125,10 @@ component initialState =
       pure next
     CommitSelections next -> do
       state <- H.get
-      H.raise $ CommittedSelections state.selected
+      let
+        selected = state.selected
       H.modify (\state -> state { selected = Nil })
+      H.raise $ CommittedSelections selected
       pure next
     GetSelections reply -> do
       state <- H.get
