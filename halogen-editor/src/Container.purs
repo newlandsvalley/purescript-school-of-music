@@ -26,6 +26,7 @@ import Halogen.Component.ChildPath as CP
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
+import Halogen.HTML.Core (ClassName(..))
 import JS.FileIO (FILEIO, Filespec, saveTextFile)
 import MultipleSelect.Dom (SDOM)
 import MultipleSelectComponent as MSC
@@ -203,14 +204,16 @@ component instruments =
     else
       HH.div_
         [ HH.text "loaded instruments"
-        , HH.ul_ $ map renderInstrument state.instruments
+        , HH.ul
+          [ HP.class_ $ ClassName "msListItem" ]
+          $ map renderInstrument state.instruments
         ]
 
   renderInstrument :: Instrument -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
   renderInstrument instrument =
-    HH.li_
+    HH.li
+      [ HP.class_ $ ClassName "msListItemLabel" ]
       [ HH.text $ (gleitzmanName <<< fst) instrument ]
-
 
   eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff))
   eval (HandlePSoMFile (FIC.FileLoaded filespec) next) = do

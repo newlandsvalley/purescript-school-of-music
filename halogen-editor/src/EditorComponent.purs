@@ -12,6 +12,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen (IProp)
+import Halogen.HTML.Core (ClassName(..))
 import Halogen.HTML.CSS (style)
 import CSS (color)
 import Color (rgb)
@@ -51,6 +52,7 @@ component label =
          , HP.cols 70
          , HP.autofocus true
          , HP.value state.text
+         , HP.class_ $ ClassName "psomEdit"
          -- , HP.wrap false
          , HE.onValueInput (HE.input UpdateContent)
          ]
