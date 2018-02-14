@@ -17,6 +17,9 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple (fst)
 import Data.MediaType (MediaType(..))
 import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames, read)
+import Data.Abc.PSoM.DSL (toDSL)
+import Data.Abc.PSoM.Translation (toPSoM)
+import Data.Abc.Parser (parse) as ABC
 import EditorComponent as ED
 import FileInputComponent as FIC
 import Halogen as H
@@ -40,6 +43,7 @@ type State =
 
 data Query a =
     HandlePSoMFile FIC.Message a
+  | HandleABCFile FIC.Message a
   | HandleClearButton Button.Message a
   | HandleNewTuneText ED.Message a
   | HandleMultiSelectCommit MSC.Message a
@@ -97,8 +101,8 @@ editorSlotNo = CP.cp1
 psomFileSlotNo :: CP.ChildPath FIC.Query ChildQuery FileInputSlot ChildSlot
 psomFileSlotNo = CP.cp2
 
-importAbcSlotNo :: CP.ChildPath FIC.Query ChildQuery AbcImportSlot ChildSlot
-importAbcSlotNo = CP.cp3
+abcImportSlotNo :: CP.ChildPath FIC.Query ChildQuery AbcImportSlot ChildSlot
+abcImportSlotNo = CP.cp3
 
 instrumentSelectSlotNo :: CP.ChildPath MSC.Query ChildQuery MultipleSelectSlot ChildSlot
 instrumentSelectSlotNo = CP.cp4
@@ -140,8 +144,13 @@ component =
         ]
     , HH.div
         [ HP.class_ (H.ClassName "box")]
-        [ HH.h1_ [ HH.text "File Input Component" ]
+        [ HH.h1_ [ HH.text "File Input Component 1" ]
         , HH.slot' psomFileSlotNo unit (FIC.component psomFileInputCtx) unit (HE.input HandlePSoMFile)
+        ]
+    , HH.div
+        [ HP.class_ (H.ClassName "box")]
+        [ HH.h1_ [ HH.text "File Input Component 2" ]
+        , HH.slot' abcImportSlotNo unit (FIC.component abcFileInputCtx) unit (HE.input HandleABCFile)
         ]
     , HH.div
         [ HP.class_ (H.ClassName "box")]
@@ -182,6 +191,16 @@ component =
   eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff))
   eval (HandlePSoMFile (FIC.FileLoaded filespec) next) = do
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent filespec.contents)
+    pure next
+  eval (HandleABCFile (FIC.FileLoaded filespec) next) = do
+    let
+      psomText =
+        case (ABC.parse $ filespec.contents <> "\r\n") of
+          Right tune ->
+            (toDSL <<< toPSoM) tune
+          Left err ->
+            "\"" <> filespec.name <> "\"\r\n" <> "-- error in ABC: " <> (show err)
+    _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent psomText)
     pure next
   eval (HandleClearButton (Button.Toggled _) next) = do
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent "")
