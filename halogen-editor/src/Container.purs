@@ -27,7 +27,7 @@ import Halogen.Component.ChildPath as CP
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import JS.FileIO (FILEIO, Filespec)
+import JS.FileIO (FILEIO)
 import MultipleSelect.Dom (SDOM)
 import MultipleSelectComponent as MSC
 import Network.HTTP.Affjax (AJAX)
@@ -114,21 +114,22 @@ playerSlotNo :: CP.ChildPath PC.Query ChildQuery PlayerSlot ChildSlot
 playerSlotNo = CP.cp6
 
 
-component ::  ∀ eff. H.Component HH.HTML Query Unit Void (Aff (AppEffects eff))
+component ::  ∀ eff. Array Instrument -> H.Component HH.HTML Query Unit Void (Aff (AppEffects eff))
 -- component ::  ∀ eff p. H.Component HH.HTML Query Unit Void (Aff (au :: AUDIO, fileio :: FILEIO, sdom :: SDOM | eff))
-component =
+component instruments =
   H.parentComponent
-    { initialState: const initialState
+    { initialState: const (initialState instruments)
     , render
     , eval
     , receiver: const Nothing
     }
   where
 
-  initialState :: State
-  initialState = { instruments: []
-                 , tuneResult: nullTune
-                 }
+  initialState :: Array Instrument -> State
+  initialState instruments =
+    { instruments: instruments
+    , tuneResult: nullTune
+    }
 
   render :: State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
   render state = HH.div_
