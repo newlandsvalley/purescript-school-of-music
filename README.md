@@ -6,7 +6,7 @@ Purescript School of Music (PSoM)
 
 Try it out [here](http://www.tradtunedb.org.uk:8600/).
 
-This is another attempt at porting the music notation part of the [Haskell School of Music](https://github.com/Euterpea/Euterpea2) (HSoM) to the browser. It consists of a PSoM library (ported from HSoM) together with an editor that runs in the browser. This allows you to enter melodies using a DSL (intended to be a natural interface into the PSoM API) and then play them.
+This is another attempt at porting the music notation part of the [Haskell School of Music](https://github.com/Euterpea/Euterpea2) (HSoM) to the browser. It consists of a PSoM library (ported from HSoM) together with an editor that runs in the browser. This allows you to enter melodies using a DSL and then play them.
 
 It follows an [abortive attempt in Elm](https://github.com/danigb/elm-school-of-music) in conjunction with danigb.  This failed largely because of the lack of type classes in Elm but also because of the time delays inherent in Elm's port system when requesting that a sound should actually be played.
 
@@ -18,81 +18,20 @@ PSoM uses instruments from [Benjamin Gleitzman's soundfont library](https://gith
 DSL
 ---
 
-Melodies are presented to the browser using a DSL with the following syntax:
+Melodies are presented to the browser using a [DSL](https://github.com/newlandsvalley/purescript-school-of-music/blob/master/DSL.md) which has been designed to be as close as possible to the API itself.
 
-``` 
-    psom = title musicProcedure
+Editor
+------
 
-    musicProcedure = complexMusic | music
-    
-    complexMusic = 'Let' bindings 'In' music
-    
-    bindings = binding, { binding }
-    
-    binding = identifier '=' music
+The editor allows you to enter or load PSoM text and will parse the text after every keystroke. If it is valid, a player will appear, otherwise an error message is shown.
 
-    music = voices | lines | line | chord | prim | control "(" music ")"
+In fact there are two editors which are intended to have identical capabilities - one in Pux and the other in Halogen.  I am still trying to evaluate which UI library I prefer and this seemed to be a good way to decide.  Both are clearly capable of doing the job.  At the moment, I am veering towards Halogen for the following reasons:
 
-    voices = 'Par' musicProcedure, { musicProcedure }
+*  It has a well developed concept of self-contained components that can encapsulate their own state.  This means that eventually we should see a market in pluggable Halogen components grow up which should considerably cut down development costs.  Pux, being TEA based, has no such concept.
+*  It uses its own VDom representation - it has no need of React.
+*  It has been developed commercially and therefore there is a strong incentive to fix bugs quickly.
+*  Granted, the types are scary but the documentation is so good you can almost take a cookbook approach to building a UI.
 
-    lines = 'Seq' seqOptions, { seqOptions }
-
-    line = 'Line' lineOptions, { lineOptions }
-    
-    seqOptions = line | variable | control
-
-    lineOptions = chord | prim | control
-
-    chord = 'Chord' '[' prim, { prim } ']'
-
-    prim = note | rest
-
-    note = 'Note' dur pitch 
-    
-    variable = identifier
-
-    rest = 'Rest' dur
-
-    dur = 'wn'| 'hn' |'qn'| 'sn' ......
-
-    pitch = pitchClass octave
-
-    pitchClass = 'Cff' | 'Cf' | 'C' | 'Cs' | 'Css' | 'Dff' .....
-
-    octave = int
-    
-    title = quoted string
-    
-```
-where control mechanisms are:
-
-```
-   control =   'Instrument' instrumentName 
-             | 'Transpose' int 
-             | 'Tempo' (fraction | int) 
-             | 'PhraseAtts' phraseAttributes
-
-   phraseAttributes = phraseAttribute, ( phraseAttribute }
-   
-   phraseAttribute =   'Loudness' int
-                     | 'StdLoudness' ( FFF | F | .....
-                     | 'Diminuendo' ( fraction | int ) 
-                     | 'Crescendo' ( fraction | int ) 
-                     | 'Accent' ( fraction | int ) 
-                     | 'Ritardando' ( fraction | int ) 
-                     | 'Accelerando' ( fraction | int ) 
-                     | 'Staccato' ( fraction | int ) 
-                     | 'Legato' ( fraction | int ) 
-                     | 'Slurred' ( fraction | int ) 
-                     
-
-    instrumentName = 'violin' | 'viola' ....                     
-                     
-```
-
-All keywords start with an upper-case letter.  Variables (which represent a repeatable section of music) start with a lower-case letter. Comments are supported after the title or after the _Par_ and _Seq_ keywords. The DSL attempts to give a convenient representation for lines of music and chords, whilst still retaining the ability to control whole phrases (however built). It is very experimental and likely to change. As far as I am aware, all features of the Music ADT which are fully supported by HSoM have been carried across to the DSL.
-
-See the DSL tests and editor examples for example usage.
 
 Design Questions
 ----------------
