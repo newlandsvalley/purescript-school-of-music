@@ -15,7 +15,9 @@ import Halogen.HTML.Core (ClassName(..))
 import Data.MediaType (MediaType)
 import Control.Monad.Aff (Aff)
 import JS.FileIO (FILEIO, Filespec, loadTextFile, loadBinaryFileAsText)
-
+import Halogen (IProp)
+import Halogen.HTML.CSS (style)
+import CSS.Display (display, displayNone)
 
 type FileInputContext = {
     componentId :: String     -- the component id
@@ -47,19 +49,21 @@ component ctx =
   render :: FileInputContext  -> State -> H.ComponentHTML Query
   render ctx state =
     HH.div_
-      [   -- the label is a hack to allow styling of file input which is
-          -- otherwise impossible - see https://stackoverflow.com/questions/572768/styling-an-input-type-file-button
+      [ -- the label is a hack to allow styling of file input which is
+        -- otherwise impossible - see https://stackoverflow.com/questions/572768/styling-an-input-type-file-button
         HH.label
              [ HP.for ctx.componentId
              , HP.class_ $ ClassName "hoverable fileInputLabel"
              -- , HP.class_ $ ClassName "fileInputLabel"
              ]
              [ HH.text ctx.prompt ]
+        -- we set the style to display none so that the label acts as a button
       , HH.input
           [ HE.onChange (HE.input_ LoadFile)
           , HP.type_ HP.InputFile
           , HP.id_  ctx.componentId
           , HP.accept ctx.accept
+          , noDisplayStyle
           ]
       ]
 
@@ -74,3 +78,8 @@ component ctx =
       H.modify (\state -> Just filespec )
       H.raise $ FileLoaded filespec
       pure next
+
+  noDisplayStyle :: ∀ i r. IProp (style :: String | r) i
+  noDisplayStyle =
+    style do
+      display displayNone

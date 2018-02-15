@@ -54,7 +54,7 @@ psomFileInputCtx :: FIC.FileInputContext
 psomFileInputCtx =
   { componentId : "psominput"
   , isBinary : false
-  , prompt : "choose:"
+  , prompt : "choose"
   , accept : MediaType ".psom"
   }
 
@@ -62,7 +62,7 @@ abcFileInputCtx :: FIC.FileInputContext
 abcFileInputCtx =
     { componentId : "abcinput"
     , isBinary : false
-    , prompt : "import:"
+    , prompt : "import"
     , accept : MediaType ".abc"
     }
 
@@ -141,7 +141,7 @@ component instruments =
   render :: State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
   render state = HH.div_
     [ HH.h1
-      [HP.class_ (H.ClassName "center") ] 
+      [HP.class_ (H.ClassName "center") ]
       [HH.text "PureScript PSoM Editor"]
     , HH.div
       -- left pane
@@ -232,6 +232,7 @@ component instruments =
 
   eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff))
   eval (HandlePSoMFile (FIC.FileLoaded filespec) next) = do
+    H.modify (\st -> st { fileName = Just filespec.name } )
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent filespec.contents)
     pure next
   eval (HandleABCFile (FIC.FileLoaded filespec) next) = do
