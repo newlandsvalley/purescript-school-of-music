@@ -48,7 +48,8 @@ component ctx =
 
   render :: FileInputContext  -> State -> H.ComponentHTML Query
   render ctx state =
-    HH.div_
+    HH.span
+      [ HP.class_ $ ClassName "fileInput" ]
       [ -- the label is a hack to allow styling of file input which is
         -- otherwise impossible - see https://stackoverflow.com/questions/572768/styling-an-input-type-file-button
         HH.label

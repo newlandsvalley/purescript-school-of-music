@@ -24,11 +24,12 @@
   padding: 10 0 10 0;
   margin: 0 2 0 2;
   font-size: 1.5em;
-  background-color: rgb(243 246 198);
+  font-family: "Times New Roman", monospace;
+  /* background-color: rgb(243 246 170);*/
+  background-color: Beige;
   text-align: left;
   display: block;
 }
-
 
 .fileInputLabel {
   /* the label for a file input */

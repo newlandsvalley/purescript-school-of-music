@@ -163,20 +163,14 @@ component instruments =
             [ HH.text "import ABC" ]
          , HH.slot' abcImportSlotNo unit (FIC.component abcFileInputCtx) unit (HE.input HandleABCFile)
          ]
-        -- save
       , HH.div
+          -- save
           [ HP.class_ (H.ClassName "leftPanelComponent")]
           [ HH.label
              [ HP.class_ (H.ClassName "labelAlignment") ]
-             [ HH.text "save PSoM" ]
+             [ HH.text "save or clear" ]
           , HH.slot' saveTextSlotNo unit (Button.component "save") unit (HE.input HandleSaveButton)
-          ]
-        -- clear
-      , HH.div
-          [ HP.class_ (H.ClassName "leftPanelComponent")]
-          [ HH.label
-             [ HP.class_ (H.ClassName "labelAlignment") ]
-             [ HH.text "clear PSoM" ]
+          -- clear
           , HH.slot' clearTextSlotNo unit (Button.component "clear") unit (HE.input HandleClearButton)
           ]
         -- display instruments
