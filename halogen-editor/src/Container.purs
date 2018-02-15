@@ -7,10 +7,10 @@ import Audio.SoundFont (AUDIO, Instrument, loadRemoteSoundFonts)
 import Control.Monad.Aff (Aff)
 import Data.Array (cons, null)
 import Data.Either (Either(..))
-import Data.Either.Nested (Either7)
+import Data.Either.Nested (Either8)
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..))
 import Data.Foldable (foldl)
-import Data.Functor.Coproduct.Nested (Coproduct7)
+import Data.Functor.Coproduct.Nested (Coproduct8)
 import Data.List (List(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (fst)
@@ -33,6 +33,7 @@ import Halogen.MultipleSelectComponent as MSC
 import Halogen.MultipleSelectComponent.Dom (SDOM)
 import JS.FileIO (FILEIO, Filespec, saveTextFile)
 import Network.HTTP.Affjax (AJAX)
+import SampleText (frereJacques)
 
 type AppEffects eff = (ajax :: AJAX, au :: AUDIO, fileio :: FILEIO, sdom :: SDOM | eff)
 
@@ -47,6 +48,7 @@ data Query a =
   | HandleABCFile FIC.Message a
   | HandleClearButton Button.Message a
   | HandleSaveButton Button.Message a
+  | HandleSampleButton Button.Message a
   | HandleNewTuneText ED.Message a
   | HandleMultiSelectCommit MSC.Message a
 
@@ -91,7 +93,7 @@ parseError tuneResult =
     Right _ -> "no errors"
     Left (PositionedParseError ppe) -> "parse error: " <> ppe.error
 
-type ChildQuery = Coproduct7 ED.Query FIC.Query FIC.Query MSC.Query Button.Query Button.Query PC.Query
+type ChildQuery = Coproduct8 ED.Query FIC.Query FIC.Query MSC.Query Button.Query Button.Query Button.Query PC.Query
 
 -- slots and slot numbers
 type FileInputSlot = Unit
@@ -101,9 +103,10 @@ type ReplaceInstrumentsSlot = Unit
 type ClearTextSlot = Unit
 type SaveTextSlot = Unit
 type AbcImportSlot = Unit
+type SampleTextSlot = Unit
 type EditorSlot = Unit
 
-type ChildSlot = Either7 Unit Unit Unit Unit Unit Unit Unit
+type ChildSlot = Either8 Unit Unit Unit Unit Unit Unit Unit Unit
 
 editorSlotNo :: CP.ChildPath ED.Query ChildQuery EditorSlot ChildSlot
 editorSlotNo = CP.cp1
@@ -123,8 +126,11 @@ clearTextSlotNo = CP.cp5
 saveTextSlotNo :: CP.ChildPath Button.Query ChildQuery SaveTextSlot ChildSlot
 saveTextSlotNo = CP.cp6
 
+sampleTextSlotNo :: CP.ChildPath Button.Query ChildQuery SampleTextSlot ChildSlot
+sampleTextSlotNo = CP.cp7
+
 playerSlotNo :: CP.ChildPath PC.Query ChildQuery PlayerSlot ChildSlot
-playerSlotNo = CP.cp7
+playerSlotNo = CP.cp8
 
 
 component ::  ∀ eff. Array Instrument -> H.Component HH.HTML Query Unit Void (Aff (AppEffects eff))
@@ -161,6 +167,7 @@ component instruments =
             [ HP.class_ (H.ClassName "labelAlignment") ]
             [ HH.text "load PSoM:" ]
          , HH.slot' psomFileSlotNo unit (FIC.component psomFileInputCtx) unit (HE.input HandlePSoMFile)
+         , HH.slot' sampleTextSlotNo unit (Button.component "example") unit (HE.input HandleSampleButton)
          ]
         -- import
       , HH.div
@@ -258,6 +265,9 @@ component instruments =
       text = fromMaybe "" maybeText
       fsp = { name: fileName, contents : text} :: Filespec
     _ <- H.liftEff $ saveTextFile fsp
+    pure next
+  eval (HandleSampleButton (Button.Toggled _) next) = do
+    _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent frereJacques)
     pure next
   eval (HandleNewTuneText (ED.TuneResult r) next) = do
     H.modify (\st -> st { tuneResult = r} )
