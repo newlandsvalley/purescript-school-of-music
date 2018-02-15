@@ -23,28 +23,33 @@ data Query a =
 
 data Message = CommittedSelections (List String)
 
+type Context = {
+    commitPrompt       :: String   -- the user prompt for committing changes
+  , commitButtonText   :: String   -- the text on the commit button
+  }
+
 type State = {
     instruction :: String          -- the instruction on what to select
   , available :: List String       -- available options
   , selected  :: List String       -- currently selected options
   }
 
-component :: ∀ eff. State -> H.Component HH.HTML Query Unit Message (Aff (sdom :: SDOM | eff))
-component initialState =
+component :: ∀ eff. Context -> State -> H.Component HH.HTML Query Unit Message (Aff (sdom :: SDOM | eff))
+component ctx initialState =
   H.component
     { initialState: const $ initialState
-    , render
+    , render: render ctx
     , eval
     , receiver: const Nothing
     }
   where
 
-  render :: State -> H.ComponentHTML Query
-  render state =
+  render :: Context -> State -> H.ComponentHTML Query
+  render ctx state =
     HH.div_
       [ addSelectionDropdown state
       , viewSelections state
-      , commitSelectionsButton state
+      , commitSelectionsButton ctx state
       ]
 
   -- allow the user to add a selection to the growing multi-select list
@@ -71,17 +76,20 @@ component initialState =
           )
       ]
 
-  commitSelectionsButton :: State -> H.ComponentHTML Query
-  commitSelectionsButton state =
+  commitSelectionsButton :: Context -> State -> H.ComponentHTML Query
+  commitSelectionsButton ctx state =
     case state.selected of
       Nil ->
         HH.div_ []
       _ ->
         HH.div_
-          [ HH.button
-            [ HP.class_ $ ClassName "msCommit"
-            , HE.onClick (HE.input_ CommitSelections) ]
-            [ HH.text "commit selections" ]
+          [ HH.label
+             [ HP.class_ (H.ClassName "msCommitLabel") ]
+             [ HH.text ctx.commitPrompt ]
+          , HH.button
+             [ HP.class_ $ ClassName "msCommit hoverable"
+             , HE.onClick (HE.input_ CommitSelections) ]
+             [ HH.text ctx.commitButtonText ]
           ]
 
   -- list the currently selected options

@@ -43,6 +43,7 @@
   /* align labels at the LHS of a frame */
   display: inline-block;
   width: 165px;
+  font-size: 1.2em;
 }
 
 .leftPane {

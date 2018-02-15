@@ -19,7 +19,7 @@ import Halogen (IProp)
 import Halogen.HTML.CSS (style)
 import CSS.Display (display, displayNone)
 
-type FileInputContext = {
+type Context = {
     componentId :: String     -- the component id
   , isBinary    :: Boolean    -- does it handle binary as text or just simple text
   , prompt      :: String     -- the user prompt
@@ -32,7 +32,7 @@ data Message = FileLoaded Filespec
 
 type State = Maybe Filespec
 
-component :: forall eff. FileInputContext -> H.Component HH.HTML Query Unit Message (Aff (fileio :: FILEIO | eff))
+component :: forall eff. Context -> H.Component HH.HTML Query Unit Message (Aff (fileio :: FILEIO | eff))
 component ctx =
   H.component
     { initialState: const initialState
@@ -46,7 +46,7 @@ component ctx =
   initialState = Nothing
 
 
-  render :: FileInputContext  -> State -> H.ComponentHTML Query
+  render :: Context  -> State -> H.ComponentHTML Query
   render ctx state =
     HH.span
       [ HP.class_ $ ClassName "fileInput" ]
@@ -68,7 +68,7 @@ component ctx =
           ]
       ]
 
-  eval :: FileInputContext -> Query ~> H.ComponentDSL State Query Message (Aff (fileio :: FILEIO | eff))
+  eval :: Context -> Query ~> H.ComponentDSL State Query Message (Aff (fileio :: FILEIO | eff))
   eval ctx = case _ of
     LoadFile next -> do
       filespec <-

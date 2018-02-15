@@ -6,6 +6,13 @@ label {
   color: #444;
 }
 
+.msCommitLabel {
+  /* see labelAlignment in psomEditor.css */
+  display: inline-block;
+  width: 150px;
+  font-size: 1.2em;
+}
+
 .msSelect {
   /* this is the selection dropdown */
   background-color: #cccc99;

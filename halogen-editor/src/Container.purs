@@ -50,7 +50,7 @@ data Query a =
   | HandleNewTuneText ED.Message a
   | HandleMultiSelectCommit MSC.Message a
 
-psomFileInputCtx :: FIC.FileInputContext
+psomFileInputCtx :: FIC.Context
 psomFileInputCtx =
   { componentId : "psominput"
   , isBinary : false
@@ -58,13 +58,20 @@ psomFileInputCtx =
   , accept : MediaType ".psom"
   }
 
-abcFileInputCtx :: FIC.FileInputContext
+abcFileInputCtx :: FIC.Context
 abcFileInputCtx =
-    { componentId : "abcinput"
-    , isBinary : false
-    , prompt : "import"
-    , accept : MediaType ".abc"
-    }
+  { componentId : "abcinput"
+  , isBinary : false
+  , prompt : "import"
+  , accept : MediaType ".abc"
+  }
+
+multipleSelectCtx :: MSC.Context
+multipleSelectCtx =
+  { commitPrompt : "replace instruments"
+  , commitButtonText : "replace"
+  }
+
 
 initialMultipleSelectState :: MSC.State
 initialMultipleSelectState =
@@ -179,12 +186,13 @@ component instruments =
       , HH.div
           [ HP.class_ (H.ClassName "box")]
           [
-            HH.slot' instrumentSelectSlotNo unit (MSC.component initialMultipleSelectState) unit (HE.input HandleMultiSelectCommit)
+            HH.slot' instrumentSelectSlotNo unit
+               (MSC.component multipleSelectCtx initialMultipleSelectState) unit (HE.input HandleMultiSelectCommit)
           ]
         -- player
       , renderPlayer state
       ]
-      -- right pane
+      -- right pane - editor
       , HH.div
           [ HP.class_ (H.ClassName "rightPane") ]
           [
