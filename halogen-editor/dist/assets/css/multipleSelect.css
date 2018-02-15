@@ -1,16 +1,7 @@
 
-label {
-  display: block;
-  font-size: 1em;
-  font-family: Georgia, serif;
-  color: #444;
-}
-
-.msCommitLabel {
-  /* see labelAlignment in psomEditor.css */
-  display: inline-block;
-  width: 150px;
-  font-size: 1.2em;
+.msSelectDiv {
+  /* this is the parent div of the whole grouping */
+  margin : 20 0 20 0
 }
 
 .msSelect {
@@ -37,7 +28,6 @@ label {
   /* background: #ddd; */
   background: #e6ffb3;
   border: 1px solid #bbb;
-  /* width: 100%; */
   width: 15em;
   margin: 0 0 -1px 0;
   line-height: 1em;

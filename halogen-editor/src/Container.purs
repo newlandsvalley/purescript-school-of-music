@@ -68,14 +68,14 @@ abcFileInputCtx =
 
 multipleSelectCtx :: MSC.Context
 multipleSelectCtx =
-  { commitPrompt : "replace instruments"
+  { commitPrompt : "replace instruments:"
   , commitButtonText : "replace"
   }
 
 
 initialMultipleSelectState :: MSC.State
 initialMultipleSelectState =
-  { instruction : "add an instrument"
+  { instruction : "add an instrument:"
   , available : gleitzmanNames
   , selected : Nil
   }
@@ -159,7 +159,7 @@ component instruments =
          [ HP.class_ (H.ClassName "leftPanelComponent")  ]
          [ HH.label
             [ HP.class_ (H.ClassName "labelAlignment") ]
-            [ HH.text "load PSoM" ]
+            [ HH.text "load PSoM:" ]
          , HH.slot' psomFileSlotNo unit (FIC.component psomFileInputCtx) unit (HE.input HandlePSoMFile)
          ]
         -- import
@@ -167,7 +167,7 @@ component instruments =
          [ HP.class_ (H.ClassName "leftPanelComponent") ]
          [  HH.label
             [ HP.class_ (H.ClassName "labelAlignment") ]
-            [ HH.text "import ABC" ]
+            [ HH.text "import ABC:" ]
          , HH.slot' abcImportSlotNo unit (FIC.component abcFileInputCtx) unit (HE.input HandleABCFile)
          ]
       , HH.div
@@ -175,13 +175,11 @@ component instruments =
           [ HP.class_ (H.ClassName "leftPanelComponent")]
           [ HH.label
              [ HP.class_ (H.ClassName "labelAlignment") ]
-             [ HH.text "save or clear" ]
+             [ HH.text "save or clear:" ]
           , HH.slot' saveTextSlotNo unit (Button.component "save") unit (HE.input HandleSaveButton)
           -- clear
           , HH.slot' clearTextSlotNo unit (Button.component "clear") unit (HE.input HandleClearButton)
           ]
-        -- display instruments
-      , renderInstruments state
         -- load instruments
       , HH.div
           [ HP.class_ (H.ClassName "box")]
@@ -189,6 +187,8 @@ component instruments =
             HH.slot' instrumentSelectSlotNo unit
                (MSC.component multipleSelectCtx initialMultipleSelectState) unit (HE.input HandleMultiSelectCommit)
           ]
+        -- display instruments
+      , renderInstruments state
         -- player
       , renderPlayer state
       ]
@@ -218,9 +218,9 @@ component instruments =
     else
       HH.div
         [ HP.class_ (H.ClassName "leftPanelComponent") ]
-        [ HH.label
-           [ HP.class_ (H.ClassName "labelAlignment") ]
-           [ HH.text "loaded instruments" ]
+        [ HH.div
+           [ HP.class_ (H.ClassName "longLabel") ]
+           [ HH.text "loaded instruments:" ]
         , HH.ul
           [ HP.class_ $ ClassName "msListItem" ]
           $ map renderInstrument state.instruments

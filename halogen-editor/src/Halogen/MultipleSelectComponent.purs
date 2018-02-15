@@ -62,19 +62,20 @@ component ctx initialState =
             [ HP.disabled (elem s state.selected) ]
             [ HH.text s]
     in
-      HH.div_
-      [
-        HH.select
-          [ HP.class_ $ ClassName "msSelect"
-          , HP.id_  "selection-menu"
-          , HP.value state.instruction
-          , HE.onValueChange  (HE.input AddSelection)
-          ]
-          (A.cons
-            (HH.option [ HP.disabled true ] [ HH.text state.instruction])
-            (map f $ toUnfoldable state.available)
-          )
-      ]
+      HH.div
+        [ HP.class_ $ ClassName "msSelectDiv" ]
+        [
+          HH.select
+            [ HP.class_ $ ClassName "msSelect"
+            , HP.id_  "selection-menu"
+            , HP.value state.instruction
+            , HE.onValueChange  (HE.input AddSelection)
+            ]
+            (A.cons
+              (HH.option [ HP.disabled true ] [ HH.text state.instruction])
+              (map f $ toUnfoldable state.available)
+            )
+        ]
 
   commitSelectionsButton :: Context -> State -> H.ComponentHTML Query
   commitSelectionsButton ctx state =
