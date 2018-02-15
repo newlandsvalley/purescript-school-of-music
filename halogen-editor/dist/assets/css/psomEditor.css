@@ -15,6 +15,10 @@
   background-color: #669966;   /* darker green */
 }
 
+.center {
+  text-align: center;
+}
+
 .psomEdit {
   /* this is the editor text area */
   padding: 10 0 10 0;
@@ -32,4 +36,26 @@
   padding: 1 8 0 8;
   font-size: 1.1em;
   display: inline-block;
+}
+
+.labelAlignment {
+  /* align labels at the LHS of a frame */
+  display: inline-block;
+  width: 165px;
+}
+
+.leftPane {
+  width: 420px;
+  float: left;
+}
+
+.rightPane {
+  float: left;
+}
+
+
+.leftPanelComponent {
+  /* align items in the LHS panel */
+  margin: 10 0 20 40;
+  font-size: 1.2em;
 }

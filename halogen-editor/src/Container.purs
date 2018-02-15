@@ -54,7 +54,7 @@ psomFileInputCtx :: FIC.FileInputContext
 psomFileInputCtx =
   { componentId : "psominput"
   , isBinary : false
-  , prompt : "load a PSoM file:"
+  , prompt : "choose:"
   , accept : MediaType ".psom"
   }
 
@@ -62,7 +62,7 @@ abcFileInputCtx :: FIC.FileInputContext
 abcFileInputCtx =
     { componentId : "abcinput"
     , isBinary : false
-    , prompt : "import an ABC file:"
+    , prompt : "import:"
     , accept : MediaType ".abc"
     }
 
@@ -140,31 +140,43 @@ component instruments =
 
   render :: State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
   render state = HH.div_
-    [ HH.div_
+    [ HH.h1
+      [HP.class_ (H.ClassName "center") ] 
+      [HH.text "PureScript PSoM Editor"]
+    , HH.div
       -- left pane
+      [ HP.class_ (H.ClassName "leftPane") ]
       [
         -- load
         HH.div
-         [ HP.class_ (H.ClassName "box")]
-         [ HH.h1_ [ HH.text "File Input Component 1" ]
+         [ HP.class_ (H.ClassName "leftPanelComponent")  ]
+         [ HH.label
+            [ HP.class_ (H.ClassName "labelAlignment") ]
+            [ HH.text "load PSoM" ]
          , HH.slot' psomFileSlotNo unit (FIC.component psomFileInputCtx) unit (HE.input HandlePSoMFile)
          ]
         -- import
       , HH.div
-         [ HP.class_ (H.ClassName "box")]
-         [ HH.h1_ [ HH.text "File Input Component 2" ]
+         [ HP.class_ (H.ClassName "leftPanelComponent") ]
+         [  HH.label
+            [ HP.class_ (H.ClassName "labelAlignment") ]
+            [ HH.text "import ABC" ]
          , HH.slot' abcImportSlotNo unit (FIC.component abcFileInputCtx) unit (HE.input HandleABCFile)
          ]
         -- save
       , HH.div
-          [ HP.class_ (H.ClassName "box")]
-          [ HH.h1_ [ HH.text "Save Text Component" ]
+          [ HP.class_ (H.ClassName "leftPanelComponent")]
+          [ HH.label
+             [ HP.class_ (H.ClassName "labelAlignment") ]
+             [ HH.text "save PSoM" ]
           , HH.slot' saveTextSlotNo unit (Button.component "save") unit (HE.input HandleSaveButton)
           ]
         -- clear
       , HH.div
-          [ HP.class_ (H.ClassName "box")]
-          [ HH.h1_ [ HH.text "Clear Text Component" ]
+          [ HP.class_ (H.ClassName "leftPanelComponent")]
+          [ HH.label
+             [ HP.class_ (H.ClassName "labelAlignment") ]
+             [ HH.text "clear PSoM" ]
           , HH.slot' clearTextSlotNo unit (Button.component "clear") unit (HE.input HandleClearButton)
           ]
         -- display instruments
@@ -172,21 +184,21 @@ component instruments =
         -- load instruments
       , HH.div
           [ HP.class_ (H.ClassName "box")]
-          [ HH.h1_ [ HH.text "Multiple Select Component" ]
-          , HH.slot' instrumentSelectSlotNo unit (MSC.component initialMultipleSelectState) unit (HE.input HandleMultiSelectCommit)
+          [
+            HH.slot' instrumentSelectSlotNo unit (MSC.component initialMultipleSelectState) unit (HE.input HandleMultiSelectCommit)
           ]
         -- player
       , renderPlayer state
       ]
       -- right pane
       , HH.div
-          [ HP.class_ (H.ClassName "box")]
-          [ HH.h1_ [ HH.text "Text Area Component" ]
-          , HH.slot' editorSlotNo unit (ED.component "foo") unit (HE.input HandleNewTuneText)
+          [ HP.class_ (H.ClassName "rightPane") ]
+          [
+            HH.slot' editorSlotNo unit (ED.component "foo") unit (HE.input HandleNewTuneText)
           ]
     ]
 
-  renderPlayer ::  ∀ eff. State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (au :: AUDIO | eff))
+  renderPlayer ::  ∀ eff1. State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (au :: AUDIO | eff1))
   renderPlayer state =
     case state.tuneResult of
       Right psom ->
@@ -195,15 +207,18 @@ component instruments =
           [ HH.slot' playerSlotNo unit (PC.component (PlayablePSoM psom) state.instruments) unit absurd  ]
       Left err ->
         HH.div_
-          [ HH.text "no tune to play" ]
+          [  ]
 
   renderInstruments :: State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
   renderInstruments state =
     if (null state.instruments) then
       HH.div_ [ HH.text "wait for instruments to load"]
     else
-      HH.div_
-        [ HH.text "loaded instruments"
+      HH.div
+        [ HP.class_ (H.ClassName "leftPanelComponent") ]
+        [ HH.label
+           [ HP.class_ (H.ClassName "labelAlignment") ]
+           [ HH.text "loaded instruments" ]
         , HH.ul
           [ HP.class_ $ ClassName "msListItem" ]
           $ map renderInstrument state.instruments

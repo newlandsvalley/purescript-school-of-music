@@ -43,18 +43,18 @@ component ctx =
   initialState :: State
   initialState = Nothing
 
+
   render :: FileInputContext  -> State -> H.ComponentHTML Query
   render ctx state =
     HH.div_
-      [ HH.p_
-          -- the label is a hack to allow styling of file input which is
+      [   -- the label is a hack to allow styling of file input which is
           -- otherwise impossible - see https://stackoverflow.com/questions/572768/styling-an-input-type-file-button
-          [ HH.label
+        HH.label
              [ HP.for ctx.componentId
-             , HP.class_ $ ClassName "hoverable"
-             , HP.class_ $ ClassName "fileInputLabel"
+             , HP.class_ $ ClassName "hoverable fileInputLabel"
+             -- , HP.class_ $ ClassName "fileInputLabel"
              ]
-             [ HH.text ctx.prompt ] ]
+             [ HH.text ctx.prompt ]
       , HH.input
           [ HE.onChange (HE.input_ LoadFile)
           , HP.type_ HP.InputFile
