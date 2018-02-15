@@ -1,4 +1,4 @@
-module MultipleSelectComponent where
+module Halogen.MultipleSelectComponent where
 
 import Prelude
 
@@ -12,7 +12,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Core (ClassName(..), HTML)
-import MultipleSelect.Dom (SDOM, resetDefaultSelected)
+import Halogen.MultipleSelectComponent.Dom (SDOM, resetDefaultSelected)
 
 data Query a =
     AddSelection String a

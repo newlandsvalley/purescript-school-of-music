@@ -1,4 +1,4 @@
-module PlayerComponent where
+module Halogen.PlayerComponent where
 
 import Prelude
 
@@ -20,7 +20,7 @@ import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Core (PropName(..))
-import PlayerComponent.Style (capsuleStyle, playerBlockStyle, playerStyle
+import Halogen.PlayerComponent.Style (capsuleStyle, playerBlockStyle, playerStyle
   , buttonStyle)
 import Audio.SoundFont.Melody.Class (class Playable, toMelody)
 import Audio.SoundFont.Melody (Melody, MidiPhrase)

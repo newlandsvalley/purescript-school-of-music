@@ -10,7 +10,7 @@ import Halogen.VDom.Driver (runUI)
 import Halogen as H
 
 import JS.FileIO (FILEIO)
-import MultipleSelect.Dom (SDOM)
+import Halogen.MultipleSelectComponent.Dom (SDOM)
 import Network.HTTP.Affjax (AJAX)
 
 import Container as Container

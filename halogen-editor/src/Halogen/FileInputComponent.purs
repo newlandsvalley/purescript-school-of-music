@@ -1,7 +1,7 @@
 -- | A halogen component for handling a file input button
 -- | which handles the input by means of purescript-js-fileio
 -- | (and which supports both text and binary input)
-module FileInputComponent where
+module Halogen.FileInputComponent where
 
 import Prelude
 
@@ -52,6 +52,7 @@ component ctx =
           [ HH.label
              [ HP.for ctx.componentId
              , HP.class_ $ ClassName "hoverable"
+             , HP.class_ $ ClassName "fileInputLabel"
              ]
              [ HH.text ctx.prompt ] ]
       , HH.input

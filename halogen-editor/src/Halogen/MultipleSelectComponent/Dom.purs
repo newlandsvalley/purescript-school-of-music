@@ -1,4 +1,4 @@
-module MultipleSelect.Dom
+module Halogen.MultipleSelectComponent.Dom
   ( SDOM
   , resetDefaultSelected ) where
 

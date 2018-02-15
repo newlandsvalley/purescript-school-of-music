@@ -1,4 +1,4 @@
-module PlayerComponent.Style (
+module Halogen.PlayerComponent.Style (
     capsuleStyle
   , playerBlockStyle
   , playerStyle

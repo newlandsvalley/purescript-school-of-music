@@ -19,20 +19,20 @@ import Data.Midi.Instrument (InstrumentName, gleitzmanName, gleitzmanNames, read
 import Data.Abc.PSoM.DSL (toDSL)
 import Data.Abc.PSoM.Translation (toPSoM)
 import Data.Abc.Parser (parse) as ABC
-import EditorComponent as ED
-import FileInputComponent as FIC
 import Halogen as H
 import Halogen.Component.ChildPath as CP
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.HTML.Core (ClassName(..))
+import Halogen.EditorComponent as ED
+import Halogen.FileInputComponent as FIC
+import Halogen.SimpleButtonComponent as Button
+import Halogen.PlayerComponent as PC
+import Halogen.MultipleSelectComponent as MSC
+import Halogen.MultipleSelectComponent.Dom (SDOM)
 import JS.FileIO (FILEIO, Filespec, saveTextFile)
-import MultipleSelect.Dom (SDOM)
-import MultipleSelectComponent as MSC
 import Network.HTTP.Affjax (AJAX)
-import PlayerComponent as PC
-import SimpleButtonComponent as Button
 
 type AppEffects eff = (ajax :: AJAX, au :: AUDIO, fileio :: FILEIO, sdom :: SDOM | eff)
 

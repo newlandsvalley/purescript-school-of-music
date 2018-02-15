@@ -24,3 +24,12 @@
   text-align: left;
   display: block;
 }
+
+
+.fileInputLabel {
+  /* the label for a file input */
+  /* margin: 0 0 0 10; */
+  padding: 1 8 0 8;
+  font-size: 1.1em;
+  display: inline-block;
+}

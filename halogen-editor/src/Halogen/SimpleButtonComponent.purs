@@ -1,4 +1,4 @@
-module SimpleButtonComponent where
+module Halogen.SimpleButtonComponent where
 
 import Prelude
 import Data.Maybe (Maybe(..))
