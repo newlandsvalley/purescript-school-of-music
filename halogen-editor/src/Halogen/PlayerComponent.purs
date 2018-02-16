@@ -140,8 +140,15 @@ component playable instruments =
   eval :: ∀ eff p. Playable p => p -> Query ~> H.ComponentDSL State Query Void (Aff (au :: AUDIO | eff))
   eval p = case _ of
 
+    -- when we change the instruments (possibly im mid-melody) we need to
+    -- re-initialise and remove the old melody which will need to be
+    -- recomputed with the new instruments (done when play is first pressed) 
     SetInstruments instruments next -> do
-      H.modify (\state -> state { instruments = instruments})
+      H.modify (\state -> state { instruments = instruments
+                                , phraseIndex = 0
+                                , playing = PENDINGPAUSED
+                                , melody = []
+                                })
       pure next
 
 

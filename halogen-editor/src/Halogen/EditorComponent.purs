@@ -28,11 +28,11 @@ data Query a =
 
 data Message = TuneResult (Either PositionedParseError PSoM)
 
-component :: forall m. String -> H.Component HH.HTML Query Unit Message m
-component label =
+component :: forall m. H.Component HH.HTML Query Unit Message m
+component =
   H.component
     { initialState: const initialState
-    , render: render label
+    , render
     , eval
     , receiver: const Nothing
     }
@@ -44,8 +44,8 @@ component label =
     , parseError : Nothing
     }
 
-  render :: String -> State -> H.ComponentHTML Query
-  render label state =
+  render :: State -> H.ComponentHTML Query
+  render state =
     HH.div_
       [ HH.textarea
          [ HP.rows 15

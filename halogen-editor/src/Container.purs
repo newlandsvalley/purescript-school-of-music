@@ -70,8 +70,8 @@ abcFileInputCtx =
 
 multipleSelectCtx :: MSC.Context
 multipleSelectCtx =
-  { commitPrompt : "replace instruments:"
-  , commitButtonText : "replace"
+  { commitPrompt : "change instruments:"
+  , commitButtonText : "load"
   }
 
 
@@ -189,7 +189,7 @@ component instruments =
           ]
         -- load instruments
       , HH.div
-          [ HP.class_ (H.ClassName "box")]
+          [ HP.class_ (H.ClassName "leftPanelComponent")]
           [
             HH.slot' instrumentSelectSlotNo unit
                (MSC.component multipleSelectCtx initialMultipleSelectState) unit (HE.input HandleMultiSelectCommit)
@@ -203,7 +203,7 @@ component instruments =
       , HH.div
           [ HP.class_ (H.ClassName "rightPane") ]
           [
-            HH.slot' editorSlotNo unit (ED.component "foo") unit (HE.input HandleNewTuneText)
+            HH.slot' editorSlotNo unit ED.component unit (HE.input HandleNewTuneText)
           ]
     ]
 
@@ -212,7 +212,7 @@ component instruments =
     case state.tuneResult of
       Right psom ->
         HH.div
-          [ HP.class_ (H.ClassName "box")]
+          [ HP.class_ (H.ClassName "leftPanelComponent")]
           [ HH.slot' playerSlotNo unit (PC.component (PlayablePSoM psom) state.instruments) unit absurd  ]
       Left err ->
         HH.div_
@@ -281,6 +281,7 @@ component instruments =
       instrumentNames :: Array InstrumentName
       instrumentNames = foldl f [] pendingInstrumentNames
     instruments <- H.liftAff $ loadRemoteSoundFonts instrumentNames
+    _ <- H.query' playerSlotNo unit $ H.action (PC.SetInstruments instruments)
     H.modify (\st -> st { instruments = instruments})
     pure next
 

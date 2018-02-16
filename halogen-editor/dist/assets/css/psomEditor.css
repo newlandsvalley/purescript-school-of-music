@@ -1,8 +1,10 @@
+body {
+  padding: 0 40px 0 40px;
+}
+
 .longLabel,
 label {
   display: block;
-  font-size: 1.2em;
-  font-family: Georgia, serif;
   color: #444;
 }
 
@@ -10,8 +12,8 @@ label {
   border: none;
   border-radius: 6px;
   padding: 2px 10px;
-  margin: 10px 0px 10px 25px;
-  font-size: 1.2em;
+  margin: 10px 20px 10px 0;
+  font-size: 1.1em;
   background-color: #67d665;  /* lighter green */
   color: black;
   box-shadow: 3px 3px #669966;  /* darker green */
@@ -29,8 +31,8 @@ label {
 
 .psomEdit {
   /* this is the editor text area */
-  padding: 10 0 10 0;
-  margin: 0 2 0 2;
+  padding: 10px 0 10px 0;
+  margin: 0 2px 0 2px;
   font-size: 1.5em;
   font-family: "Times New Roman", monospace;
   /* background-color: rgb(243 246 170);*/
@@ -41,13 +43,19 @@ label {
 
 .fileInputLabel {
   /* the label for a file input */
-  /* margin: 0 0 0 10; */
-  padding: 1 8 0 8;
+  margin: 0 20px 0 0;
+  /* padding: 1px 8px 0 8px; */
   font-size: 1.1em;
   display: inline-block;
 }
 
-.msCommitLabel, 
+.msCommitLabel {
+  /* need slightly more space for the multiple select label*/
+  display: inline-block;
+  width: 200px;
+  font-size: 1.2em;
+}
+
 .labelAlignment {
   /* align labels at the LHS of a frame */
   display: inline-block;
@@ -64,9 +72,9 @@ label {
   float: left;
 }
 
-
 .leftPanelComponent {
   /* align items in the LHS panel */
-  margin: 10 0 20 40;
+  margin: 10px 0 0 0;
   font-size: 1.2em;
+  font-family: Georgia, serif;
 }

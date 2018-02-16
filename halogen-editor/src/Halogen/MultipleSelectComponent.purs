@@ -46,7 +46,8 @@ component ctx initialState =
 
   render :: Context -> State -> H.ComponentHTML Query
   render ctx state =
-    HH.div_
+    HH.div
+      [ HP.class_ $ ClassName "msSelectDiv" ]
       [ addSelectionDropdown state
       , viewSelections state
       , commitSelectionsButton ctx state
@@ -63,10 +64,10 @@ component ctx initialState =
             [ HH.text s]
     in
       HH.div
-        [ HP.class_ $ ClassName "msSelectDiv" ]
+        [ HP.class_ $ ClassName "msAddSelectionDiv" ]
         [
           HH.select
-            [ HP.class_ $ ClassName "msSelect"
+            [ HP.class_ $ ClassName "msAddSelection"
             , HP.id_  "selection-menu"
             , HP.value state.instruction
             , HE.onValueChange  (HE.input AddSelection)
@@ -83,7 +84,8 @@ component ctx initialState =
       Nil ->
         HH.div_ []
       _ ->
-        HH.div_
+        HH.div
+          [ HP.class_ (H.ClassName "msCommitDiv") ]
           [ HH.label
              [ HP.class_ (H.ClassName "msCommitLabel") ]
              [ HH.text ctx.commitPrompt ]

@@ -4,7 +4,12 @@
   margin : 20 0 20 0
 }
 
-.msSelect {
+/* this is the parent div of the add selection grouping */
+msAddSelectionDiv {
+  margin : 10 0 10 0
+}
+
+.msAddSelection {
   /* this is the selection dropdown */
   background-color: #cccc99;
   height: 28px;

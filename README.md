@@ -25,11 +25,12 @@ Editor
 
 The editor allows you to enter or load PSoM text and will parse the text after every keystroke. If it is valid, a player will appear, otherwise an error message is shown.
 
-In fact there are two editors which are intended to have identical capabilities - one in Pux and the other in Halogen.  I am still trying to evaluate which UI library I prefer and this seemed to be a good way to decide.  Both are clearly capable of doing the job.  At the moment, I am veering towards Halogen for the following reasons:
+In fact there are two editors which are intended to have identical capabilities - one in Pux and the other in Halogen.  I am still trying to evaluate which UI library I prefer and this seemed to be a good way to decide.  Both are clearly capable of doing the job and they produce javascript output of very similar size.  At the moment, I am veering towards Halogen for the following reasons:
 
 *  It has a well developed concept of self-contained components that can encapsulate their own state.  This means that eventually we should see a market in pluggable Halogen components grow up which should considerably cut down development costs.  Pux, being TEA based, has no such concept.
 *  It uses its own VDom representation - it has no need of React.
 *  It has been developed commercially and therefore there is a strong incentive to fix bugs quickly.
+*  The structure of the application tends to be cleaner because of a better separation  of concerns.
 *  Granted, the types are scary but the documentation is so good you can almost take a cookbook approach to building a UI.
 
 
