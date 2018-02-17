@@ -35,6 +35,7 @@ import JS.FileIO (FILEIO, Filespec, saveTextFile)
 import Network.HTTP.Affjax (AJAX)
 import SampleText (frereJacques)
 
+
 type AppEffects eff = (ajax :: AJAX, au :: AUDIO, fileio :: FILEIO, sdom :: SDOM | eff)
 
 type State =
@@ -135,9 +136,9 @@ playerSlotNo = CP.cp8
 
 component ::  ∀ eff. Array Instrument -> H.Component HH.HTML Query Unit Void (Aff (AppEffects eff))
 -- component ::  ∀ eff p. H.Component HH.HTML Query Unit Void (Aff (au :: AUDIO, fileio :: FILEIO, sdom :: SDOM | eff))
-component instruments =
+component initialInstruments =
   H.parentComponent
-    { initialState: const (initialState instruments)
+    { initialState: const (initialState initialInstruments)
     , render
     , eval
     , receiver: const Nothing
