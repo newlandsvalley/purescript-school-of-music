@@ -6,7 +6,8 @@ import Control.Monad.State (State, get, put, evalState)
 import Data.Abc (AbcTune, AbcRest, AbcNote, RestOrNote, Accidental(..), Bar, Broken(..), Header(..), TuneBody, Repeat(..), BodyPart(..),
    MusicLine, Music(..), Mode(..), ModifiedKeySignature, TempoSignature, PitchClass(..))
 import Data.Abc.Midi.RepeatSections (RepeatState, Section(..), Sections, initialRepeatState, indexBar, finalBar)
-import Data.Abc.Notation (dotFactor, getKeySig, getTitle, midiPitchOffset)
+import Data.Abc.Notation (dotFactor, getKeySig, getTitle)
+import Data.Abc.Midi (midiPitchOffset)
 import Data.Abc.Tempo (AbcTempo, getAbcTempo, defaultAbcTempo, beatsPerSecond)
 import Data.Foldable (foldl)
 import Data.List (List(..), (:), null, concatMap, filter, fromFoldable, toUnfoldable, reverse, singleton)
@@ -452,10 +453,10 @@ addTempoToState tstate tempoSig =
 addNoteToBarAccidentals :: AbcNote -> Accidentals.Accidentals -> Accidentals.Accidentals
 addNoteToBarAccidentals abcNote accs =
   case abcNote.accidental of
-    Just acc  ->
-      Accidentals.add abcNote.pitchClass acc accs
-    _ ->
+    Implicit ->
       accs
+    acc ->
+      Accidentals.add abcNote.pitchClass acc accs
 
 -- | work out the broken rhythm tempo
 brokenTempo :: Int -> Boolean -> Rational

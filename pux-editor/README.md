@@ -5,12 +5,12 @@ The __pux-editor__ example pre-loads a set of instrument soundfonts, the first s
 
 It supports loading and saving of PSoM melodies and also the import of ABC text.
 
-### to build 
+### to build
 
    cd to editor
- 
+
    bower install
 
-   ./build.sh
+   npm run build
 
    and then navigate to dist/index.html

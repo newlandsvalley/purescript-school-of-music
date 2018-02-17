@@ -15,7 +15,7 @@ import Data.Euterpea.Midi.MEvent (Performance, perform1)
 import Data.Foldable (traverse_)
 import Data.List (List(..), null)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, instruments, read)
+import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames, read)
 import Data.String (fromCharArray, toCharArray, null) as S
 import Data.Tuple (fst)
 import JS.FileIO (FILEIO, Filespec, loadTextFile, saveTextFile)
@@ -62,7 +62,7 @@ nullTune =
 initialState :: State
 initialState = {
     polyphony : ""
-  , instrumentChoices : MS.initialState "add an instrument" instruments
+  , instrumentChoices : MS.initialState "add an instrument" gleitzmanNames
   , fileName : Nothing
   , tuneResult : nullTune
   , performance : Nil
