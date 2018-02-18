@@ -71,15 +71,15 @@ abcFileInputCtx =
 
 multipleSelectCtx :: MSC.Context
 multipleSelectCtx =
-  { commitPrompt : "change instruments:"
+  { selectPrompt : "add an instrument:"
+  , commitPrompt : "change instruments:"
   , commitButtonText : "load"
   }
 
 
 initialMultipleSelectState :: MSC.State
 initialMultipleSelectState =
-  { instruction : "add an instrument:"
-  , available : gleitzmanNames
+  { available : gleitzmanNames
   , selected : Nil
   }
 
