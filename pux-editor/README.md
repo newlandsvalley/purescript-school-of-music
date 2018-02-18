@@ -7,7 +7,7 @@ It supports loading and saving of PSoM melodies and also the import of ABC text.
 
 ### to build
 
-   cd to editor
+   cd to pux-editor
 
    bower install
 

@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "build": "pulp build --to dist/app.js",
+    "minimize": "uglifyjs dist/app.js --output dist/min.js --compress",
     "watch": "pulp -w build --to dist/app.js"
   },
   "devDependencies": {
