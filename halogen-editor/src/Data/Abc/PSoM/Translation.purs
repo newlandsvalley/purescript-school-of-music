@@ -6,7 +6,7 @@ import Control.Monad.State (State, get, put, evalState)
 import Data.Abc (AbcTune, AbcRest, AbcNote, RestOrNote, Accidental(..), Bar, Broken(..), Header(..), TuneBody, Repeat(..), BodyPart(..),
    MusicLine, Music(..), Mode(..), ModifiedKeySignature, TempoSignature, PitchClass(..))
 import Data.Abc.Midi.RepeatSections (RepeatState, Section(..), Sections, initialRepeatState, indexBar, finalBar)
-import Data.Abc.Notation (dotFactor, getKeySig, getTitle)
+import Data.Abc.Metadata (dotFactor, getKeySig, getTitle)
 import Data.Abc.Midi (midiPitchOffset)
 import Data.Abc.Tempo (AbcTempo, getAbcTempo, defaultAbcTempo, beatsPerSecond)
 import Data.Foldable (foldl)
