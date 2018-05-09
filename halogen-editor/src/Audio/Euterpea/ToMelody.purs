@@ -56,7 +56,7 @@ getFinal :: Accum -> Melody
 getFinal (Accum a) = a.final
 
 phraseCutoff :: Number
-phraseCutoff = 0.8
+phraseCutoff = 0.4
 
 perf2melody :: InstrumentChannels -> Performance -> Melody
 perf2melody ics p =

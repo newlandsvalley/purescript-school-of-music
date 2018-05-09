@@ -4,7 +4,6 @@ import Data.Euterpea.DSL.Parser (PSoM)
 import Audio.Euterpea.ToMelody (perf2melody)
 import Data.Euterpea.Midi.MEvent (perform1)
 import Audio.SoundFont.Melody.Class (class Playable)
-import Audio.SoundFont (InstrumentChannels)
 import Prelude (($))
 
 newtype PlayablePSoM = PlayablePSoM PSoM

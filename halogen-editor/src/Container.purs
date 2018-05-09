@@ -6,7 +6,7 @@ import Audio.Euterpea.Playable (PlayablePSoM(..))
 import Audio.SoundFont (AUDIO, Instrument, loadRemoteSoundFonts)
 import Control.Monad.Aff (Aff)
 import Data.Array (cons, null)
-import Data.Either (Either(..))
+import Data.Either (Either(..), either)
 import Data.Either.Nested (Either8)
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..))
 import Data.Foldable (foldl)
@@ -51,6 +51,7 @@ data Query a =
   | HandleSaveButton Button.Message a
   | HandleSampleButton Button.Message a
   | HandleNewTuneText ED.Message a
+  | HandleTuneIsPlaying PC.Message a
   | HandleMultiSelectCommit MSC.Message a
 
 psomFileInputCtx :: FIC.Context
@@ -94,7 +95,12 @@ parseError tuneResult =
     Right _ -> "no errors"
     Left (PositionedParseError ppe) -> "parse error: " <> ppe.error
 
-type ChildQuery = Coproduct8 ED.Query FIC.Query FIC.Query MSC.Query Button.Query Button.Query Button.Query PC.Query
+-- the player is generic over a variety of playable sources of music
+-- so we must specialize to Playable PSOM
+type PlayerQuery = PC.Query PlayablePSoM
+
+
+type ChildQuery = Coproduct8 ED.Query FIC.Query FIC.Query MSC.Query Button.Query Button.Query Button.Query PlayerQuery
 
 -- slots and slot numbers
 type FileInputSlot = Unit
@@ -130,7 +136,7 @@ saveTextSlotNo = CP.cp6
 sampleTextSlotNo :: CP.ChildPath Button.Query ChildQuery SampleTextSlot ChildSlot
 sampleTextSlotNo = CP.cp7
 
-playerSlotNo :: CP.ChildPath PC.Query ChildQuery PlayerSlot ChildSlot
+playerSlotNo :: CP.ChildPath PlayerQuery ChildQuery PlayerSlot ChildSlot
 playerSlotNo = CP.cp8
 
 
@@ -214,7 +220,7 @@ component initialInstruments =
       Right psom ->
         HH.div
           [ HP.class_ (H.ClassName "leftPanelComponent")]
-          [ HH.slot' playerSlotNo unit (PC.component (PlayablePSoM psom) state.instruments) unit absurd  ]
+          [ HH.slot' playerSlotNo unit (PC.component (PlayablePSoM psom) state.instruments) unit (HE.input HandleTuneIsPlaying)  ]
       Left err ->
         HH.div_
           [  ]
@@ -244,6 +250,7 @@ component initialInstruments =
   eval (HandlePSoMFile (FIC.FileLoaded filespec) next) = do
     H.modify (\st -> st { fileName = Just filespec.name } )
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent filespec.contents)
+    _ <- H.query' playerSlotNo unit $ H.action PC.StopMelody
     pure next
   eval (HandleABCFile (FIC.FileLoaded filespec) next) = do
     let
@@ -254,6 +261,7 @@ component initialInstruments =
           Left err ->
             "\"" <> filespec.name <> "\"\r\n" <> "-- error in ABC: " <> (show err)
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent psomText)
+    _ <- H.query' playerSlotNo unit $ H.action PC.StopMelody
     pure next
   eval (HandleClearButton (Button.Toggled _) next) = do
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent "")
@@ -269,8 +277,10 @@ component initialInstruments =
     pure next
   eval (HandleSampleButton (Button.Toggled _) next) = do
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent frereJacques)
+    _ <- H.query' playerSlotNo unit $ H.action PC.StopMelody
     pure next
   eval (HandleNewTuneText (ED.TuneResult r) next) = do
+    _ <- refreshPlayerState r
     H.modify (\st -> st { tuneResult = r} )
     pure next
   eval (HandleMultiSelectCommit (MSC.CommittedSelections pendingInstrumentNames) next) = do
@@ -284,6 +294,18 @@ component initialInstruments =
     instruments <- H.liftAff $ loadRemoteSoundFonts instrumentNames
     _ <- H.query' playerSlotNo unit $ H.action (PC.SetInstruments instruments)
     H.modify (\st -> st { instruments = instruments})
+    pure next
+  eval (HandleTuneIsPlaying (PC.IsPlaying p) next) = do
+    -- in this branch we ignore this message, but if we wanted to we could
+    -- disable any button that can alter the editor contents whilst the player
+    -- is playing and re-enable when it stops playing
+    {-
+    _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateEnabled (not p))
+    _ <- H.query' psomFileSlotNo unit $ H.action (FIC.UpdateEnabled (not p))
+    _ <- H.query' abcImportSlotNo unit $ H.action (FIC.UpdateEnabled (not p))
+    _ <- H.query' clearTextSlotNo unit $ H.action (Button.UpdateEnabled (not p))
+    _ <- H.query' sampleTextSlotNo unit $ H.action (Button.UpdateEnabled (not p))
+    -}
     pure next
 
 
@@ -300,3 +322,18 @@ getFileName state =
           title <> ".psom"
         _ ->
           "untitled.psom"
+
+-- refresh the state of the player
+-- by passing it the psom result (if it had parsed OK)
+-- I think it is probably unnecessary to call this with PSOM because it is
+-- seemingly impossible to edit the PSoM DSL without temporarily breaking it
+-- and so the player will disappear and be recreated when the text is fixed.
+refreshPlayerState :: ∀ eff.
+       Either PositionedParseError PSoM
+    -> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff)) Unit
+refreshPlayerState tuneResult = do
+  _ <- either
+    (\_ -> H.query' playerSlotNo unit $ H.action (PC.StopMelody))
+    (\psom -> H.query' playerSlotNo unit $ H.action (PC.HandleNewPlayable (PlayablePSoM psom)))
+    tuneResult
+  pure unit
