@@ -141,7 +141,6 @@ playerSlotNo = CP.cp8
 
 
 component ::  ∀ eff. Array Instrument -> H.Component HH.HTML Query Unit Void (Aff (AppEffects eff))
--- component ::  ∀ eff p. H.Component HH.HTML Query Unit Void (Aff (au :: AUDIO, fileio :: FILEIO, sdom :: SDOM | eff))
 component initialInstruments =
   H.parentComponent
     { initialState: const (initialState initialInstruments)
@@ -296,7 +295,7 @@ component initialInstruments =
     H.modify (\st -> st { instruments = instruments})
     pure next
   eval (HandleTuneIsPlaying (PC.IsPlaying p) next) = do
-    -- in this branch we ignore this message, but if we wanted to we could
+    -- we ignore this message, but if we wanted to we could
     -- disable any button that can alter the editor contents whilst the player
     -- is playing and re-enable when it stops playing
     {-
@@ -323,11 +322,8 @@ getFileName state =
         _ ->
           "untitled.psom"
 
--- refresh the state of the player
--- by passing it the psom result (if it had parsed OK)
--- I think it is probably unnecessary to call this with PSOM because it is
--- seemingly impossible to edit the PSoM DSL without temporarily breaking it
--- and so the player will disappear and be recreated when the text is fixed.
+-- refresh the state of the player by passing it the psom result
+-- (if it had parsed OK)
 refreshPlayerState :: ∀ eff.
        Either PositionedParseError PSoM
     -> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff)) Unit

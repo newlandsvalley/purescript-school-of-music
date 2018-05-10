@@ -20,10 +20,12 @@ import Color (rgb)
 type State =
   { text :: String
   , parseError :: Maybe PositionedParseError
+  , isEnabled :: Boolean
   }
 
 data Query a =
     UpdateContent String a
+  | UpdateEnabled Boolean a
   | GetText (String -> a)
 
 data Message = TuneResult (Either PositionedParseError PSoM)
@@ -42,6 +44,7 @@ component =
   initialState =
     { text : ""
     , parseError : Nothing
+    , isEnabled : true
     }
 
   render :: State -> H.ComponentHTML Query
@@ -53,6 +56,7 @@ component =
          , HP.autofocus true
          , HP.value state.text
          , HP.class_ $ ClassName "psomEdit"
+         , HP.enabled state.isEnabled
          -- , HP.wrap false
          , HE.onValueInput (HE.input UpdateContent)
          ]
@@ -67,6 +71,9 @@ component =
         parseError = either Just (\success -> Nothing) tuneResult
       H.modify (\state -> state {text = s, parseError = parseError})
       H.raise $ TuneResult tuneResult
+      pure next
+    UpdateEnabled isEnabled next -> do
+      H.modify (\state -> state {isEnabled = isEnabled})
       pure next
     GetText reply -> do
       state <- H.get
