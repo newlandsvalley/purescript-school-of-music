@@ -16,7 +16,7 @@
     "purescript-school-of-music": "https://github.com/newlandsvalley/purescript-school-of-music.git#1.1.1",
     "purescript-abc-parser": "https://github.com/newlandsvalley/purescript-abc-parser.git#1.2.0",
     "purescript-js-fileio": "https://github.com/newlandsvalley/purescript-js-fileio.git#1.0.2",
-    "purescript-halogen-components": "https://github.com/newlandsvalley/purescript-halogen-components.git"
+    "purescript-halogen-components": "https://github.com/newlandsvalley/purescript-halogen-components.git#0.1.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"
