@@ -1,7 +1,7 @@
 module Data.Euterpea.Music1 where
 
 
-import Prelude (class Show, id, mod, (-), (/))
+import Prelude (class Show, identity, mod, (-), (/))
 import Data.Euterpea.Music
 import Data.List (List(..), (:))
 import Data.Array ((!!))
@@ -46,7 +46,7 @@ instance pv2m1 :: ToMusic1 PV where
     mMap (\(PV p v) -> Note1 p ((Volume v) : Nil) )
 
 instance m12m1 :: ToMusic1 (Note1) where
-  toMusic1 = id
+  toMusic1 = identity
 
 -- Int is AbsPitch but type classes for synonyms are disallowed
 instance absp2m1 :: ToMusic1 (Int) where

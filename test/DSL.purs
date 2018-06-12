@@ -15,7 +15,7 @@ import Data.List (List(..), (:))
 import Test.Unit (Test, TestF, suite, test, failure, success)
 import Test.Unit.Assert as Assert
 
-assertParses :: forall e. String -> Test e
+assertParses :: String -> Test
 assertParses s =
   case parse s of
     Right psom ->
@@ -24,7 +24,7 @@ assertParses s =
     Left err ->
       failure ("parse failed: " <> (show err))
 
-assertFails :: forall e. String -> String -> Test e
+assertFails :: String -> String -> Test
 assertFails s msg =
   case parse s of
     Right psom ->
@@ -32,7 +32,7 @@ assertFails s msg =
     Left (PositionedParseError err) ->
       Assert.equal msg err.error
 
-assertMusic :: forall e. String -> Music1 -> Test e
+assertMusic :: String -> Music1 -> Test
 assertMusic s target =
   case parse s of
     Right { title, music } ->
@@ -41,11 +41,11 @@ assertMusic s target =
     Left err ->
       failure ("parse failed: " <> (show err))
 
-dslSuite :: forall t. Free (TestF t) Unit
+dslSuite :: Free TestF Unit
 dslSuite = do
   noteSuite
 
-noteSuite :: forall t. Free (TestF t) Unit
+noteSuite :: Free TestF Unit
 noteSuite =
   suite "notes" do
     test "note" do

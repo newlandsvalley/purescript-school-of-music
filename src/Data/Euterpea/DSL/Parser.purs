@@ -9,11 +9,12 @@ module Data.Euterpea.DSL.Parser
 import Prelude (class Show, pure, show, ($), (<$>), (<$), (<*>), (<*), (*>), (<<<), (<>), (>>=), (-))
 import Control.Alt ((<|>))
 import Control.Lazy (fix)
-import Data.String as S
+import Data.String.CodeUnits (fromCharArray)
+import Data.String.CodePoints (codePointFromChar, singleton)
 import Data.Bifunctor (bimap)
 import Data.Int (fromString)
 import Data.Either (Either(..))
-import Data.List (singleton)
+import Data.List (singleton) as L
 import Data.List.NonEmpty as Nel
 import Data.Map (Map, empty, fromFoldable, lookup, union) as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
@@ -23,8 +24,7 @@ import Data.Foldable (class Foldable)
 import Data.Rational (Rational, fromInt, (%))
 import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try, fail)
 import Text.Parsing.StringParser.String (anyDigit, char, string, regex, skipSpaces)
-import Text.Parsing.StringParser.Combinators (between, choice, many1, optional, optionMaybe, (<?>))
-import Data.Euterpea.DSL.ParserExtensions (many1Nel, sepBy1Nel)
+import Text.Parsing.StringParser.Combinators (between, choice, many1, sepBy1, optional, optionMaybe, (<?>))
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..),
        NoteAttribute(..), PhraseAttribute(..), Control(..), Tempo(..), Articulation(..)) as Eut
 import Data.Euterpea.Dynamics (Dynamic(..), StdLoudness, read) as Dyn
@@ -75,7 +75,7 @@ bindings :: Parser BindingMap
 bindings =
   (fix \unit ->
     buildBindings <$>
-      keyWord("Let") <*> (many1Nel bind) <*> keyWord("In")
+      keyWord("Let") <*> (many1 bind) <*> keyWord("In")
   ) <?> "bindings"
 
 bind :: Parser Binding
@@ -106,7 +106,7 @@ bracketedMusic bnds =
 voices :: BindingMap -> Parser Eut1.Music1
 voices bnds =
   fix \unit ->
-    Eutt.chord1 <$> ((keyWord "Par") *> (try $ optional comment) *> many1Nel (procedureOrVariable bnds))
+    Eutt.chord1 <$> ((keyWord "Par") *> (try $ optional comment) *> many1 (procedureOrVariable bnds))
 
 procedureOrVariable :: BindingMap -> Parser Eut1.Music1
 procedureOrVariable bnds =
@@ -147,7 +147,7 @@ tempo =
 
 phraseAttributes :: Parser Eut.Control
 phraseAttributes =
-  Eut.Phrase <$> (keyWord "PhraseAtts" *> (many1 phraseAttribute))
+  (Eut.Phrase  <<< Nel.toList)  <$> (keyWord "PhraseAtts" *> (many1 phraseAttribute))
     <?> "phrase attributes"
 
 phraseAttribute :: Parser Eut.PhraseAttribute
@@ -214,7 +214,7 @@ instrument =
 
 lines :: BindingMap ->  Parser Eut1.Music1
 lines bnds =
-  Eutt.line1 <$> ((keyWord "Seq") *> (try $ optional comment) *> many1Nel (linesOptions bnds))
+  Eutt.line1 <$> ((keyWord "Seq") *> (try $ optional comment) *> many1 (linesOptions bnds))
 
 linesOptions :: BindingMap -> Parser Eut1.Music1
 linesOptions bnds =
@@ -222,7 +222,7 @@ linesOptions bnds =
 
 line ::  BindingMap -> Parser Eut1.Music1
 line bnds =
-  Eutt.line1 <$> ((keyWord "Line") *> sepBy1Nel (lineOptions bnds) separator)
+  Eutt.line1 <$> ((keyWord "Line") *> sepBy1 (lineOptions bnds) separator)
 
 lineOptions :: BindingMap -> Parser Eut1.Music1
 lineOptions bnds =
@@ -230,7 +230,7 @@ lineOptions bnds =
 
 chord :: Parser (Eut1.Music1)
 chord =
-  Eutt.chord1 <$> ((keyWord "Chord") *> (keyWord "[") *> sepBy1Nel primNote1 separator <* (keyWord "]"))
+  Eutt.chord1 <$> ((keyWord "Chord") *> (keyWord "[") *> sepBy1 primNote1 separator <* (keyWord "]"))
 
 prim :: Parser Eut1.Music1
 prim =  Eut.Prim <$> (note1 <|> rest)
@@ -516,7 +516,7 @@ dynamicMarking =
   ) <?> "dynamic marking"
 
 fromCharList :: forall f. Foldable f => f Char -> String
-fromCharList = S.fromCharArray <<< fromFoldable
+fromCharList = fromCharArray <<< fromFoldable
 
 keyWord :: String -> Parser String
 keyWord target =
@@ -548,7 +548,7 @@ endOfLine =
     <?> "endOfLine"
 
 digit :: Parser Int
-digit = (fromMaybe 0 <<< fromString <<< S.singleton) <$> anyDigit
+digit = (fromMaybe 0 <<< fromString <<< singleton <<< codePointFromChar) <$> anyDigit
 
 ten :: Parser Int
 ten = 10 <$ string "10"
@@ -563,7 +563,7 @@ buildBindings  _ bnds _ =
 
 buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Eut.Primitive Eut1.Note1
 buildNote1 _ dur p  =
-  Eut.Note dur $ Eut1.Note1 p $ singleton (Eut.Volume defaultVolume)
+  Eut.Note dur $ Eut1.Note1 p $ L.singleton (Eut.Volume defaultVolume)
 
 buildSignedInt :: Maybe String -> Int -> Int
 buildSignedInt sign val =

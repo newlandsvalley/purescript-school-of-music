@@ -1,5 +1,8 @@
 # Changelog
 
+### Version 2.0.0
+
+*  Update to PS 0.12
 
 ### Version 1.1.1 (2018-02-04)
 

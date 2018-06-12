@@ -2,7 +2,7 @@ module Data.Euterpea.Midi.MEvent where
 
 -- | Intermediate MIDI representation
 
-import Prelude (class Show, class Eq, class Ord, map, negate, (+), (-), (<), (/), (*), ($), (<>), (<<<))
+import Prelude (class Show, class Eq, class Ord, compare, map, negate, (+), (-), (<), (/), (*), ($), (<>), (<<<))
 import Data.List (List(..), (:), head, singleton)
 import Data.Int (round)
 import Data.Euterpea.Music
@@ -17,7 +17,6 @@ import Data.Maybe (Maybe(Just))
 import Data.Foldable (foldr)
 import Data.Generic.Rep as G
 import Data.Generic.Rep.Eq as GEq
-import Data.Generic.Rep.Ord as GOrd
 import Data.Generic.Rep.Show as GShow
 
 
@@ -37,10 +36,11 @@ data MEvent = MEvent {
 derive instance genericMEvent :: G.Generic MEvent _
 instance eqMEvent :: Eq MEvent where
   eq x y = GEq.genericEq x y
-instance ordMEvent :: Ord MEvent where
-  compare x y = GOrd.genericCompare x y
 instance showMEvent :: Show MEvent where
   show x = GShow.genericShow x
+instance ordMEvent:: Ord MEvent where
+  compare (MEvent r1) (MEvent r2) =
+    compare r1.eTime r2.eTime
 
 
 type Performance = List MEvent

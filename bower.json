@@ -16,13 +16,13 @@
     "url": "git://github.com/newlandsvalley/purescript-school-of-music.git"
   },
   "dependencies": {
-    "purescript-rationals": "^4.0.0",
-    "purescript-foldable-traversable": "^3.4.0",
-    "purescript-math": "^2.0.0",
-    "purescript-midi": "^1.2.0"
+    "purescript-rationals": "https://github.com/newlandsvalley/purescript-rationals.git#compiler/0.12",
+    "purescript-foldable-traversable": "^4.0.0",
+    "purescript-math": "^2.1.1",
+    "purescript-midi": "https://github.com/newlandsvalley/purescript-midi.git#compiler/0.12"
   },
   "devDependencies": {
-    "purescript-psci-support": "^3.0.0",
-    "purescript-test-unit": "^11.0.0"
+    "purescript-psci-support": "^4.0.0",
+    "purescript-test-unit": "^14.0.0"
   }
 }

@@ -14,7 +14,7 @@ import Data.List (List(..), (:))
 import Test.Unit (Test, TestF, suite, test, failure)
 import Test.Unit.Assert as Assert
 
-assertPerformance :: forall e. String -> Performance -> Test e
+assertPerformance :: String -> Performance -> Test
 assertPerformance s target =
   case parse s of
     Right { title, music } ->
@@ -23,11 +23,11 @@ assertPerformance s target =
     Left err ->
       failure ("parse failed: " <> (show err))
 
-performanceSuite :: forall t. Free (TestF t) Unit
+performanceSuite :: Free TestF Unit
 performanceSuite = do
   dynamicsSuite
 
-dynamicsSuite :: forall t. Free (TestF t) Unit
+dynamicsSuite :: Free TestF Unit
 dynamicsSuite =
   suite "dynamics" do
     test "loudness" do
