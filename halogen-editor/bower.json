@@ -7,21 +7,17 @@
     "output"
   ],
   "dependencies": {
-    "purescript-console": "^3.0.0",
-    "purescript-halogen": "^3.1.1",
-    "purescript-halogen-css": "^7.0.0",
-    "purescript-css": "^3.3.0",
-    "purescript-arraybuffer": "^6.0.0",
-    "purescript-soundfonts": "^2.0.0",
-    "purescript-school-of-music": "https://github.com/newlandsvalley/purescript-school-of-music.git#1.1.1",
-    "purescript-abc-parser": "https://github.com/newlandsvalley/purescript-abc-parser.git#1.2.0",
-    "purescript-js-fileio": "https://github.com/newlandsvalley/purescript-js-fileio.git#1.0.2",
-    "purescript-halogen-components": "https://github.com/newlandsvalley/purescript-halogen-components.git#0.1.0"
+    "purescript-console": "^4.1.0",
+    "purescript-halogen": "^4.0.0",
+    "purescript-halogen-css": "^8.0.0",
+    "purescript-css": "^4.0.0",
+    "purescript-arraybuffer": "^7.1.0",
+    "purescript-soundfonts": "https://github.com/newlandsvalley/purescript-soundfonts.git#compiler/0.12",
+    "purescript-school-of-music": "https://github.com/newlandsvalley/purescript-school-of-music.git#compiler/0.12",
+    "purescript-abc-parser": "https://github.com/newlandsvalley/purescript-abc-parser.git#compiler/0.12",
+    "purescript-halogen-components": "https://github.com/newlandsvalley/purescript-halogen-components.git#compiler/0.12"
   },
   "devDependencies": {
-    "purescript-psci-support": "^3.0.0"
-  },
-  "resolutions": {
-    "purescript-arraybuffer-types": "^2.0.0"
+    "purescript-psci-support": "^4.0.0"
   }
 }
