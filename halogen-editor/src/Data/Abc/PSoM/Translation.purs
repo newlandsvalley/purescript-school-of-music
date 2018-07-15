@@ -11,6 +11,7 @@ import Data.Abc.Midi (midiPitchOffset)
 import Data.Abc.Tempo (AbcTempo, getAbcTempo, defaultAbcTempo, beatsPerSecond)
 import Data.Foldable (foldl)
 import Data.List (List(..), (:), null, concatMap, filter, fromFoldable, toUnfoldable, reverse, singleton)
+import Data.List.Types (NonEmptyList, toList)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Rational (Rational, fromInt, (%))
 import Data.Monoid (mempty)
@@ -245,13 +246,13 @@ addNoteToState tstate abcNote =
            , currentBarAccidentals = barAccidentals
            }
 
-addChordToState :: Rational -> TState -> List AbcNote -> TState
+addChordToState :: Rational -> TState -> NonEmptyList AbcNote -> TState
 addChordToState chordDuration tstate notes =
   let
     amendDuration :: Rational -> PSNote -> PSNote
     amendDuration signature (PSNote note) =
       PSNote ( note { duration = note.duration * signature } )
-    (Tuple tstate' psNotes) = accumNotes tstate notes
+    (Tuple tstate' psNotes) = accumNotes tstate (toList notes)
     psChord = PSCHORD $ reverse $ map (amendDuration chordDuration) psNotes
   in
     case tstate.lastNoteTied of
@@ -292,10 +293,11 @@ addBrokenToState signature1 signature2 tstate notes =
   in
     tstate' { currentBar = tstate'.currentBar { psomMessages = messages }    }
 
-addTupletToState :: Rational -> TState -> List RestOrNote -> TState
+-- addTupletToState :: Rational -> TState -> List RestOrNote -> TState
+addTupletToState :: Rational -> TState -> NonEmptyList RestOrNote -> TState
 addTupletToState signature tstate abcRestOrNotes =
   let
-    (Tuple tstate' psRestOrNotes) = accumRestOrNotes tstate abcRestOrNotes
+    (Tuple tstate' psRestOrNotes) = accumRestOrNotes tstate (toList abcRestOrNotes)
     psTuplet = PSTUPLET $ PSRestOrNoteSequence
                 { signature : signature
                 , notes : (reverse psRestOrNotes)

@@ -3,8 +3,8 @@ module Container where
 import Prelude
 
 import Audio.Euterpea.Playable (PlayablePSoM(..))
-import Audio.SoundFont (AUDIO, Instrument, loadRemoteSoundFonts)
-import Control.Monad.Aff (Aff)
+import Audio.SoundFont (Instrument, loadRemoteSoundFonts)
+import Effect.Aff (Aff)
 import Data.Array (cons, null)
 import Data.Either (Either(..), either)
 import Data.Either.Nested (Either8)
@@ -30,13 +30,9 @@ import Halogen.FileInputComponent as FIC
 import Halogen.SimpleButtonComponent as Button
 import Halogen.PlayerComponent as PC
 import Halogen.MultipleSelectComponent as MSC
-import Halogen.MultipleSelectComponent.Dom (SDOM)
-import JS.FileIO (FILEIO, Filespec, saveTextFile)
-import Network.HTTP.Affjax (AJAX)
+import JS.FileIO (Filespec, saveTextFile)
 import SampleText (frereJacques)
 
-
-type AppEffects eff = (ajax :: AJAX, au :: AUDIO, fileio :: FILEIO, sdom :: SDOM | eff)
 
 type State =
   { instruments :: Array Instrument
@@ -140,7 +136,7 @@ playerSlotNo :: CP.ChildPath PlayerQuery ChildQuery PlayerSlot ChildSlot
 playerSlotNo = CP.cp8
 
 
-component ::  ∀ eff. Array Instrument -> H.Component HH.HTML Query Unit Void (Aff (AppEffects eff))
+component ::  Array Instrument -> H.Component HH.HTML Query Unit Void Aff
 component initialInstruments =
   H.parentComponent
     { initialState: const (initialState initialInstruments)
@@ -157,7 +153,7 @@ component initialInstruments =
     , fileName: Nothing
     }
 
-  render :: State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
+  render :: State -> H.ParentHTML Query ChildQuery ChildSlot Aff
   render state = HH.div_
     [ HH.h1
       [HP.class_ (H.ClassName "center") ]
@@ -213,7 +209,7 @@ component initialInstruments =
           ]
     ]
 
-  renderPlayer ::  ∀ eff1. State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (au :: AUDIO | eff1))
+  renderPlayer ::  State -> H.ParentHTML Query ChildQuery ChildSlot Aff
   renderPlayer state =
     case state.tuneResult of
       Right psom ->
@@ -224,7 +220,7 @@ component initialInstruments =
         HH.div_
           [  ]
 
-  renderInstruments :: State -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
+  renderInstruments :: State -> H.ParentHTML Query ChildQuery ChildSlot Aff
   renderInstruments state =
     if (null state.instruments) then
       HH.div_ [ HH.text "wait for instruments to load"]
@@ -239,15 +235,15 @@ component initialInstruments =
           $ map renderInstrument state.instruments
         ]
 
-  renderInstrument :: Instrument -> H.ParentHTML Query ChildQuery ChildSlot (Aff (AppEffects eff))
+  renderInstrument :: Instrument -> H.ParentHTML Query ChildQuery ChildSlot Aff
   renderInstrument instrument =
     HH.li
       [ HP.class_ $ ClassName "msListItemLabel" ]
       [ HH.text $ (gleitzmanName <<< fst) instrument ]
 
-  eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff))
+  eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Void Aff
   eval (HandlePSoMFile (FIC.FileLoaded filespec) next) = do
-    H.modify (\st -> st { fileName = Just filespec.name } )
+    _ <- H.modify (\st -> st { fileName = Just filespec.name } )
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent filespec.contents)
     _ <- H.query' playerSlotNo unit $ H.action PC.StopMelody
     pure next
@@ -272,7 +268,7 @@ component initialInstruments =
       fileName = getFileName state
       text = fromMaybe "" maybeText
       fsp = { name: fileName, contents : text} :: Filespec
-    _ <- H.liftEff $ saveTextFile fsp
+    _ <- H.liftEffect $ saveTextFile fsp
     pure next
   eval (HandleSampleButton (Button.Toggled _) next) = do
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent frereJacques)
@@ -280,7 +276,7 @@ component initialInstruments =
     pure next
   eval (HandleNewTuneText (ED.TuneResult r) next) = do
     _ <- refreshPlayerState r
-    H.modify (\st -> st { tuneResult = r} )
+    _ <- H.modify (\st -> st { tuneResult = r} )
     pure next
   eval (HandleMultiSelectCommit (MSC.CommittedSelections pendingInstrumentNames) next) = do
     let
@@ -292,7 +288,7 @@ component initialInstruments =
       instrumentNames = foldl f [] pendingInstrumentNames
     instruments <- H.liftAff $ loadRemoteSoundFonts instrumentNames
     _ <- H.query' playerSlotNo unit $ H.action (PC.SetInstruments instruments)
-    H.modify (\st -> st { instruments = instruments})
+    _ <- H.modify (\st -> st { instruments = instruments})
     pure next
   eval (HandleTuneIsPlaying (PC.IsPlaying p) next) = do
     -- we ignore this message, but if we wanted to we could
@@ -324,9 +320,9 @@ getFileName state =
 
 -- refresh the state of the player by passing it the psom result
 -- (if it had parsed OK)
-refreshPlayerState :: ∀ eff.
+refreshPlayerState ::
        Either PositionedParseError PSoM
-    -> H.ParentDSL State Query ChildQuery ChildSlot Void (Aff (AppEffects eff)) Unit
+    -> H.ParentDSL State Query ChildQuery ChildSlot Void Aff Unit
 refreshPlayerState tuneResult = do
   _ <- either
     (\_ -> H.query' playerSlotNo unit $ H.action (PC.StopMelody))

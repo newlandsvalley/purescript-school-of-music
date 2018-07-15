@@ -3,7 +3,8 @@ module Halogen.EditorComponent where
 import Prelude
 
 import Data.Either (Either, either)
-import Data.String (fromCharArray, toCharArray, null) as S
+import Data.String (null) as S
+import Data.String.CodeUnits (fromCharArray, toCharArray)
 import Data.Array (length, slice) as A
 import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
 import Data.Maybe (Maybe(..))
@@ -69,15 +70,18 @@ component =
       let
         tuneResult = parse s
         parseError = either Just (\success -> Nothing) tuneResult
-      H.modify (\state -> state {text = s, parseError = parseError})
+      _ <- H.modify (\state -> state {text = s, parseError = parseError})
       H.raise $ TuneResult tuneResult
       pure next
     UpdateEnabled isEnabled next -> do
-      H.modify (\state -> state {isEnabled = isEnabled})
+      _ <- H.modify (\state -> state {isEnabled = isEnabled})
       pure next
     GetText reply -> do
       state <- H.get
       pure (reply state.text)
+
+
+
 
 
 renderParseError :: State -> H.ComponentHTML Query
@@ -85,7 +89,7 @@ renderParseError state =
   let
     -- the range of characters to display around each side of the error position
     textRange = 10
-    txt = S.toCharArray state.text
+    txt = toCharArray state.text
   in
     case state.parseError of
       Just (PositionedParseError pe) ->
@@ -109,11 +113,11 @@ renderParseError state =
           in
             HH.p_
               [ HH.text $ pe.error <> " - "
-              , HH.text $ S.fromCharArray errorPrefix
+              , HH.text $ fromCharArray errorPrefix
               , HH.span
                  [ errorHighlightStyle ]
-                 [ HH.text (S.fromCharArray errorChar) ]
-              , HH.text $ S.fromCharArray errorSuffix
+                 [ HH.text (fromCharArray errorChar) ]
+              , HH.text $ fromCharArray errorSuffix
               ]
       _ ->
         HH.div_ []

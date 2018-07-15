@@ -1,27 +1,21 @@
 module Main where
 
 import Prelude
-import Audio.SoundFont (AUDIO, Instrument, loadRemoteSoundFonts)
+import Audio.SoundFont (Instrument, loadRemoteSoundFonts)
 import Data.Midi.Instrument (InstrumentName(..))
-import Control.Monad.Eff (Eff)
-import Control.Monad.Aff (Aff)
+import Effect (Effect)
+import Effect.Aff (Aff)
 import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
 import Halogen as H
 
-import JS.FileIO (FILEIO)
-import Halogen.MultipleSelectComponent.Dom (SDOM)
-import Network.HTTP.Affjax (AJAX)
-
 import Container as Container
 
-loadInstruments :: ∀ eff .
-  Aff ( ajax :: AJAX, au ::AUDIO | eff)
-    (Array Instrument)
+loadInstruments ::  Aff (Array Instrument)
 loadInstruments =
   loadRemoteSoundFonts  [AcousticGrandPiano, Vibraphone, AcousticBass]
 
-main :: Eff (HA.HalogenEffects (ajax :: AJAX, au :: AUDIO, fileio :: FILEIO, sdom :: SDOM )) Unit
+main :: Effect Unit
 main = HA.runHalogenAff do
   instruments <- H.liftAff loadInstruments
   body <- HA.awaitBody

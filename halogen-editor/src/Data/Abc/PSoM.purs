@@ -1,6 +1,6 @@
 module Data.Abc.PSoM where
 
-import Prelude (class Show, class Eq, class Ord, (<>), (+), map)
+import Prelude (class Show, class Eq, class Ord, (<>), (+), compare, map)
 import Data.Either (Either)
 import Data.List (List(..), (:), length)
 import Data.Map (Map, fromFoldable)
@@ -9,9 +9,9 @@ import Data.Tuple (Tuple(..))
 import Data.Semigroup (class Semigroup)
 import Data.Monoid (class Monoid)
 import Data.Maybe (Maybe(Nothing))
+import Data.Ordering (Ordering(..))
 import Data.Generic.Rep
 import Data.Generic.Rep.Eq (genericEq)
-import Data.Generic.Rep.Ord (genericCompare)
 import Data.Generic.Rep.Show (genericShow)
 
 -- | Intermediate data structures involved in translating ABC to the PSoM DSL
@@ -27,8 +27,16 @@ instance showPSNote :: Show PSNote where
   show = genericShow
 instance eqPSNote :: Eq PSNote where
   eq = genericEq
+
 instance ordPSNote :: Ord PSNote where
-  compare = genericCompare
+  compare (PSNote n1) (PSNote n2) =
+    let
+      comp1 = compare n1.octave n2.octave
+    in case comp1 of
+      EQ ->
+        compare n1.pitchClass n2.pitchClass
+      _ ->
+        comp1
 
 data PSRest = PSRest
   { duration :: Rational }
@@ -38,8 +46,10 @@ instance showPSRest :: Show PSRest where
   show = genericShow
 instance eqPPSRest :: Eq PSRest where
   eq = genericEq
-instance ordPSRest :: Ord PSRest where
-  compare = genericCompare
+
+instance ordPSRest :: Ord PSRest  where
+  compare (PSRest {duration : d1}) (PSRest {duration : d2}) =
+    compare d1 d2
 
 data PSRestOrNoteSequence = PSRestOrNoteSequence -- for tuplets
   { signature :: Rational
@@ -51,8 +61,6 @@ instance showPSRestOrNoteSequence :: Show PSRestOrNoteSequence where
   show = genericShow
 instance eqPSRestOrNoteSequence :: Eq PSRestOrNoteSequence where
   eq = genericEq
-instance ordPSRestOrNoteSequence :: Ord PSRestOrNoteSequence where
-  compare = genericCompare
 
 data PSMusic =
     PSNOTE PSNote
@@ -65,8 +73,6 @@ instance showPSMusic :: Show PSMusic where
   show = genericShow
 instance eqPSMusic :: Eq PSMusic where
   eq = genericEq
-instance ordPSMusic :: Ord PSMusic where
-  compare = genericCompare
 
 type PSoMVariable = List PSMusic
 
@@ -88,8 +94,6 @@ instance showPSoMProgram :: Show PSoMProgram where
   show = genericShow
 instance eqPSoMProgram :: Eq PSoMProgram where
   eq = genericEq
-instance ordPSoMProgram :: Ord PSoMProgram where
-  compare = genericCompare
 
 instance semigroupPSoMProgram :: Semigroup PSoMProgram where
   append (PSoMProgram p1) (PSoMProgram p2) =
