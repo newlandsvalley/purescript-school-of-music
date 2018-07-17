@@ -33,6 +33,9 @@ In fact there are two editors which are intended to have identical capabilities 
 *  The structure of the application tends to be cleaner because of a better separation  of concerns.
 *  Granted, the types are scary but the documentation is so good you can almost take a cookbook approach to building a UI.
 
+The only disadvantage that I have discovered so far is that, if you have an input signal that you wish to use as a triggering event, Pux (being Signal-based) is significantly easier to use.  
+
+
 
 Design Questions
 ----------------

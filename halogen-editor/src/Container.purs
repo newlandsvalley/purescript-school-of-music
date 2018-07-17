@@ -15,7 +15,7 @@ import Data.List (List(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (fst)
 import Data.MediaType (MediaType(..))
-import Data.Midi.Instrument (InstrumentName, gleitzmanName, gleitzmanNames, read)
+import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames, read)
 import Data.Abc.PSoM.DSL (toDSL)
 import Data.Abc.PSoM.Translation (toPSoM)
 import Data.Abc.Parser (parse) as ABC
@@ -41,14 +41,15 @@ type State =
   }
 
 data Query a =
-    HandlePSoMFile FIC.Message a
+    Init a
+  | HandlePSoMFile FIC.Message a
   | HandleABCFile FIC.Message a
   | HandleClearButton Button.Message a
   | HandleSaveButton Button.Message a
   | HandleSampleButton Button.Message a
   | HandleNewTuneText ED.Message a
   | HandleTuneIsPlaying PC.Message a
-  | HandleMultiSelectCommit MSC.Message a
+  | NewInstrumentsSelection MSC.Message a
 
 psomFileInputCtx :: FIC.Context
 psomFileInputCtx =
@@ -136,19 +137,21 @@ playerSlotNo :: CP.ChildPath PlayerQuery ChildQuery PlayerSlot ChildSlot
 playerSlotNo = CP.cp8
 
 
-component ::  Array Instrument -> H.Component HH.HTML Query Unit Void Aff
-component initialInstruments =
-  H.parentComponent
-    { initialState: const (initialState initialInstruments)
+component ::  H.Component HH.HTML Query Unit Void Aff
+component =
+  H.lifecycleParentComponent
+    { initialState: const initialState
     , render
     , eval
+    , initializer: Just (H.action Init)
+    , finalizer: Nothing
     , receiver: const Nothing
     }
   where
 
-  initialState :: Array Instrument -> State
-  initialState instruments =
-    { instruments: instruments
+  initialState :: State
+  initialState =
+    { instruments: []
     , tuneResult: nullTune
     , fileName: Nothing
     }
@@ -194,7 +197,7 @@ component initialInstruments =
           [ HP.class_ (H.ClassName "leftPanelComponent")]
           [
             HH.slot' instrumentSelectSlotNo unit
-               (MSC.component multipleSelectCtx initialMultipleSelectState) unit (HE.input HandleMultiSelectCommit)
+               (MSC.component multipleSelectCtx initialMultipleSelectState) unit (HE.input NewInstrumentsSelection)
           ]
         -- display instruments
       , renderInstruments state
@@ -242,6 +245,10 @@ component initialInstruments =
       [ HH.text $ (gleitzmanName <<< fst) instrument ]
 
   eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Void Aff
+  eval (Init next) = do
+    instruments <- H.liftAff $  loadRemoteSoundFonts  [AcousticGrandPiano, Vibraphone, AcousticBass]
+    _ <- H.modify (\st -> st { instruments = instruments } )
+    pure next
   eval (HandlePSoMFile (FIC.FileLoaded filespec) next) = do
     _ <- H.modify (\st -> st { fileName = Just filespec.name } )
     _ <- H.query' editorSlotNo unit $ H.action (ED.UpdateContent filespec.contents)
@@ -278,7 +285,7 @@ component initialInstruments =
     _ <- refreshPlayerState r
     _ <- H.modify (\st -> st { tuneResult = r} )
     pure next
-  eval (HandleMultiSelectCommit (MSC.CommittedSelections pendingInstrumentNames) next) = do
+  eval (NewInstrumentsSelection (MSC.CommittedSelections pendingInstrumentNames) next) = do
     let
       f acc s =
         case read s of
