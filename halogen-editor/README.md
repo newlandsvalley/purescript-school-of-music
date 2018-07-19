@@ -1,7 +1,7 @@
 Halogen Editor
 ==============
 
-This is a re-write of the Pux editor using Halogen.
+This is a re-write of the Pux editor using Halogen for PureScript 0.12.
 
 ### to build
 
@@ -18,5 +18,3 @@ This is a re-write of the Pux editor using Halogen.
   cd to halogen-editor
 
   npm run mimimize
-
-  
