@@ -19,7 +19,7 @@
     "purescript-rationals": "^5.0.0",
     "purescript-foldable-traversable": "^4.0.0",
     "purescript-math": "^2.1.1",
-    "purescript-midi": "https://github.com/newlandsvalley/purescript-midi.git#compiler/0.12"
+    "purescript-midi": "^2.0.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^4.0.0",
