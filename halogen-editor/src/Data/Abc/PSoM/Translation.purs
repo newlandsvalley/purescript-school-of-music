@@ -3,8 +3,10 @@ module Data.Abc.PSoM.Translation (toPSoM) where
 import Data.Abc.Accidentals as Accidentals
 import Data.Abc.PSoM
 import Control.Monad.State (State, get, put, evalState)
-import Data.Abc (AbcTune, AbcRest, AbcNote, RestOrNote, Accidental(..), Bar, Broken(..), Header(..), TuneBody, Repeat(..), BodyPart(..),
-   MusicLine, Music(..), Mode(..), ModifiedKeySignature, TempoSignature, PitchClass(..))
+import Data.Abc (AbcTune, AbcRest, AbcNote, RestOrNote, Accidental(..), Bar,
+   BarType, Broken(..), Header(..), TuneBody, Repeat(..), BodyPart(..),
+   GraceableNote,  MusicLine, Music(..), Mode(..), ModifiedKeySignature,
+   TempoSignature, PitchClass(..))
 import Data.Abc.Midi.RepeatSections (RepeatState, Section(..), Sections, initialRepeatState, indexBar, finalBar)
 import Data.Abc.Metadata (dotFactor, getKeySig, getTitle)
 import Data.Abc.Midi (midiPitchOffset)
@@ -63,11 +65,11 @@ initialBar =
   }
 
 -- | build a new bar from a bar number and an ABC bar
-buildNewBar :: Int -> Bar -> PSoMBar
-buildNewBar i abcBar =
+buildNewBar :: Int -> BarType -> PSoMBar
+buildNewBar i barType =
   {  number : i
-  ,  repeat : abcBar.repeat
-  ,  iteration : abcBar.iteration
+  ,  repeat : barType.repeat
+  ,  iteration : barType.iteration
   ,  psomMessages : Nil
   }
 
@@ -113,10 +115,27 @@ transformBody (p : ps) =
 transformBodyPart :: BodyPart -> State TransformationState PSoMProgram
 transformBodyPart bodyPart =
   case bodyPart of
-    Score musicLine ->
-      transformMusicLine musicLine
+    Score bars ->
+      transformBarList bars
     BodyInfo header ->
       transformHeader header
+
+transformBarList :: List Bar -> State TransformationState PSoMProgram
+transformBarList Nil =
+  do
+    tpl <- get
+    pure $ snd tpl
+transformBarList (b : bs) =
+  do
+    _ <- transformBar b
+    transformBarList bs
+
+transformBar :: Bar -> State TransformationState PSoMProgram
+transformBar bar =
+  do
+    -- save the bar to state
+    _ <- updateState addBarToState bar.startLine
+    transformMusicLine bar.music
 
 transformMusicLine :: MusicLine -> State TransformationState PSoMProgram
 transformMusicLine Nil =
@@ -131,8 +150,8 @@ transformMusicLine (l : ls) =
 transformMusic :: Music -> State TransformationState PSoMProgram
 transformMusic m =
   case m of
-    Note abcNote ->
-      updateState addNoteToState abcNote
+    Note gNote ->
+      updateState addGraceableNoteToState gNote
 
     Rest r ->
       updateState addRestToState r.duration
@@ -158,9 +177,6 @@ transformMusic m =
           in
             updateState (addBrokenToState signature1 signature2) (note1 : note2 : Nil)
 
-    Barline bar ->
-      updateState addBarToState bar
-
     Inline header ->
       transformHeader header
 
@@ -170,11 +186,11 @@ transformMusic m =
         pure $ snd tpl
 
 -- | add a bar to the state.  index it and add it to the growing list of bars
-addBarToState :: TState -> Bar -> TState
-addBarToState tstate bar =
+addBarToState :: TState -> BarType -> TState
+addBarToState tstate barType =
   -- the current bar held in state is empty so we coalesce
   if (isBarEmpty tstate.currentBar) then
-    coalesceBar tstate bar
+    coalesceBar tstate barType
   -- it's not emmpty so we initialise the new bar
   else
     let
@@ -186,7 +202,7 @@ addBarToState tstate bar =
         -- the current bar is not empty so we aggregate the new bar into the track
         currentBar : tstate.rawTrack
     in
-      tstate { currentBar = buildNewBar (currentBar.number + 1) bar
+      tstate { currentBar = buildNewBar (currentBar.number + 1) barType
              , currentBarAccidentals = Accidentals.empty
              , repeatState = repeatState
              , rawTrack = rawTrack
@@ -194,18 +210,18 @@ addBarToState tstate bar =
 
 -- | coalesce the new bar from ABC with the current one held in the state
 -- | (which has previously been tested for emptiness)
-coalesceBar :: TState -> Bar -> TState
-coalesceBar tstate abcBar =
+coalesceBar :: TState -> BarType -> TState
+coalesceBar tstate barType =
   let
-    barRepeats = Tuple tstate.currentBar.repeat abcBar.repeat
+    barRepeats = Tuple tstate.currentBar.repeat barType.repeat
     newRepeat = case barRepeats of
      Tuple (Just End) (Just Begin) ->
         Just BeginAndEnd
      Tuple ( Just x) _  ->
         Just x
      _ ->
-        abcBar.repeat
-    bar' = tstate.currentBar { repeat = newRepeat, iteration = abcBar.iteration }
+        barType.repeat
+    bar' = tstate.currentBar { repeat = newRepeat, iteration = barType.iteration }
   in
     tstate { currentBar = bar' }
 
@@ -227,6 +243,10 @@ transformHeader h =
       do
         tpl <- get
         pure $ snd tpl
+
+addGraceableNoteToState :: TState-> GraceableNote -> TState
+addGraceableNoteToState tstate gNote =
+  addNoteToState tstate gNote.abcNote
 
 -- | a note is added to the current barAccidentals as a NoteOn NoteOff pair
 -- | there are other implications for state - if the note has an explicit
@@ -274,9 +294,11 @@ addChordToState chordDuration tstate notes =
         in
           tstate' { currentBar = tstate'.currentBar { psomMessages = messages } }
 
-addBrokenToState :: Rational -> Rational -> TState -> List AbcNote -> TState
-addBrokenToState signature1 signature2 tstate notes =
+addBrokenToState :: Rational -> Rational -> TState -> List GraceableNote -> TState
+addBrokenToState signature1 signature2 tstate gNotes =
   let
+    -- make a list of raw ABC notes
+    notes = map (\g -> g.abcNote) gNotes
     amendDuration :: Rational -> PSNote -> PSMusic
     amendDuration signature (PSNote note) =
       PSNOTE $ PSNote ( note { duration = note.duration * signature } )
@@ -342,20 +364,20 @@ accumRestOrNote (Tuple tstate psNotes) abcRestOrNote =
     barAccidentals = case abcRestOrNote of
       Left abcRest ->
         tstate.currentBarAccidentals
-      Right abcNote ->
-        addNoteToBarAccidentals abcNote tstate.currentBarAccidentals
+      Right gNote ->
+        addGraceableNoteToBarAccidentals gNote tstate.currentBarAccidentals
     nextNote = case abcRestOrNote of
       Left abcRest ->
         Left $ buildRest tstate abcRest.duration
-      Right abcNote ->
-        Right $ buildNote tstate abcNote
+      Right gNote ->
+        Right $ buildGraceableNote tstate gNote
   in
     Tuple (tstate {currentBarAccidentals = barAccidentals }) (nextNote : psNotes)
 
 -- | ditto for a bunch of notes
-accumRestOrNotes :: TState -> List (Either AbcRest AbcNote) -> Tuple TState (List (Either PSRest PSNote))
-accumRestOrNotes tstate abcNotes =
-  foldl accumRestOrNote (Tuple tstate Nil) abcNotes
+accumRestOrNotes :: TState -> List (Either AbcRest GraceableNote) -> Tuple TState (List (Either PSRest PSNote))
+accumRestOrNotes tstate gNotes =
+  foldl accumRestOrNote (Tuple tstate Nil) gNotes
 
 -- | process the incoming note, accounting for the fact that the previous note may have been tied.
 -- |
@@ -393,6 +415,10 @@ processNoteWithTie tstate abcNote =
           in
             -- write out the note to the current bar
             Tuple (PSNOTE psNote : tstate.currentBar.psomMessages) Nothing
+
+buildGraceableNote :: TState -> GraceableNote -> PSNote
+buildGraceableNote tstate gnote =
+  buildNote tstate gnote.abcNote
 
 buildNote :: TState -> AbcNote -> PSNote
 buildNote tstate abcNote =
@@ -449,6 +475,10 @@ addTempoToState tstate tempoSig =
     tstate { abcTempo = abcTempo' }
 
 -- utility functions
+
+addGraceableNoteToBarAccidentals :: GraceableNote -> Accidentals.Accidentals -> Accidentals.Accidentals
+addGraceableNoteToBarAccidentals gNote accs =
+  addNoteToBarAccidentals gNote.abcNote accs
 
 -- | if the incoming note has an explicit accidental (overriding the key signature)
 -- | then add it to the accidentals in force in the current bar

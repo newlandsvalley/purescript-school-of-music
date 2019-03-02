@@ -1,7 +1,7 @@
 Halogen Editor
 ==============
 
-This is a re-write of the Pux editor using Halogen for PureScript 0.12.
+This is an implementation of the editor in Halogen.
 
 ### to build
 

@@ -12,7 +12,6 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Halogen (IProp)
 import Halogen.HTML.Core (ClassName(..))
 import Halogen.HTML.CSS (style)
 import CSS (color)
@@ -24,6 +23,10 @@ type State =
   , isEnabled :: Boolean
   }
 
+type Slot = H.Slot Query Message
+
+data Action = UpdateContentAction String
+
 data Query a =
     UpdateContent String a
   | UpdateEnabled Boolean a
@@ -31,24 +34,28 @@ data Query a =
 
 data Message = TuneResult (Either PositionedParseError PSoM)
 
-component :: forall m. H.Component HH.HTML Query Unit Message m
+component :: ∀ i m. H.Component HH.HTML Query i Message m
 component =
-  H.component
-    { initialState: const initialState
+  H.mkComponent
+    { initialState
     , render
-    , eval
-    , receiver: const Nothing
+    , eval: H.mkEval $ H.defaultEval
+        { handleAction = handleAction
+        , handleQuery = handleQuery
+        , initialize = Nothing
+        , finalize = Nothing
+        }
     }
   where
 
-  initialState :: State
-  initialState =
+  initialState :: i -> State
+  initialState _ =
     { text : ""
     , parseError : Nothing
     , isEnabled : true
     }
 
-  render :: State -> H.ComponentHTML Query
+  render :: State -> H.ComponentHTML Action () m
   render state =
     HH.div_
       [ HH.textarea
@@ -59,32 +66,35 @@ component =
          , HP.class_ $ ClassName "psomEdit"
          , HP.enabled state.isEnabled
          -- , HP.wrap false
-         , HE.onValueInput (HE.input UpdateContent)
+         , HE.onValueInput (Just <<< UpdateContentAction)
          ]
       , renderParseError state
       ]
 
-  eval :: Query ~> H.ComponentDSL State Query Message m
-  eval = case _ of
-    UpdateContent s next -> do
-      let
-        tuneResult = parse s
-        parseError = either Just (\success -> Nothing) tuneResult
-      _ <- H.modify (\state -> state {text = s, parseError = parseError})
-      H.raise $ TuneResult tuneResult
-      pure next
-    UpdateEnabled isEnabled next -> do
-      _ <- H.modify (\state -> state {isEnabled = isEnabled})
-      pure next
-    GetText reply -> do
-      state <- H.get
-      pure (reply state.text)
+handleAction ∷ ∀ m. Action → H.HalogenM State Action () Message m Unit
+handleAction = case _ of
+  UpdateContentAction s -> do
+    -- delegate to the query
+    _ <- handleQuery ((UpdateContent s) unit)
+    pure unit
 
+handleQuery :: ∀ a m. Query a -> H.HalogenM State Action () Message m (Maybe a)
+handleQuery = case _ of
+  UpdateContent s next -> do
+    let
+      tuneResult = parse s
+      parseError = either Just (\success -> Nothing) tuneResult
+    _ <- H.modify (\state -> state {text = s, parseError = parseError})
+    H.raise $ TuneResult tuneResult
+    pure (Just next)
+  UpdateEnabled isEnabled next -> do
+    _ <- H.modify (\state -> state {isEnabled = isEnabled})
+    pure (Just next)
+  GetText reply -> do
+    state <- H.get
+    pure (Just (reply state.text))
 
-
-
-
-renderParseError :: State -> H.ComponentHTML Query
+renderParseError :: ∀ m. State -> H.ComponentHTML Action () m
 renderParseError state =
   let
     -- the range of characters to display around each side of the error position
@@ -122,7 +132,7 @@ renderParseError state =
       _ ->
         HH.div_ []
 
-errorHighlightStyle :: ∀ i r. IProp (style :: String | r) i
+errorHighlightStyle :: ∀ i r. HP.IProp (style :: String | r) i
 errorHighlightStyle =
   style do
     color $ (rgb 255 0 0)
