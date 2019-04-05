@@ -297,6 +297,7 @@ pcToInt pc  = case pc of
   Bs  -> 12
   Bss  -> 13
 
+-- Note:  HSoM uses middle C = MIDI 60 = (C, 4)
 
 absPitch :: Pitch -> AbsPitch
 absPitch (Pitch pc oct)  = 12*(oct+1) + pcToInt pc

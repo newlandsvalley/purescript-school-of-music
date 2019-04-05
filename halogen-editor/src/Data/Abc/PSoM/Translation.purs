@@ -420,6 +420,9 @@ buildGraceableNote :: TState -> GraceableNote -> PSNote
 buildGraceableNote tstate gnote =
   buildNote tstate gnote.abcNote
 
+-- | Our ABC implementation uses middle C = (C,5)
+-- | whereas HSoM (and thus PSoM) uses middle C = (C,4)
+-- | Hence we must subtract 1 from the ABC octave
 buildNote :: TState -> AbcNote -> PSNote
 buildNote tstate abcNote =
   let
@@ -429,7 +432,7 @@ buildNote tstate abcNote =
   in
     PSNote
        { pitchClass : pitchClass -- <> accidental
-       , octave : abcNote.octave
+       , octave : abcNote.octave - 1 -- subtract because of pitch convention mismatch
        , duration : length
        }
 

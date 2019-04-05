@@ -1,0 +1,12 @@
+"Farfarspolskan "
+Par
+  Let
+    v0 = Line Note en A 5,Note en A 5,Note qn F 5,Note qn A 5,Note sn G 5,Note sn F 5,Note sn E 5,Note sn F 5,Note en G 5,Note sn A 5,Note sn G 5,Note en F 5,Note en D 5,Note en F 5,Note en F 5,Note qn D 5,Note en E 5,Note en F 5,Note sn F 5,Note sn E 5,Note en D 5,Note dqn E 5,Note en A 4,Note en A 5,Note en F 5,Note en A 5,Note en G 5,Note en E 5,Note en F 5,Note en Cs 5,Note en D 5,Note en E 5,Note en G 5,Note en F 5,Note en E 5,Note en D 5,Note sn Cs 5,Note sn E 5,Note qn D 5,Rest qn
+    v1 = Line Note en D 5,Note en E 5,Note qn F 5,Note sn E 5,Note sn D 5,Note sn Cs 5,Note sn D 5,Note en E 5,Note sn G 5,Note sn F 5,Note en D 5,Note en Cs 5,Note en A 4,Note en A 4,Note en D 5,Note en E 5,Note qn F 5,Note en A 5,Note en F 5,Note sn A 5,Note sn F 5,Note sn E 5,Note sn D 5,Note dqn A 5,Note en A 4,Note en A 5,Note en F 5,Note qn D 5,Note en E 5,Note en F 5,Note en D 5,Note sn A 5,Note sn F 5,Note en D 5,Note sn E 5,Note sn D 5,Note en Cs 5,Note en A 4,Note en D 5,Note en E 5,Note den F 5,Note sn F 5,Note sn E 5,Note sn D 5,Note sn Cs 5,Note sn D 5,Note en E 5,Note sn G 5,Note sn F 5,Note qn D 5,Rest qn 
+  In
+    Tempo 11/12 (Seq v0 v0 v1 v1)
+  Let
+    v0 = Line Note en F 5,Note en F 5,Note qn D 5,Note qn F 5,Note sn E 5,Note sn D 5,Note sn Cs 5,Note sn D 5,Note en E 5,Note sn F 5,Note sn E 5,Note en D 5,Note en A 4,Note en D 5,Note en D 5,Note qn A 4,Note qn D 5,Note en B 4,Note en B 4,Note qn A 4,Rest qn,Note en F 5,Note en D 5,Note en F 5,Note en E 5,Note en Cs 5,Note en D 5,Note en G 4,Note en A 4,Note en As 4,Note en As 4,Note en A 4,Note en G 4,Note en F 4,Note en E 4,Note qn D 4,Rest qn
+    v1 = Line Note en A 4,Note en Cs 5,Note qn D 5,Note sn Cs 5,Note sn B 4,Note sn A 4,Note sn B 4,Note en Cs 5,Note sn E 5,Note sn D 5,Note qn A 4,Note en F 4,Note en E 4,Note en F 4,Note en G 4,Note qn A 4,Note en D 5,Note en D 5,Note en B 4,Note en B 4,Note qn Cs 5,Rest qn,Note en F 5,Note en D 5,Note qn A 4,Note en Cs 5,Note en D 5,Note en D 5,Note sn F 5,Note sn D 5,Note en A 4,Note sn Cs 5,Note sn A 4,Note en E 4,Note en E 4,Note en F 4,Note en G 4,Note qn A 4,Note sn G 4,Note sn F 4,Note sn E 4,Note sn F 4,Note en G 4,Note sn G 4,Note sn F 4,Note qn D 4,Rest qn 
+  In
+    Tempo 11/12 (Instrument vibraphone  (Seq v0 v0 v1 v1))
