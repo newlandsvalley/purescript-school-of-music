@@ -8,13 +8,13 @@ import Data.Rational (Rational, fromInt, (%))
 import Data.Tuple (Tuple(..))
 import Data.Semigroup (class Semigroup)
 import Data.Monoid (class Monoid)
-import Data.Maybe (Maybe(Nothing))
 import Data.Ordering (Ordering(..))
 import Data.Generic.Rep
 import Data.Generic.Rep.Eq (genericEq)
 import Data.Generic.Rep.Show (genericShow)
 
 -- | Intermediate data structures involved in translating ABC to the PSoM DSL
+-- | which represents a single voice in the ABC tune
 
 data PSNote = PSNote
   { pitchClass :: String
@@ -86,7 +86,6 @@ data PSoMProgram = PSoMProgram
   { variables  :: List PSoMVariable  -- a set of PSoM variables
   , program    :: List Int           -- a sequence of variable references
   , tempo      :: Rational           -- the tune tempo (for fragments, always 1)
-  , name       :: Maybe String       -- program fragments are always unnamed
   }
 
 derive instance genericPSoMProgram :: Generic PSoMProgram _
@@ -105,7 +104,6 @@ instance semigroupPSoMProgram :: Semigroup PSoMProgram where
         { variables : (p1.variables <> p2.variables)
         , program : (p1.program <> newP2Program)
         , tempo : fromInt 1
-        , name : Nothing
         }
 
 instance monoidPSoMProgram :: Monoid PSoMProgram where
@@ -114,7 +112,6 @@ instance monoidPSoMProgram :: Monoid PSoMProgram where
       { variables : Nil
       , program : Nil
       , tempo : fromInt 1
-      , name : Nothing
       }
 
 durationMap :: Map Rational String

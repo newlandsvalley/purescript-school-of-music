@@ -8,7 +8,7 @@ import Data.Abc (AbcTune, AbcRest, AbcNote, RestOrNote, Accidental(..), Bar,
    GraceableNote,  MusicLine, Music(..), Mode(..), ModifiedKeySignature,
    TempoSignature, PitchClass(..))
 import Data.Abc.Midi.RepeatSections (RepeatState, Section(..), Sections, initialRepeatState, indexBar, finalBar)
-import Data.Abc.Metadata (dotFactor, getKeySig, getTitle)
+import Data.Abc.Metadata (dotFactor, getKeySig)
 import Data.Abc.Midi (midiPitchOffset)
 import Data.Abc.Tempo (AbcTempo, getAbcTempo, defaultAbcTempo, beatsPerSecond)
 import Data.Foldable (foldl)
@@ -47,7 +47,6 @@ type PSoMBar =
 type TState =
     { modifiedKeySignature ::  ModifiedKeySignature    -- the current key signature
     , abcTempo ::  AbcTempo                            -- the current tempo
-    , abcTitle :: Maybe String                         -- the tune title
     , currentBar :: PSoMBar                            -- the current bar being translated
     , currentBarAccidentals :: Accidentals.Accidentals -- can't put this in MidiBar because of typeclass constraints
                                                        -- any notes marked explicitly as accidentals in the current bar
@@ -92,7 +91,6 @@ initialState tune =
   in
     Tuple { modifiedKeySignature: keySignature
           , abcTempo : abcTempo
-          , abcTitle : getTitle tune
           , currentBar : initialBar
           , currentBarAccidentals : Accidentals.empty
           , lastNoteTied : Nothing
@@ -538,7 +536,7 @@ finaliseMelody =
       -- get the tempo compared to the default tempo
       tempoRatio = (beatsPerSecond tstate'.abcTempo) / (beatsPerSecond defaultAbcTempo)
       -- add the title (if any)
-      psomProgram = PSoMProgram $ program { tempo = tempoRatio, name = tstate'.abcTitle }
+      psomProgram = PSoMProgram $ program { tempo = tempoRatio }
       tpl' = Tuple tstate' psomProgram
     _ <- put tpl'
     pure psomProgram
@@ -595,7 +593,6 @@ trackSlice start finish isRepeated mbs =
           { variables : singleton newVar
           , program : program
           , tempo   : fromInt 1
-          , name    : Nothing
           }
 
 -- | take two variant slices of a melody line between start and finish
@@ -616,7 +613,6 @@ variantSlice start firstRepeat secondRepeat end mbs =
       { variables : fromFoldable [preface, end1, end2]
       , program : fromFoldable [0, 1, 0, 2]
       , tempo   : fromInt 1
-      , name : Nothing
       }
 
 -- | build a repeat section

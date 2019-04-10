@@ -2,10 +2,11 @@ module Data.Abc.PSoM.Polyphony (generateDSL) where
 
 import Prelude (($), (>), (<>))
 import Data.Array (index, length, mapWithIndex)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Foldable (foldl)
 import Data.Abc (AbcTune, TuneBody)
 import Data.Abc.Voice (partitionTuneBody)
+import Data.Abc.Metadata (getTitle)
 import Data.Midi.Instrument (InstrumentName(..))
 import Data.Abc.PSoM.DSL (toDSL)
 import Data.Abc.PSoM.Translation (initialise, toPSoM)
@@ -15,10 +16,12 @@ import Data.Abc.PSoM.Translation (initialise, toPSoM)
 -- | appropriate PSoM DSL.  The latter requires separate strands for each voice
 -- | which are joined together at the start by means of a Par construct
 
+-- | generate the PSoM DSL for the ABC tune using the provided instruments
 generateDSL :: AbcTune -> Array InstrumentName -> String
 generateDSL  abcTune instrumentNames =
   let
     voices = partitionTuneBody abcTune.body
+    tuneName = entitle $ getTitle abcTune
   in
     if (length voices) > 1 then
       -- polyphonic
@@ -26,10 +29,10 @@ generateDSL  abcTune instrumentNames =
         voicesArray :: Array String
         voicesArray = generateVoices abcTune voices instrumentNames
       in
-        "Par\r\n" <> (foldl (<>) "" voicesArray)
+        tuneName <> "\r\n" <> "Par\r\n" <> (foldl (<>) "" voicesArray)
     else
       -- monophonic
-      generateVoice instrumentNames abcTune 0 abcTune.body
+      tuneName <> "\r\n" <> (generateVoice instrumentNames abcTune 0 abcTune.body)
 
 -- | generate the DSL for all the polyphonic voices
 generateVoices :: AbcTune -> Array TuneBody -> Array InstrumentName -> Array String
@@ -49,3 +52,12 @@ generateVoice instrumentNames abcTune ix  tuneBody =
       index instrumentNames ix
   in
     toDSL (toPSoM tuneBody transformationState) instrumentName
+
+-- | get the quoted title of the ABC tune ('unttitled' if not title present)
+entitle :: Maybe String -> String
+entitle Nothing = (enquote "untitled")
+entitle (Just name) = (enquote name)
+
+enquote :: String -> String
+enquote s =
+  "\"" <> s <> "\""

@@ -11,13 +11,11 @@ import Data.Midi.Instrument (InstrumentName, gleitzmanName)
 import Data.Rational (Rational, numerator, denominator, toNumber, (%))
 import Prelude (map, show, (<>), ($))
 
+-- | convert a PSoM program to the PSoM DSL
+-- | (note the program represents a single voice)
 toDSL :: PSoMProgram -> InstrumentName -> String
-toDSL (PSoMProgram {variables, program, tempo, name}) instrumentName =
-  (entitle name) <> (vars variables) <> (prog instrumentName tempo program)
-
-entitle :: Maybe String -> String
-entitle Nothing = (enquote "untitled") <> "\r\n"
-entitle (Just name) = (enquote name) <> "\r\n"
+toDSL (PSoMProgram {variables, program, tempo}) instrumentName =
+   (vars variables) <> (prog instrumentName tempo program)
 
 vars :: List PSoMVariable -> String
 vars vs =
@@ -124,11 +122,6 @@ fraction :: Rational -> String
 fraction r =
   (show $ numerator r) <> "/" <> (show $ denominator r)
 
-enquote :: String -> String
-enquote s =
-  "\"" <> s <> "\""
-
 reciprocal :: Rational -> Rational
 reciprocal r =
   (denominator r) % (numerator r)
-  -- (fromInt 1) / r
