@@ -1,17 +1,19 @@
 module Data.Abc.PSoM.DSL (toDSL) where
 
 import Data.Abc.PSoM
-import Data.Foldable (intercalate)
-import Data.Rational (Rational, numerator, denominator, toNumber, (%))
+
 import Data.Either (Either(..))
+import Data.Foldable (intercalate)
 import Data.List (List, length, toUnfoldable, zipWith, (..))
 import Data.Map (lookup)
 import Data.Maybe (Maybe(..))
+import Data.Midi.Instrument (InstrumentName, gleitzmanName)
+import Data.Rational (Rational, numerator, denominator, toNumber, (%))
 import Prelude (map, show, (<>), ($))
 
-toDSL :: PSoMProgram -> String
-toDSL (PSoMProgram {variables, program, tempo, name}) =
-  (entitle name) <> (vars variables) <> (prog tempo program)
+toDSL :: PSoMProgram -> InstrumentName -> String
+toDSL (PSoMProgram {variables, program, tempo, name}) instrumentName =
+  (entitle name) <> (vars variables) <> (prog instrumentName tempo program)
 
 entitle :: Maybe String -> String
 entitle Nothing = (enquote "untitled") <> "\r\n"
@@ -28,17 +30,25 @@ vars vs =
   in
     nicelySpace ["Let\r\n", " ", (newline defns), "\r\n"]
 
-prog :: Rational -> List Int -> String
-prog tempo vs =
+prog :: InstrumentName -> Rational -> List Int -> String
+prog instrument tempo vs =
   let
     ln =
       "Seq " <> (nicelySpace $ toUnfoldable $ map (\v -> "v" <> show v) vs)
   in
     case (toNumber tempo) of
       1.0 ->
-         "In\r\n  " <> ln <> "\r\n"
+         "In\r\n  "
+            <> "  Instrument " <> (gleitzmanName instrument)
+            <> (embracket ln) <> "\r\n"
       _ ->
-         "In\r\n" <> "  Tempo " <> (fraction tempo) <> " (" <> ln <> ")\r\n"
+         "In\r\n"
+            <> "  Instrument " <> (gleitzmanName instrument)
+            <> embracket ("Tempo " <> (fraction tempo) <> (embracket ln)) <> "\r\n"
+
+-- wrap a string in brackets
+embracket :: String -> String
+embracket s = " (" <> s <> ")"
 
 line :: List PSMusic -> String
 line ms =

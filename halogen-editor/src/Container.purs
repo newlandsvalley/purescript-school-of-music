@@ -15,8 +15,7 @@ import Data.Tuple (fst)
 import Data.MediaType (MediaType(..))
 import DOM.HTML.Indexed.InputAcceptType (mediaType)
 import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames, read)
-import Data.Abc.PSoM.DSL (toDSL)
-import Data.Abc.PSoM.Translation (toPSoM)
+import Data.Abc.PSoM.Polyphony (generateDSL)
 import Data.Abc.Parser (parse) as ABC
 import Data.Symbol (SProxy(..))
 import Halogen as H
@@ -141,11 +140,15 @@ component =
       _ <- H.query _player unit $ H.tell PC.StopMelody
       pure unit
     HandleABCFile (FIC.FileLoaded filespec) -> do
+      state <- H.get
       let
         psomText =
           case (ABC.parse $ filespec.contents <> "\r\n") of
             Right tune ->
-              (toDSL <<< toPSoM) tune
+              let
+                instrumentNames = map fst state.instruments
+              in
+                generateDSL tune instrumentNames
             Left err ->
               "\"" <> filespec.name <> "\"\r\n" <> "-- error in ABC: " <> (show err)
       _ <- H.query _editor unit $ H.tell (ED.UpdateContent psomText)

@@ -83,10 +83,10 @@ type PSoMVariable = List PSMusic
 -- | so if we make a monoid instance we have to accommodate the fact that
 -- | on addition, the variable reference changes
 data PSoMProgram = PSoMProgram
-  { variables :: List PSoMVariable  -- a set of PSoM variables
-  , program   :: List Int           -- a sequence of variable references
-  , tempo     :: Rational           -- the tune tempo (for fragments, always 1)
-  , name      :: Maybe String       -- program fragments are always unnamed
+  { variables  :: List PSoMVariable  -- a set of PSoM variables
+  , program    :: List Int           -- a sequence of variable references
+  , tempo      :: Rational           -- the tune tempo (for fragments, always 1)
+  , name       :: Maybe String       -- program fragments are always unnamed
   }
 
 derive instance genericPSoMProgram :: Generic PSoMProgram _

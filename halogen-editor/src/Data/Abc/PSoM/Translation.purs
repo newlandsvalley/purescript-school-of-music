@@ -1,4 +1,4 @@
-module Data.Abc.PSoM.Translation (toPSoM) where
+module Data.Abc.PSoM.Translation (initialise, toPSoM) where
 
 import Data.Abc.Accidentals as Accidentals
 import Data.Abc.PSoM
@@ -25,11 +25,15 @@ import Prelude (bind, map, pure, ($), (+), (-), (*), (<>), (>=), (<), (&&), (/))
 
 -- import Debug.Trace (trace, traceShow)
 
+-- | initialise the translation state
+initialise :: AbcTune -> TransformationState
+initialise =
+  initialState
+
 -- | Transform ABC into PSoM intermediate format
-toPSoM :: AbcTune -> PSoMProgram
-toPSoM tune =
-  do
-    evalState (transformTune tune) (initialState tune)
+toPSoM :: TuneBody -> TransformationState -> PSoMProgram
+toPSoM tuneBody state =
+  evalState (transformBody tuneBody) state
 
 -- | a bar of MIDI music
 type PSoMBar =
@@ -95,13 +99,6 @@ initialState tune =
           , repeatState : initialRepeatState
           , rawTrack : Nil
           } mempty
-
-transformTune :: AbcTune -> State TransformationState PSoMProgram
-transformTune tune =
-  do
-    -- we don't need to process the initial headers because
-    -- they're already adopted in the initial state
-    transformBody tune.body
 
 transformBody :: TuneBody -> State TransformationState PSoMProgram
 transformBody Nil =
