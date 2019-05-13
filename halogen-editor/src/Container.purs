@@ -14,7 +14,8 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (fst)
 import Data.MediaType (MediaType(..))
 import DOM.HTML.Indexed.InputAcceptType (mediaType)
-import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames, read)
+import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames,
+    readGleitzman)
 import Data.Abc.PSoM.Polyphony (generateDSL)
 import Data.Abc.Parser (parse) as ABC
 import Data.Symbol (SProxy(..))
@@ -179,7 +180,7 @@ component =
     NewInstrumentsSelection (MSC.CommittedSelections pendingInstrumentNames) -> do
       let
         f acc s =
-          case read s of
+          case readGleitzman s of
             Just inst -> cons inst acc
             _ -> acc
         instrumentNames :: Array InstrumentName
