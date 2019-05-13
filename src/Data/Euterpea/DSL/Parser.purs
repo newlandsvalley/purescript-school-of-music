@@ -31,7 +31,7 @@ import Data.Euterpea.Dynamics (Dynamic(..), StdLoudness, read) as Dyn
 import Data.Euterpea.Music1 (Music1, Note1(..)) as Eut1
 import Data.Euterpea.Notes as Eutn
 import Data.Euterpea.Transform as Eutt
-import Data.Midi.Instrument (InstrumentName, read)
+import Data.Midi.Instrument (InstrumentName, readGleitzman)
 
 type PSoM =
   {  title :: String
@@ -588,7 +588,7 @@ macroExpand name bmap =
 -- | check an instrument name against the Gleitzman names, fail if unknown
 checkInstrument :: String -> Parser InstrumentName
 checkInstrument name  =
-  case read name of
+  case readGleitzman name of
     Just i -> pure i
     _ -> fail $ "instrument: " <> name <> " not known"
 
