@@ -104,7 +104,7 @@ merge a@(e1:es1)  b@(e2:es2)  =
 musicToMEvents :: MContext -> Music1 -> Tuple Performance DurT
 musicToMEvents c@(MContext {mcTime:t, mcDur:dt}) (Prim (Note d p)) =
   Tuple (singleton (noteToMEvent c d p)) (d*dt)
-musicToMEvents (c@MContext {mcTime:t, mcDur:dt}) (Prim (Rest d)) =
+musicToMEvents c@(MContext {mcTime:t, mcDur:dt}) (Prim (Rest d)) =
   Tuple Nil (d*dt)
 musicToMEvents (MContext c) (m1 :+: m2) =
     let t = c.mcTime

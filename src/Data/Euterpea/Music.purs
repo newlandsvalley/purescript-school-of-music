@@ -78,7 +78,7 @@ data Control =
   | Instrument  InstrumentName           --  instrument label
   | Phrase      (List PhraseAttribute)   --  phrase attributes
   | KeySig      PitchClass Mode          --  key signature and mode
-  | Custom      String			             --  for user-specified controls
+  | Custom      String                   --  for user-specified controls
 
 derive instance genericControl :: G.Generic Control _
 instance eqControl :: Eq Control where
