@@ -7,12 +7,10 @@
     "output"
   ],
   "dependencies": {
-    "purescript-console": "^4.1.0",
-    "purescript-halogen": "https://github.com/slamdata/purescript-halogen.git#5.0.0-rc.1",
-    "purescript-halogen-css": "^8.0.0",
-    "purescript-css": "^4.0.0",
-    "purescript-soundfonts": "*3.0.0",
-    "purescript-school-of-music": "https://github.com/newlandsvalley/purescript-school-of-music.git#1.2.1",
+    "purescript-console": "^4.2.0",
+    "purescript-halogen": "^5.0.0-rc.4",
+    "purescript-soundfonts": "3.0.2",
+    "purescript-school-of-music": "https://github.com/newlandsvalley/purescript-school-of-music.git#master",
     "purescript-abc-parser": "https://github.com/newlandsvalley/purescript-abc-parser.git#master",
     "purescript-halogen-components": "https://github.com/newlandsvalley/purescript-halogen-components.git#halogen5"
   },
