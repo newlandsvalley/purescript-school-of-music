@@ -1,6 +1,10 @@
 # Changelog
 
-### Version 2.0.0
+### Version 1.2.3
+
+* Add spago  (ps 0.13.8)
+
+### Version 1.2.0 (2019-07-19)
 
 *  Update to PS 0.12
 

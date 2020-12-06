@@ -27,6 +27,21 @@ The editor hase been developed using Halogen and allows you to enter PSoM text a
 
 There is also a deprecated Pux editor which will not be maintained beyond PureScript 0.11.
 
+To build
+--------
+
+     spago build
+
+or
+
+     bower install
+     pulp build
+
+To test
+-------
+
+     npm run test 
+
 Design Questions
 ----------------
 

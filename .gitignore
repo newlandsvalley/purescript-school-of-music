@@ -3,6 +3,7 @@
 /.pulp-cache/
 /output/
 /generated-docs/
+/.spago/
 /deprecated/
 /editor/dist/app.js
 /samples/dist/app.js
