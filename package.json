@@ -3,6 +3,7 @@
   "scripts": {
     "build": "spago build",
     "test": "spago -x ./test.dhall test",
+    "halogen-editor": "spago -x ./halogen-editor.dhall bundle-app --to halogen-editor/dist/app.js",
     "pulp build": "pulp build --to dist/chordeditor.js"
   },
   "devDependencies": {

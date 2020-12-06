@@ -42,6 +42,13 @@ To test
 
      npm run test 
 
+To build the Halogen editor
+---------------------------
+
+     npm run halogen-editor
+
+and then navigate to haleogen-editor/dist/index.html
+
 Design Questions
 ----------------
 
