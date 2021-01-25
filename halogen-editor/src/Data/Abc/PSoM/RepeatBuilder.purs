@@ -48,7 +48,13 @@ trackSlice start finish replicationCount mbs =
   let
     newVar = simpleSlice start finish mbs
     variables = singleton newVar
-    program = replicate replicationCount 0
+    program = 
+      if (replicationCount > 1) then
+        -- replication
+        replicate replicationCount 0
+      else 
+        -- no replication
+        Array.toUnfoldable [ 0 ]
     tempo = fromInt 1
   in
     if (null newVar)
@@ -114,12 +120,10 @@ accumulateEndingSlices mbs start end section  =
   let 
     sectionBars :: List PSoMBar
     sectionBars = filter (barSelector start end) mbs
-    slices :: Array (List PSMusic)
-    slices = Array.mapWithIndex
-              (variantEndingSlice start end section sectionBars)
-              (activeVariants section)
   in 
-    slices      
+    Array.mapWithIndex
+              (variantEndingSlice start end section sectionBars)
+              (activeVariants section)   
 
 -- | build an ending slice for a particular variant ending at index 'index'
 variantEndingSlice :: Int -> Int -> Section -> List PSoMBar -> Int -> Int -> List PSMusic 
@@ -141,6 +145,9 @@ variantEndingSlice start end section sectionBars index pos =
     -- except for the final one which must take the end of the enire section.
     --
     -- In the case of 
+    -- 
+    --     ..|1,3 ..:|2,4 ....
+    --
     -- then this is true, except that also variant 2 must take its ending 
     -- as the end of the entire section.
     -- 
