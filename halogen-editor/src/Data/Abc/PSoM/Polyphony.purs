@@ -20,7 +20,7 @@ import Data.Abc.PSoM.Translation (initialise, toPSoM)
 generateDSL :: AbcTune -> Array InstrumentName -> String
 generateDSL  abcTune instrumentNames =
   let
-    voices = partitionTuneBody abcTune.body
+    voices = partitionTuneBody abcTune
     tuneName = entitle $ getTitle abcTune
   in
     if (length voices) > 1 then
