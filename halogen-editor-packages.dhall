@@ -127,3 +127,11 @@ in  upstream
      , version =
          "master"
      }
+  with abc2psom =
+     { dependencies =
+         [ "abc-parser", "school-of-music", "soundfonts" ]
+     , repo =
+         "https://github.com/newlandsvalley/purescript-abc2psom.git"
+     , version =
+         "master"
+     }
