@@ -1,0 +1,59 @@
+
+.msSelectDiv {
+  /* this is the parent div of the whole grouping */
+  margin : 20 0 20 0
+}
+
+/* this is the parent div of the add selection grouping */
+msAddSelectionDiv {
+  margin : 10 0 10 0
+}
+
+.msAddSelection {
+  /* this is the selection dropdown */
+  background-color: #cccc99;
+  height: 28px;
+}
+
+.msList {
+  /* html list that contains selected items */
+  margin: 0.25em 0 1em 0;
+  position: relative;
+  display: block;
+  padding-left: 0;
+  list-style: none;
+}
+
+.msListItem {
+  /* li item from the html list above */
+  position: relative;
+  margin-left: 0;
+  padding-left: 0;
+  list-style: none;
+  /* background: #ddd; */
+  background: #e6ffb3;
+  border: 1px solid #bbb;
+  width: 15em;
+  margin: 0 0 -1px 0;
+  line-height: 1em;
+}
+
+.msListItem:hover {
+  background-color: #d5ff80;
+}
+
+.msListItemLabel {
+  /* this is a span that surrounds the text in the item, except for the remove link */
+  padding: 5px;
+  display: block;
+}
+
+
+.msListItemRemove {
+  /* the remove link in each list item */
+  text-decoration: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 5px;
+}

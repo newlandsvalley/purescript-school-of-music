@@ -25,7 +25,12 @@ Editor
 
 The editor hase been developed using Halogen and allows you to enter PSoM text and will parse the text after every keystroke. If it is valid, a player will appear, otherwise an error message is shown. On startup, it loads a pre-selected set of instrument soundfonts which you can later change if you prefer. It also allows you to import an ABC file as PSoM and to load or save the PSoM text.
 
-There is also a deprecated Pux editor which will not be maintained beyond PureScript 0.11.
+There is also a deprecated Pux editor and a set of sample tunes using Pux which will not be maintained beyond PureScript 0.11.
+
+Polyphonic ABC Player
+---------------------
+
+This player is essentially identical to the editor, except that it allows ABC to be loaded and viewed in the editor window.  The player then plays the ABC tune and if the ABC uses multiple voices, then it produces polyphonic output by means of first transforming the tune to PSoM.  Because the transformation to PSoM is relatively expensive, we can no longer regenerate the output after each keystroke as we can for the monophonic ABC editor.  For this reason, editing the ABC text is disallowed.
 
 To build
 --------
@@ -47,7 +52,14 @@ To build the Halogen editor
 
      npm run halogen-editor
 
-and then navigate to haleogen-editor/dist/index.html
+and then navigate to halogen-editor/dist/index.html
+
+To build the polyphonic player
+------------------------------
+
+     npm run polyphonic-player
+
+and then navigate to polyphonic-player/dist/index.html
 
 Design Questions
 ----------------

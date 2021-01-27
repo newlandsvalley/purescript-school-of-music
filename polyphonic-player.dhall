@@ -1,13 +1,13 @@
 let conf = ./spago.dhall
 
 in conf // {
-  sources = {- conf.sources # -} [ "halogen-editor/**/*.purs" ],
-  dependencies = conf.dependencies # [ "abc2psom"
-                                     , "abc-parser"
+  sources = {-conf.sources # -} [ "polyphonic-player/**/*.purs" ],
+  dependencies = conf.dependencies # [ "abc-parser"
+                                     , "abc2psom"
                                      , "console"
                                      , "effect"
                                      , "halogen"
                                      , "halogen-components"
                                      , "soundfonts" ],
-  packages = ./halogen-editor-packages.dhall
+  packages = ./polyphonic-player-packages.dhall
 }

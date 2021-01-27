@@ -4,6 +4,8 @@
     "build": "spago build",
     "test": "spago -x ./test.dhall test",
     "halogen-editor": "spago -x ./halogen-editor.dhall bundle-app --to halogen-editor/dist/app.js",
+    "polyphonic-player": "spago -x ./polyphonic-player.dhall bundle-app --to polyphonic-player/dist/app.js",
+    "samples": "spago -x ./samples.dhall bundle-app --to samples/dist/app.js",
     "pulp build": "pulp build"
   },
   "devDependencies": {
