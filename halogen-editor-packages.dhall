@@ -111,7 +111,7 @@ let upstream =
 
 in  upstream
   with abc-parser.repo = "https://github.com/newlandsvalley/purescript-abc-parser.git"
-  with abc-parser.version = "7c12762c84c45fdbf85bd85cf9b303f65715188d"
+  with abc-parser.version = "df1e982218002eb4153e97d12fb714b41401fd43"
   with school-of-music.repo = "https://github.com/newlandsvalley/purescript-school-of-music.git"
   with school-of-music.version = "ac6ffdc6e6baa1cfcd4dc8350a1a9d5f25c6cbf6"
   with halogen-components =
