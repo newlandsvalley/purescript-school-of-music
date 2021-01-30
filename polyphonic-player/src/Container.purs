@@ -4,49 +4,76 @@ import Prelude
 
 import Audio.Euterpea.Playable (PlayablePSoM(..))
 import Audio.SoundFont (Instrument, loadRemoteSoundFonts)
-import Effect.Aff (Aff)
-import Data.Array (cons, null)
-import Data.Either (Either(..), either)
-import Data.Foldable (foldl)
-import Data.List (List(..))
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Tuple (fst)
-import Data.MediaType (MediaType(..))
 import DOM.HTML.Indexed.InputAcceptType (mediaType)
-import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames,
-    readGleitzman)
-import Data.Abc.PSoM.Polyphony (generateDSL)
-import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse) 
-import Data.Abc.Parser (PositionedParseError(..)) as ABC
 import Data.Abc (AbcTune)
 import Data.Abc.Metadata (getTitle)
+import Data.Abc.PSoM.Polyphony (generateDSL')
+import Data.Abc.Parser (PositionedParseError(..)) as ABC
+import Data.Abc.Voice (getVoiceMap)
+import Data.Array (cons, head, null, fromFoldable)
+import Data.Either (Either(..), either, hush)
+import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
+import Data.Foldable (foldl)
+import Data.List (List(..))
+import Data.Map (Map, empty, keys, lookup, size, values)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.MediaType (MediaType(..))
+import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames, readGleitzman)
+import Data.Set (toUnfoldable) as Set
+import Data.String (stripPrefix)
+import Data.String.Pattern (Pattern(..))
 import Data.Symbol (SProxy(..))
+import Data.Tuple (fst)
+import Effect.Aff (Aff)
 import Halogen as H
-import Halogen.HTML as HH
-import Halogen.HTML.Properties as HP
-import Halogen.HTML.Core (ClassName(..))
 import Halogen.EditorComponent as ED
 import Halogen.FileInputComponent as FIC
-import Halogen.SimpleButtonComponent as Button
-import Halogen.PlayerComponent as PC
+import Halogen.HTML as HH
+import Halogen.HTML.Core (ClassName(..))
+import Halogen.HTML.Events as HE
+import Halogen.HTML.Properties as HP
 import Halogen.MultipleSelectComponent as MSC
-import JS.FileIO (Filespec, saveTextFile)
+import Halogen.PlayerComponent as PC
+import Halogen.SimpleButtonComponent as Button
+import VexFlow.Abc.Alignment (rightJustify)
+import VexFlow.Score (Renderer, clearCanvas, createScore, renderScore, initialiseCanvas) as Score
+import VexFlow.Types (Config, VexScore)
+
+import Debug.Trace (spy)
 
 type State =
   { instruments :: Array Instrument
   , tuneResult :: Either ABC.PositionedParseError AbcTune
+  , voicesMap :: Map String AbcTune
+  , currentVoice :: Maybe String
   , ePsom  :: Either PositionedParseError PSoM
   , fileName :: Maybe String
+  , vexRenderer :: Maybe Score.Renderer
+  , vexScore :: VexScore
   }
 
 data Action =
     Init
   | HandleABCFile FIC.Message
   | HandleClearButton Button.Message
-  | HandleSaveButton Button.Message
   | HandleNewTuneText ED.Message
   | HandleTuneIsPlaying PC.Message
   | NewInstrumentsSelection MSC.Message
+  | HandleChangeVoice String
+
+voiceNamePrefix :: String 
+voiceNamePrefix = "voice: "
+
+
+vexConfig :: Config
+vexConfig =
+  { parentElementId : "vexflow"
+  , width : 1300
+  , height : 700
+  , scale : 0.8
+  , isSVG : true
+  }
+
 
 abcFileInputCtx :: FIC.Context
 abcFileInputCtx =
@@ -89,7 +116,6 @@ type ChildSlots =
   , abcfile :: FIC.Slot Unit
   , instrument :: MSC.Slot Unit
   , clear :: Button.Slot Unit
-  , savefile :: Button.Slot Unit
   , player :: (PC.Slot PlayablePSoM) Unit
   )
 
@@ -97,7 +123,6 @@ _editor = SProxy :: SProxy "editor"
 _abcfile = SProxy :: SProxy "abcfile"
 _instrument = SProxy :: SProxy "instrument"
 _clear = SProxy :: SProxy "clear"
-_savefile = SProxy :: SProxy "savefile"
 _player = SProxy :: SProxy "player"
 
 
@@ -118,72 +143,54 @@ component =
   initialState _ =
     { instruments: []
     , tuneResult: nullAbcTune
+    , voicesMap : empty
+    , currentVoice : Nothing
     , ePsom: nullPsomTune
     , fileName: Nothing
+    , vexRenderer: Nothing
+    , vexScore: Left ""
     }
 
   handleAction ∷ Action → H.HalogenM State Action ChildSlots o Aff Unit
   handleAction = case _ of
     Init -> do
-      instruments <- H.liftAff $  loadRemoteSoundFonts  [AcousticGrandPiano, Vibraphone, AcousticBass]
-      _ <- H.modify (\st -> st { instruments = instruments } )
+      instruments <- H.liftAff $  loadRemoteSoundFonts  [AcousticGrandPiano, Vibraphone, Viola]
+      renderer <- H.liftEffect $ Score.initialiseCanvas vexConfig
+      _ <- H.modify (\st -> st { instruments = instruments
+                               , vexRenderer = Just renderer } )
       pure unit
-    {-}
-    HandlePSoMFile (FIC.FileLoaded filespec) -> do
-      _ <- H.modify (\st -> st { fileName = Just filespec.name } )
-      _ <- H.query _editor unit $ H.tell (ED.UpdateContent filespec.contents)
-      _ <- H.query _player unit $ H.tell PC.StopMelody
-      pure unit
-    -}
     HandleABCFile (FIC.FileLoaded filespec) -> do
 
       _ <- H.modify (\st -> st { fileName = Just filespec.name } )
       _ <- H.query _editor unit $ H.tell (ED.UpdateContent filespec.contents)
       _ <- H.query _player unit $ H.tell PC.StopMelody
-
-    {-}
-      state <- H.get
-      let
-        psomText =
-          case (ABC.parse $ filespec.contents <> "\r\n") of
-            Right tune ->
-              let
-                instrumentNames = map fst state.instruments
-              in
-                generateDSL tune instrumentNames
-            Left err ->
-              "\"" <> filespec.name <> "\"\r\n" <> "-- error in ABC: " <> (show err)
-      _ <- H.query _editor unit $ H.tell (ED.UpdateContent psomText)
-      _ <- H.query _player unit $ H.tell PC.StopMelody
-    -}
       pure unit
     HandleClearButton (Button.Toggled _) -> do
       _ <- H.modify (\st -> st { fileName = Nothing
                                } )
       _ <- H.query _editor unit $ H.tell (ED.UpdateContent "")
       pure unit
-    HandleSaveButton (Button.Toggled _) -> do
-      maybeText <- H.query _editor unit $ H.request ED.GetText
-      state <- H.get
-      let
-        fileName = getFileName state
-        text = fromMaybe "" maybeText
-        fsp = { name: fileName, contents : text} :: Filespec
-      _ <- H.liftEffect $ saveTextFile fsp
-      pure unit
-    HandleNewTuneText (ED.TuneResult eTuneResult) -> do
+    HandleNewTuneText (ED.TuneResult eTuneResult) -> 
       case eTuneResult of
-        Right tuneResult -> 
-          do
-            state <- H.get
-            let 
-              ePsom = generatePsom state tuneResult
-            _ <- refreshPlayerState ePsom
-            _ <- H.modify (\st -> st { tuneResult = eTuneResult, ePsom = ePsom} )
-            pure unit
+        Right tune -> do
+          state <- H.get
+          let 
+            voicesMap = getVoiceMap tune
+            ePsom = generatePsom state.instruments tune (fromFoldable (values voicesMap))
+            voiceNames = getVoiceNames voicesMap
+            -- render the score with no RHS alignment
+            currentVoice = head voiceNames
+            vexScore = generateScore currentVoice voicesMap tune
+          _ <- displayScore state.vexRenderer vexScore
+          _ <- refreshPlayerState ePsom
+          _ <- H.modify (\st -> st { tuneResult = eTuneResult
+                                   , voicesMap = voicesMap
+                                   , currentVoice = currentVoice
+                                   , ePsom = ePsom
+                                   , vexScore = vexScore} )
+          pure unit
         Left _ -> 
           pure unit
-      pure unit
     NewInstrumentsSelection (MSC.CommittedSelections pendingInstrumentNames) -> do
       let
         f acc s =
@@ -206,6 +213,21 @@ component =
       -- _ <- H.query _clear unit $ H.tell (Button.UpdateEnabled (not p))
       -- _ <- H.query _sample unit $ H.tell (Button.UpdateEnabled (not p))
       pure unit
+    HandleChangeVoice voice -> do          
+      state <- H.get
+      -- strip the 'voice: ' prefix from the voice name we get from the menu
+      let 
+        currentVoice = stripPrefix (Pattern voiceNamePrefix) voice
+        vexScore = 
+          case state.tuneResult of 
+            Right tune ->
+              generateScore currentVoice state.voicesMap tune
+            Left _ ->
+              Left "nothing"
+      _ <- displayScore state.vexRenderer vexScore
+      _ <- H.modify (\st -> st { currentVoice = currentVoice
+                               , vexScore = vexScore })
+      pure unit
 
 
   render :: State -> H.ComponentHTML Action ChildSlots Aff
@@ -226,15 +248,16 @@ component =
          , HH.slot _abcfile unit (FIC.component abcFileInputCtx) unit (Just <<< HandleABCFile)
          ]
       , HH.div
-          -- save
+          -- clear
           [ HP.class_ (H.ClassName "leftPanelComponent")]
           [ HH.label
              [ HP.class_ (H.ClassName "labelAlignment") ]
-             [ HH.text "save or clear:" ]
-          , HH.slot _savefile unit (Button.component "save") unit (Just <<< HandleSaveButton)
+             [ HH.text "clear:" ]
           -- clear
           , HH.slot _clear unit (Button.component "clear") unit (Just <<< HandleClearButton)
           ]
+        -- render a voice menu if we have more than 1 voice
+      , renderPossibleVoiceMenu state
         -- load instruments
       , HH.div
           [ HP.class_ (H.ClassName "leftPanelComponent")]
@@ -253,6 +276,8 @@ component =
           [
             HH.slot _editor unit ED.component unit (Just <<< HandleNewTuneText)
           ]
+      , renderScore state
+      --, renderDebug state
     ]
 
   renderPlayer :: State -> H.ComponentHTML Action ChildSlots Aff
@@ -288,6 +313,94 @@ component =
     HH.li
       [ HP.class_ $ ClassName "msListItemLabel" ]
       [ HH.text $ (gleitzmanName <<< fst) instrument ]
+
+  -- we only render this menu if we have more than 1 voice
+  renderPossibleVoiceMenu :: State -> H.ComponentHTML Action ChildSlots Aff 
+  renderPossibleVoiceMenu state = 
+    if (size state.voicesMap <= 1) then
+      HH.div_
+        []
+    else
+      let 
+        voiceNames = Set.toUnfoldable (keys state.voicesMap)
+        currentVoice = fromMaybe "none" state.currentVoice
+      in
+        renderVoiceMenu currentVoice voiceNames
+
+  renderVoiceMenu :: String -> Array String ->  H.ComponentHTML Action ChildSlots Aff
+  renderVoiceMenu currentVoice voices =
+    HH.div
+      [ HP.class_ (H.ClassName "leftPanelComponent")]
+      [ HH.label
+         [ HP.class_ (H.ClassName "labelAlignment") ]
+         [ HH.text "choose voice: " ]
+      , HH.select
+          [ HP.class_ $ H.ClassName "selection"
+          , HP.id_  "voice-menu"
+          , HP.value (voiceNamePrefix <> currentVoice)
+          , HE.onValueChange
+              (Just <<<  HandleChangeVoice)
+          ]
+          (voiceOptions voices currentVoice)
+      ]
+
+  voiceOptions :: ∀ a b. Array String -> String -> Array (HH.HTML a b)
+  voiceOptions voices currentVoice =
+    let
+      f :: ∀ p ix. String -> HH.HTML p ix
+      f voice =
+        let
+           disabled = (voice == currentVoice)
+        in
+          HH.option
+            [ HP.disabled disabled ]
+            [ HH.text (voiceNamePrefix <> voice)]
+    in
+      map f voices 
+
+  {-}
+  renderScore :: ∀ m
+    . MonadAff m
+    => State
+    -> H.ComponentHTML Action ChildSlots m
+  -}
+  renderScore :: State -> H.ComponentHTML Action ChildSlots Aff
+  renderScore state =
+    HH.div
+      [ HP.id_ "score"]
+      [ renderTuneTitle state
+        , HH.div
+           [ HP.class_ (H.ClassName "canvasDiv")
+           , HP.id_ "vexflow"
+           ] []
+      ]   
+
+  {-}
+  renderTuneTitle :: ∀ m
+    . MonadAff m
+    => State
+    -> H.ComponentHTML Action ChildSlots m
+  -}
+  renderTuneTitle :: State -> H.ComponentHTML Action ChildSlots Aff
+  renderTuneTitle state =
+    let 
+      voiceName = maybe "" (\v -> " (voice " <> v <> ")") state.currentVoice
+    in
+      case (hush state.tuneResult >>= getTitle) of
+        Just title ->
+          HH.h2
+            [HP.id_ "tune-title" ]
+            [HH.text (title <> voiceName)]
+        _ ->
+          HH.text ""
+     
+
+  
+  renderDebug :: State -> H.ComponentHTML Action ChildSlots Aff 
+  renderDebug state = 
+    HH.div_
+      [ HH.text ("current voice:" <> (fromMaybe "none" state.currentVoice)) ]
+
 -- helpers
 -- | get the file name
 getFileName :: State -> String
@@ -304,17 +417,48 @@ getFileName state =
             title <> ".abc"
         _ ->
           "untitled.abc"
-
  
-generatePsom :: State -> AbcTune -> Either PositionedParseError PSoM
-generatePsom state tune =     
+generatePsom :: Array Instrument -> AbcTune -> Array AbcTune -> Either PositionedParseError PSoM
+generatePsom instruments tune voices =     
   let
-    instrumentNames = map fst state.instruments
-    dsl = generateDSL tune instrumentNames
+    instrumentNames = map fst instruments
+    title = fromMaybe "unnamed" $ getTitle tune 
+    dsl = generateDSL' voices instrumentNames title
   in    
     parse dsl
 
-       
+getVoiceNames :: Map String AbcTune -> Array String 
+getVoiceNames voicesMap = 
+  fromFoldable (keys voicesMap)       
+
+generateScore :: Maybe String -> Map String AbcTune -> AbcTune -> VexScore
+generateScore mCurrentVoice voicesMap tune = 
+  if (size voicesMap) <= 1 then
+    Score.createScore vexConfig tune
+  else 
+    let 
+      currentVoice = fromMaybe "nothing" mCurrentVoice
+      _ = spy "current voice" currentVoice
+      voiceTune = fromMaybe tune $ lookup currentVoice voicesMap 
+    in
+      Score.createScore vexConfig voiceTune
+
+
+displayScore :: ∀ o.
+       Maybe Score.Renderer
+    -> VexScore
+    -> H.HalogenM State Action ChildSlots o Aff Unit
+displayScore mRenderer vexScore = 
+  case mRenderer of 
+    Nothing -> 
+      pure unit
+    Just renderer -> do
+      let 
+        justifiedScore = rightJustify vexConfig.width vexConfig.scale vexScore
+      _ <- H.liftEffect $ Score.clearCanvas $ renderer
+      rendered <- H.liftEffect $ Score.renderScore vexConfig renderer justifiedScore
+      pure unit
+  
 
 -- refresh the state of the player by passing it the tune result
 -- (if it had parsed OK)
