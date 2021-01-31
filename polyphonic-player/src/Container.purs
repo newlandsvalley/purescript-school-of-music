@@ -39,7 +39,6 @@ import VexFlow.Abc.Alignment (rightJustify)
 import VexFlow.Score (Renderer, clearCanvas, createScore, renderScore, initialiseCanvas) as Score
 import VexFlow.Types (Config, VexScore)
 
-import Debug.Trace (spy)
 
 type State =
   { instruments :: Array Instrument
@@ -239,23 +238,15 @@ component =
       -- left pane
       [ HP.class_ (H.ClassName "leftPane") ]
       [
-        -- load
+        -- load and clear
         HH.div
          [ HP.class_ (H.ClassName "leftPanelComponent") ]
          [  HH.label
             [ HP.class_ (H.ClassName "labelAlignment") ]
-            [ HH.text "load ABC:" ]
+            [ HH.text "ABC:" ]
          , HH.slot _abcfile unit (FIC.component abcFileInputCtx) unit (Just <<< HandleABCFile)
+         , HH.slot _clear unit (Button.component "clear") unit (Just <<< HandleClearButton)
          ]
-      , HH.div
-          -- clear
-          [ HP.class_ (H.ClassName "leftPanelComponent")]
-          [ HH.label
-             [ HP.class_ (H.ClassName "labelAlignment") ]
-             [ HH.text "clear:" ]
-          -- clear
-          , HH.slot _clear unit (Button.component "clear") unit (Just <<< HandleClearButton)
-          ]
         -- render a voice menu if we have more than 1 voice
       , renderPossibleVoiceMenu state
         -- load instruments
@@ -438,7 +429,7 @@ generateScore mCurrentVoice voicesMap tune =
   else 
     let 
       currentVoice = fromMaybe "nothing" mCurrentVoice
-      _ = spy "current voice" currentVoice
+      -- _ = spy "current voice" currentVoice
       voiceTune = fromMaybe tune $ lookup currentVoice voicesMap 
     in
       Score.createScore vexConfig voiceTune
