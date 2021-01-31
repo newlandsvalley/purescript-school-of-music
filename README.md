@@ -30,7 +30,11 @@ There is also a deprecated Pux editor and a set of sample tunes using Pux which 
 Polyphonic ABC Player
 ---------------------
 
-This player is essentially identical to the editor, except that it allows ABC to be loaded and viewed in the editor window.  The player then plays the ABC tune and if the ABC uses multiple voices, then it produces polyphonic output by means of first transforming the tune to PSoM.  Because the transformation to PSoM is relatively expensive, we can no longer regenerate the output after each keystroke as we can for the monophonic ABC editor.  For this reason, editing the ABC text is disallowed.
+Try it [here](http://www.tradtunedb.org.uk:8605/).
+
+This player is essentially identical to the editor, except that it allows ABC to be loaded and viewed in the editor window.  If the tune is polyphonic, the user can choose to play the polyphonic melody or just one of the parts and can also see the score of each part.  Monophonic tunes just play normally. 
+
+Because the transformation to PSoM is relatively expensive, we can no longer regenerate the output after each keystroke as we can for the monophonic ABC editor.  For this reason, editing the ABC text is disallowed.
 
 To build
 --------
