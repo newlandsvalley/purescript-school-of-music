@@ -79,7 +79,7 @@ label {
 .labelAlignment {
   /* align labels at the LHS of a frame */
   display: inline-block;
-  width: 150px;
+  width: 160px;
   font-size: 1.1em;
 }
 

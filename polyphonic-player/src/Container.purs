@@ -7,7 +7,7 @@ import Audio.SoundFont (Instrument, loadRemoteSoundFonts)
 import DOM.HTML.Indexed.InputAcceptType (mediaType)
 import Data.Abc (AbcTune)
 import Data.Abc.Metadata (getTitle)
-import Data.Abc.PSoM.Polyphony (generateDSL')
+import Data.Abc.PSoM.Polyphony (generateDSL, generateDSL')
 import Data.Abc.Parser (PositionedParseError(..)) as ABC
 import Data.Abc.Voice (getVoiceMap)
 import Data.Array (cons, head, null, fromFoldable)
@@ -49,6 +49,7 @@ type State =
   , fileName :: Maybe String
   , vexRenderer :: Maybe Score.Renderer
   , vexScore :: VexScore
+  , playAllVoices :: Boolean
   }
 
 data Action =
@@ -59,10 +60,10 @@ data Action =
   | HandleTuneIsPlaying PC.Message
   | NewInstrumentsSelection MSC.Message
   | HandleChangeVoice String
+  | HandleMonophonyToggle
 
 voiceNamePrefix :: String 
 voiceNamePrefix = "voice: "
-
 
 vexConfig :: Config
 vexConfig =
@@ -72,7 +73,6 @@ vexConfig =
   , scale : 0.8
   , isSVG : true
   }
-
 
 abcFileInputCtx :: FIC.Context
 abcFileInputCtx =
@@ -92,7 +92,7 @@ multipleSelectCtx =
 initialMultipleSelectState :: ∀ i. i -> MSC.State
 initialMultipleSelectState _ =
   { available : gleitzmanNames
-  , selected : Nil
+  , selected : Nil     
   }
 
 -- | there is no tune yet
@@ -148,6 +148,7 @@ component =
     , fileName: Nothing
     , vexRenderer: Nothing
     , vexScore: Left ""
+    , playAllVoices: true
     }
 
   handleAction ∷ Action → H.HalogenM State Action ChildSlots o Aff Unit
@@ -175,10 +176,10 @@ component =
           state <- H.get
           let 
             voicesMap = getVoiceMap tune
-            ePsom = generatePsom state.instruments tune (fromFoldable (values voicesMap))
             voiceNames = getVoiceNames voicesMap
-            -- render the score with no RHS alignment
             currentVoice = head voiceNames
+            ePsom = generatePsom state currentVoice tune
+            -- render the score 
             vexScore = generateScore currentVoice voicesMap tune
           _ <- displayScore state.vexRenderer vexScore
           _ <- refreshPlayerState ePsom
@@ -186,7 +187,8 @@ component =
                                    , voicesMap = voicesMap
                                    , currentVoice = currentVoice
                                    , ePsom = ePsom
-                                   , vexScore = vexScore} )
+                                   , vexScore = vexScore
+                                   , playAllVoices = true } )
           pure unit
         Left _ -> 
           pure unit
@@ -224,8 +226,17 @@ component =
             Left _ ->
               Left "nothing"
       _ <- displayScore state.vexRenderer vexScore
+      reloadPlayer (state { currentVoice = currentVoice} )
       _ <- H.modify (\st -> st { currentVoice = currentVoice
                                , vexScore = vexScore })
+      pure unit
+    HandleMonophonyToggle -> do       
+      state <- H.get
+      let 
+        playAllVoices = not state.playAllVoices
+        newState = state { playAllVoices = playAllVoices }
+      reloadPlayer (newState)
+      _ <- H.put newState
       pure unit
 
 
@@ -249,6 +260,8 @@ component =
          ]
         -- render a voice menu if we have more than 1 voice
       , renderPossibleVoiceMenu state
+        -- render the toggle between monophony and polyphony if we have more than 1 voice
+      , renderMonophonyToggle state
         -- load instruments
       , HH.div
           [ HP.class_ (H.ClassName "leftPanelComponent")]
@@ -386,6 +399,30 @@ component =
           HH.text ""
      
 
+  renderMonophonyToggle :: State -> H.ComponentHTML Action ChildSlots Aff 
+  renderMonophonyToggle state = 
+    if (size state.voicesMap <= 1) then
+      HH.div_
+        []
+    else
+      let 
+        instruction = 
+          if state.playAllVoices then 
+            "play all voices:"
+          else
+            "play one voice:"
+      in
+        HH.div
+          [ HP.class_ (H.ClassName "leftPanelComponent") ]
+          [ HH.div
+            [ HP.class_ (H.ClassName "labelAlignment") ]
+            [ HH.text instruction ]
+          , HH.button
+              [ HE.onClick \_ -> Just HandleMonophonyToggle
+              , HP.class_ $ ClassName "hoverable"
+              ]
+              [ HH.text "toggle" ]
+         ]
   
   renderDebug :: State -> H.ComponentHTML Action ChildSlots Aff 
   renderDebug state = 
@@ -408,14 +445,32 @@ getFileName state =
             title <> ".abc"
         _ ->
           "untitled.abc"
- 
-generatePsom :: Array Instrument -> AbcTune -> Array AbcTune -> Either PositionedParseError PSoM
-generatePsom instruments tune voices =     
+
+-- Generate the possibly polyphonic PSoM DSL
+-- if the user selects just one voice or there is only once voice in the tune anyway 
+-- then this defaults to a monophonic tune DSL
+generatePsom :: State -> Maybe String -> AbcTune -> Either PositionedParseError PSoM
+generatePsom state mCurrentVoice tune =     
   let
-    instrumentNames = map fst instruments
-    title = fromMaybe "unnamed" $ getTitle tune 
-    dsl = generateDSL' voices instrumentNames title
-  in    
+    instrumentNames = map fst state.instruments
+    voicesMap = getVoiceMap tune
+    dsl = 
+      -- polyphony
+      if state.playAllVoices then
+        let
+          voices = fromFoldable (values voicesMap)
+          title = fromMaybe "unnamed" $ getTitle tune 
+        in
+          generateDSL' voices instrumentNames title
+      -- monophony
+      else
+        let 
+          currentVoice = fromMaybe "nothing" mCurrentVoice
+          -- _ = spy "current voice" currentVoice
+          voiceTune = fromMaybe tune $ lookup currentVoice voicesMap 
+        in
+          generateDSL voiceTune instrumentNames
+  in 
     parse dsl
 
 getVoiceNames :: Map String AbcTune -> Array String 
@@ -448,6 +503,20 @@ displayScore mRenderer vexScore =
         justifiedScore = rightJustify vexConfig.width vexConfig.scale vexScore
       _ <- H.liftEffect $ Score.clearCanvas $ renderer
       rendered <- H.liftEffect $ Score.renderScore vexConfig renderer justifiedScore
+      pure unit
+
+reloadPlayer ::  ∀ o.
+       State 
+    -> H.HalogenM State Action ChildSlots o Aff Unit
+reloadPlayer state =
+  case state.tuneResult of
+    Right tune -> do
+      let 
+        voicesMap = getVoiceMap tune
+        voiceNames = getVoiceNames voicesMap
+        ePsom = generatePsom state state.currentVoice tune
+      refreshPlayerState ePsom
+    _ ->
       pure unit
   
 
