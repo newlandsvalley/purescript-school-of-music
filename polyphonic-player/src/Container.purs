@@ -124,7 +124,6 @@ _instrument = SProxy :: SProxy "instrument"
 _clear = SProxy :: SProxy "clear"
 _player = SProxy :: SProxy "player"
 
-
 component :: forall q i o. H.Component HH.HTML q i o Aff
 component =
   H.mkComponent
@@ -166,10 +165,20 @@ component =
       _ <- H.query _player unit $ H.tell PC.StopMelody
       pure unit
     HandleClearButton (Button.Toggled _) -> do
+      state <- H.get
       _ <- H.modify (\st -> st { fileName = Nothing
+                               , tuneResult = nullAbcTune
+                               , voicesMap = empty :: Map String AbcTune
+                               , vexScore = Left ""
                                } )
       _ <- H.query _editor unit $ H.tell (ED.UpdateContent "")
-      pure unit
+      _ <- H.query _player unit $ H.tell PC.StopMelody
+      case state.vexRenderer of 
+        Just renderer -> do
+          _ <- H.liftEffect $ Score.clearCanvas renderer
+          pure unit
+        _ -> 
+          pure unit
     HandleNewTuneText (ED.TuneResult eTuneResult) -> 
       case eTuneResult of
         Right tune -> do
@@ -224,7 +233,7 @@ component =
             Right tune ->
               generateScore currentVoice state.voicesMap tune
             Left _ ->
-              Left "nothing"
+              Left ""
       _ <- displayScore state.vexRenderer vexScore
       reloadPlayer (state { currentVoice = currentVoice} )
       _ <- H.modify (\st -> st { currentVoice = currentVoice
