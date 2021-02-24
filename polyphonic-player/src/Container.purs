@@ -170,6 +170,9 @@ component =
                                , tuneResult = nullAbcTune
                                , voicesMap = empty :: Map String AbcTune
                                , vexScore = Left ""
+                               , currentVoice = Nothing
+                               , ePsom = nullPsomTune
+                               , playAllVoices = true
                                } )
       _ <- H.query _editor unit $ H.tell (ED.UpdateContent "")
       _ <- H.query _player unit $ H.tell PC.StopMelody
