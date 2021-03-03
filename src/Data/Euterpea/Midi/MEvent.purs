@@ -16,8 +16,8 @@ import Data.Tuple (Tuple(..), fst)
 import Data.Maybe (Maybe(Just))
 import Data.Foldable (foldr)
 import Data.Generic.Rep as G
-import Data.Generic.Rep.Eq as GEq
-import Data.Generic.Rep.Show as GShow
+import Data.Eq.Generic as GEq
+import Data.Show.Generic as GShow
 
 
 type PTime = Rational

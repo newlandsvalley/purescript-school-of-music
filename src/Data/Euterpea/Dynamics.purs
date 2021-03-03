@@ -11,9 +11,9 @@ import Data.Tuple (Tuple(..))
 import Data.Map (Map, fromFoldable, lookup) as Map
 import Data.Maybe (Maybe)
 import Data.Generic.Rep as G
-import Data.Generic.Rep.Eq as GEq
-import Data.Generic.Rep.Ord as GOrd
-import Data.Generic.Rep.Show as GShow
+import Data.Eq.Generic as GEq
+import Data.Ord.Generic as GOrd
+import Data.Show.Generic as GShow
 
 data Dynamic  =
     Accent Rational

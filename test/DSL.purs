@@ -4,7 +4,7 @@ import Prelude (Unit, discard, show, (<>))
 import Control.Monad.Free (Free)
 
 import Data.Either (Either(..))
-import Data.Euterpea.DSL.Parser (PositionedParseError(..), parse)
+import Data.Euterpea.DSL.Parser (parse)
 import Data.Midi.Instrument (InstrumentName(..))
 
 import Data.Euterpea.Music
@@ -29,8 +29,8 @@ assertFails s msg =
   case parse s of
     Right psom ->
       failure ("parse should have failed")
-    Left (PositionedParseError err) ->
-      Assert.equal msg err.error
+    Left {error, pos} ->
+      Assert.equal msg error
 
 assertMusic :: String -> Music1 -> Test
 assertMusic s target =

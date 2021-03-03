@@ -2,7 +2,8 @@ Purescript School of Music (PSoM)
 =================================
 
 [![Latest release](http://img.shields.io/github/release/newlandsvalley/purescript-school-of-music.svg)](https://github.com/newlandsvalley/purescript-school-of-music/releases)
-[![Build Status](https://travis-ci.org/newlandsvalley/purescript-school-of-music.svg?branch=master)](https://travis-ci.org/newlandsvalley/purescript-school-of-music)
+
+[![Build Status](https://github.com/newlandsvalley/purescript-school-of-music/workflows/CI/badge.svg)](https://github.com/newlandsvalley/purescript-school-of-music/actions)
 
 Try it out [here](http://www.tradtunedb.org.uk:8600/).
 

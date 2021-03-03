@@ -1,17 +1,15 @@
 module Data.Euterpea.DSL.Parser
         ( PSoM
-        , PositionedParseError(..)
         , Binding
         , BindingMap
         , parse
         ) where
 
-import Prelude (class Show, pure, show, ($), (<$>), (<$), (<*>), (<*), (*>), (<<<), (<>), (>>=), (-))
+import Prelude (pure, ($), (<$>), (<$), (<*>), (<*), (*>), (<<<), (<>), (>>=), (-))
 import Control.Alt ((<|>))
 import Control.Lazy (fix)
 import Data.String.CodeUnits (fromCharArray)
 import Data.String.CodePoints (codePointFromChar, singleton)
-import Data.Bifunctor (bimap)
 import Data.Int (fromString)
 import Data.Either (Either(..))
 import Data.List (singleton) as L
@@ -22,7 +20,7 @@ import Data.Array (fromFoldable)
 import Data.Tuple (Tuple(..))
 import Data.Foldable (class Foldable)
 import Data.Rational (Rational, fromInt, (%))
-import Text.Parsing.StringParser (Parser(..), ParseError(..), Pos, try, fail)
+import Text.Parsing.StringParser (Parser, ParseError, runParser, try, fail)
 import Text.Parsing.StringParser.CodePoints (anyDigit, char, string, regex, skipSpaces)
 import Text.Parsing.StringParser.Combinators (between, choice, many1, sepBy1, optional, optionMaybe, (<?>))
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..),
@@ -599,31 +597,10 @@ checkDynamicMarking name  =
     Just i -> pure i
     _ -> fail $ "dynamic marking: " <> name <> " not known"
 
-
--- | a parse error and its accompanying position in the text
-newtype PositionedParseError = PositionedParseError
-  { pos :: Int
-  , error :: String
-  }
-
-instance showKeyPositionedParseError :: Show PositionedParseError where
-  show (PositionedParseError err) = err.error <> " at position " <> show err.pos
-
-
--- | Run a parser for an input string, returning either a positioned error or a result.
-runParser1 :: forall a. Parser a -> String -> Either PositionedParseError a
-runParser1 (Parser p) s =
-  let
-    formatErr :: { pos :: Pos, error :: ParseError } -> PositionedParseError
-    formatErr { pos : pos, error : ParseError err } =
-      PositionedParseError { pos : pos, error : err}
-  in
-    bimap formatErr _.result (p { str: s, pos: 0 })
-
 -- | Entry point - Parse a Euterpea DSL score.
-parse :: String -> Either PositionedParseError PSoM
+parse :: String -> Either ParseError PSoM
 parse s =
-  case runParser1 psom s of
+  case runParser psom s of
     Right n ->
       Right n
 
