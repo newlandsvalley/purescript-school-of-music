@@ -1,7 +1,7 @@
 let conf = ./spago.dhall
 
 in conf // {
-  sources = {- conf.sources # -} [ "halogen-editor/**/*.purs" ],
+  sources = conf.sources #  [ "halogen-editor/**/*.purs" ],
   dependencies = conf.dependencies # [ "abc2psom"
                                      , "abc-parser"
                                      , "console"

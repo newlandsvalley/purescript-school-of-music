@@ -1,7 +1,7 @@
 let conf = ./spago.dhall
 
 in conf // {
-  sources = {-conf.sources # -} [ "polyphonic-player/**/*.purs" ],
+  sources = conf.sources # [ "polyphonic-player/**/*.purs" ],
   dependencies = conf.dependencies # [ "abc-parser"
                                      , "abc-scores"
                                      , "abc2psom"
