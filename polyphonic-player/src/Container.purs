@@ -10,7 +10,7 @@ import Data.Abc (AbcTune)
 import Data.Abc.Metadata (getTitle)
 import Data.Abc.PSoM.Polyphony (generateDSL, generateDSL')
 import Data.Abc.Voice (getVoiceMap)
-import Data.Array (cons, head, null, fromFoldable)
+import Data.Array (cons, head, null, fromFoldable, mapWithIndex)
 import Data.Either (Either(..), either, hush)
 import Data.Euterpea.DSL.Parser (PSoM, parse)
 import Data.Foldable (foldl)
@@ -60,7 +60,7 @@ data Action =
   | HandleTuneIsPlaying PC.Message
   | NewInstrumentsSelection MSC.Message
   | HandleChangeVoice String
-  | HandleMonophonyToggle
+  | HandleChangePlaybackMode Boolean
 
 voiceNamePrefix :: String 
 voiceNamePrefix = "voice: "
@@ -242,11 +242,10 @@ component =
       _ <- H.modify (\st -> st { currentVoice = currentVoice
                                , vexScore = vexScore })
       pure unit
-    HandleMonophonyToggle -> do       
+    HandleChangePlaybackMode playMode -> do     
       state <- H.get
       let 
-        playAllVoices = not state.playAllVoices
-        newState = state { playAllVoices = playAllVoices }
+        newState = state { playAllVoices = playMode }
       reloadPlayer (newState)
       _ <- H.put newState
       pure unit
@@ -256,7 +255,7 @@ component =
   render state = HH.div_
     [ HH.h1
       [HP.class_ (H.ClassName "center") ]
-      [HH.text "PureScript Polyphonic ABC Player"]
+      [HH.text "Polyphonic ABC Player"]
     , HH.div
       -- left pane
       [ HP.class_ (H.ClassName "leftPane") ]
@@ -270,10 +269,8 @@ component =
          , HH.slot _abcfile unit (FIC.component abcFileInputCtx) unit HandleABCFile
          , HH.slot _clear unit (Button.component "clear") unit HandleClearButton
          ]
-        -- render a voice menu if we have more than 1 voice
-      , renderPossibleVoiceMenu state
-        -- render the toggle between monophony and polyphony if we have more than 1 voice
-      , renderMonophonyToggle state
+        -- render voice menus if we have more than 1 voice
+      , renderPossibleVoiceMenus state
         -- load instruments
       , HH.div
           [ HP.class_ (H.ClassName "leftPanelComponent")]
@@ -330,9 +327,9 @@ component =
       [ HP.class_ $ ClassName "msListItemLabel" ]
       [ HH.text $ (gleitzmanName <<< fst) instrument ]
 
-  -- we only render this menu if we have more than 1 voice
-  renderPossibleVoiceMenu :: State -> H.ComponentHTML Action ChildSlots Aff 
-  renderPossibleVoiceMenu state = 
+  -- we only render these menus if we have more than 1 voice
+  renderPossibleVoiceMenus :: State -> H.ComponentHTML Action ChildSlots Aff 
+  renderPossibleVoiceMenus state = 
     if (size state.voicesMap <= 1) then
       HH.div_
         []
@@ -341,39 +338,86 @@ component =
         voiceNames = Set.toUnfoldable (keys state.voicesMap)
         currentVoice = fromMaybe "none" state.currentVoice
       in
-        renderVoiceMenu currentVoice voiceNames
-
+        HH.div_ 
+          [ renderVoiceMenu currentVoice voiceNames
+          , renderPlaybackMenu state.playAllVoices
+          ]
+  
   renderVoiceMenu :: String -> Array String ->  H.ComponentHTML Action ChildSlots Aff
-  renderVoiceMenu currentVoice voices =
+  renderVoiceMenu currentVoice voices =   
     HH.div
       [ HP.class_ (H.ClassName "leftPanelComponent")]
       [ HH.label
          [ HP.class_ (H.ClassName "labelAlignment") ]
-         [ HH.text "choose voice: " ]
-      , HH.select
-          [ HP.class_ $ H.ClassName "selection"
-          , HP.id "voice-menu"
-          , HP.value (voiceNamePrefix <> currentVoice)
-          , HE.onValueChange
-              HandleChangeVoice
-          ]
-          (voiceOptions voices currentVoice)
+         [ HH.text "voice preferences: " ]
+      , HH.div_ $ mapWithIndex (addVoiceRadio currentVoice) voices
       ]
 
-  voiceOptions :: ∀ a b. Array String -> String -> Array (HH.HTML a b)
-  voiceOptions voices currentVoice =
-    let
-      f :: ∀ p ix. String -> HH.HTML p ix
-      f voice =
-        let
-           disabled = (voice == currentVoice)
-        in
-          HH.option
-            [ HP.disabled disabled ]
-            [ HH.text (voiceNamePrefix <> voice)]
-    in
-      map f voices 
+  addVoiceRadio :: String -> Int -> String -> H.ComponentHTML Action ChildSlots Aff
+  addVoiceRadio selected id voiceName =
+    HH.div_
+      [
+        HH.input
+          [ HP.type_ HP.InputRadio
+          , HP.class_ (H.ClassName "voice-radio")
+          , HP.name "voice-radio"
+          , HP.value label
+          , HP.id voiceId
+          , HP.checked isChecked
+          , HE.onValueInput HandleChangeVoice
+          ]
+      , HH.label 
+        [ HP.for voiceId
+        , HP.class_ (H.ClassName "radio-label")
+        ] 
+        [ HH.text ("show " <> label) ]
+      ]
+    where 
+      isChecked = selected == voiceName
+      label =  (voiceNamePrefix <> voiceName)
+      voiceId = "voice" <> show id
 
+
+  renderPlaybackMenu :: Boolean -> H.ComponentHTML Action ChildSlots Aff
+  renderPlaybackMenu currentPlayback =   
+    HH.div
+      [ HP.class_ (H.ClassName "leftPanelComponent")]
+      [ 
+        HH.div_ $ map (addPlaybackRadio currentPlayback) [true, false]
+      ]  
+
+  addPlaybackRadio :: Boolean -> Boolean -> H.ComponentHTML Action ChildSlots Aff
+  addPlaybackRadio selected playMode =
+    HH.div_
+      [
+        HH.input
+          [ HP.type_ HP.InputRadio
+          , HP.class_ (H.ClassName "playback-radio")
+          , HP.name "playback-radio"
+          , HP.value value
+          , HP.id label
+          , HP.checked isChecked
+          , HE.onValueInput (toBool >>> HandleChangePlaybackMode)
+          ]
+      , HH.label 
+        [ HP.for label
+        , HP.class_ (H.ClassName "radio-label")
+        ] 
+        [ HH.text label ]
+      ]
+    where 
+      isChecked = selected == playMode
+      label = 
+        if playMode then 
+          "play all voices"
+        else 
+          "play one voice"
+      value = 
+        if playMode then 
+          "true"
+        else 
+          "false"
+      toBool str = (str == "true") 
   {-}
   renderScore :: ∀ m
     . MonadAff m
@@ -409,33 +453,7 @@ component =
             [HH.text (title <> voiceName)]
         _ ->
           HH.text ""
-     
-
-  renderMonophonyToggle :: State -> H.ComponentHTML Action ChildSlots Aff 
-  renderMonophonyToggle state = 
-    if (size state.voicesMap <= 1) then
-      HH.div_
-        []
-    else
-      let 
-        instruction = 
-          if state.playAllVoices then 
-            "play all voices:"
-          else
-            "play one voice:"
-      in
-        HH.div
-          [ HP.class_ (H.ClassName "leftPanelComponent") ]
-          [ HH.div
-            [ HP.class_ (H.ClassName "labelAlignment") ]
-            [ HH.text instruction ]
-          , HH.button
-              [ HE.onClick \_ -> HandleMonophonyToggle
-              , HP.class_ $ ClassName "hoverable"
-              ]
-              [ HH.text "toggle" ]
-         ]
-  
+ 
   {-
   renderDebug :: State -> H.ComponentHTML Action ChildSlots Aff 
   renderDebug state = 

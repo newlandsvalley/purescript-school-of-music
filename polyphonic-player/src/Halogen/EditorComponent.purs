@@ -71,7 +71,7 @@ component =
   render state =
     HH.div_
       [ HH.textarea
-         [ HP.rows 13
+         [ HP.rows 14
          , HP.cols 60
          , HP.autofocus true
          , HP.value state.text
