@@ -5,14 +5,14 @@ import Prelude
 import Audio.Euterpea.Playable (PlayablePSoM(..))
 import Audio.SoundFont (Instrument, loadRemoteSoundFonts)
 import DOM.HTML.Indexed.InputAcceptType (mediaType)
+import Text.Parsing.StringParser (ParseError)
 import Data.Abc (AbcTune)
 import Data.Abc.Metadata (getTitle)
 import Data.Abc.PSoM.Polyphony (generateDSL, generateDSL')
-import Data.Abc.Parser (PositionedParseError(..)) as ABC
 import Data.Abc.Voice (getVoiceMap)
 import Data.Array (cons, head, null, fromFoldable)
 import Data.Either (Either(..), either, hush)
-import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..), parse)
+import Data.Euterpea.DSL.Parser (PSoM, parse)
 import Data.Foldable (foldl)
 import Data.List (List(..))
 import Data.Map (Map, empty, keys, lookup, size, values)
@@ -22,7 +22,6 @@ import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames, 
 import Data.Set (toUnfoldable) as Set
 import Data.String (stripPrefix)
 import Data.String.Pattern (Pattern(..))
-import Data.Symbol (SProxy(..))
 import Data.Tuple (fst)
 import Effect.Aff (Aff)
 import Halogen as H
@@ -38,14 +37,15 @@ import Halogen.SimpleButtonComponent as Button
 import VexFlow.Abc.Alignment (rightJustify)
 import VexFlow.Score (Renderer, clearCanvas, createScore, renderScore, initialiseCanvas) as Score
 import VexFlow.Types (Config, VexScore)
+import Type.Proxy (Proxy(..))
 
 
 type State =
   { instruments :: Array Instrument
-  , tuneResult :: Either ABC.PositionedParseError AbcTune
+  , tuneResult :: Either ParseError AbcTune
   , voicesMap :: Map String AbcTune
   , currentVoice :: Maybe String
-  , ePsom  :: Either PositionedParseError PSoM
+  , ePsom  :: Either ParseError PSoM
   , fileName :: Maybe String
   , vexRenderer :: Maybe Score.Renderer
   , vexScore :: VexScore
@@ -96,19 +96,19 @@ initialMultipleSelectState _ =
   }
 
 -- | there is no tune yet
-nullAbcTune :: Either ABC.PositionedParseError AbcTune
+nullAbcTune :: Either ParseError AbcTune
 nullAbcTune =
-  Left (ABC.PositionedParseError { pos : 0, error : "" })
+  Left { error : "", pos : 0 }
 
-nullPsomTune :: Either PositionedParseError PSoM
+nullPsomTune :: Either ParseError PSoM
 nullPsomTune =
-  Left (PositionedParseError { pos : 0, error : "" })
+  Left { error : "", pos : 0 }
 
-parseError :: Either ABC.PositionedParseError AbcTune -> String
+parseError :: Either ParseError AbcTune -> String
 parseError tuneResult =
   case tuneResult of
     Right _ -> "no errors"
-    Left (ABC.PositionedParseError ppe) -> "parse error: " <> ppe.error
+    Left { error, pos } -> "parse error: " <> error <> " at " <> (show pos)
 
 type ChildSlots =
   ( editor :: ED.Slot Unit
@@ -118,13 +118,13 @@ type ChildSlots =
   , player :: (PC.Slot PlayablePSoM) Unit
   )
 
-_editor = SProxy :: SProxy "editor"
-_abcfile = SProxy :: SProxy "abcfile"
-_instrument = SProxy :: SProxy "instrument"
-_clear = SProxy :: SProxy "clear"
-_player = SProxy :: SProxy "player"
+_editor = Proxy :: Proxy "editor"
+_abcfile = Proxy :: Proxy "abcfile"
+_instrument = Proxy :: Proxy "instrument"
+_clear = Proxy :: Proxy "clear"
+_player = Proxy :: Proxy "player"
 
-component :: forall q i o. H.Component HH.HTML q i o Aff
+component :: forall q i o. H.Component q i o Aff
 component =
   H.mkComponent
     { initialState
@@ -161,8 +161,8 @@ component =
     HandleABCFile (FIC.FileLoaded filespec) -> do
 
       _ <- H.modify (\st -> st { fileName = Just filespec.name } )
-      _ <- H.query _editor unit $ H.tell (ED.UpdateContent filespec.contents)
-      _ <- H.query _player unit $ H.tell PC.StopMelody
+      _ <- H.tell _editor unit $ (ED.UpdateContent filespec.contents)
+      _ <- H.tell _player unit PC.StopMelody
       pure unit
     HandleClearButton (Button.Toggled _) -> do
       state <- H.get
@@ -174,8 +174,8 @@ component =
                                , ePsom = nullPsomTune
                                , playAllVoices = true
                                } )
-      _ <- H.query _editor unit $ H.tell (ED.UpdateContent "")
-      _ <- H.query _player unit $ H.tell PC.StopMelody
+      _ <- H.tell _editor unit $ (ED.UpdateContent "")
+      _ <- H.tell _player unit $ PC.StopMelody
       case state.vexRenderer of 
         Just renderer -> do
           _ <- H.liftEffect $ Score.clearCanvas renderer
@@ -213,10 +213,10 @@ component =
         instrumentNames :: Array InstrumentName
         instrumentNames = foldl f [] pendingInstrumentNames
       instruments <- H.liftAff $ loadRemoteSoundFonts instrumentNames
-      _ <- H.query _player unit $ H.tell (PC.SetInstruments instruments)
+      _ <- H.tell _player unit $ (PC.SetInstruments instruments)
       _ <- H.modify (\st -> st { instruments = instruments})
       pure unit
-    HandleTuneIsPlaying (PC.IsPlaying p) -> do
+    HandleTuneIsPlaying (PC.IsPlaying _) -> do
       -- we ignore this message, but if we wanted to we could
       -- disable any button that can alter the editor contents whilst the player
       -- is playing and re-enable when it stops playing
@@ -267,8 +267,8 @@ component =
          [  HH.label
             [ HP.class_ (H.ClassName "labelAlignment") ]
             [ HH.text "ABC:" ]
-         , HH.slot _abcfile unit (FIC.component abcFileInputCtx) unit (Just <<< HandleABCFile)
-         , HH.slot _clear unit (Button.component "clear") unit (Just <<< HandleClearButton)
+         , HH.slot _abcfile unit (FIC.component abcFileInputCtx) unit HandleABCFile
+         , HH.slot _clear unit (Button.component "clear") unit HandleClearButton
          ]
         -- render a voice menu if we have more than 1 voice
       , renderPossibleVoiceMenu state
@@ -279,7 +279,7 @@ component =
           [ HP.class_ (H.ClassName "leftPanelComponent")]
           [
             HH.slot _instrument unit
-               (MSC.component multipleSelectCtx initialMultipleSelectState) unit (Just <<< NewInstrumentsSelection)
+               (MSC.component multipleSelectCtx initialMultipleSelectState) unit NewInstrumentsSelection
           ]
         -- display instruments
       , renderInstruments state
@@ -290,7 +290,7 @@ component =
       , HH.div
           [ HP.class_ (H.ClassName "rightPane") ]
           [
-            HH.slot _editor unit ED.component unit (Just <<< HandleNewTuneText)
+            HH.slot _editor unit ED.component unit HandleNewTuneText
           ]
       , renderScore state
       --, renderDebug state
@@ -303,7 +303,7 @@ component =
         HH.div
           [ HP.class_ (H.ClassName "leftPanelComponent")]
           [
-             HH.slot _player unit (PC.component (PlayablePSoM psom) state.instruments) unit (Just <<< HandleTuneIsPlaying)
+             HH.slot _player unit (PC.component (PlayablePSoM psom) state.instruments) unit (HandleTuneIsPlaying)
           ]
       Left _ ->
         HH.div_
@@ -352,10 +352,10 @@ component =
          [ HH.text "choose voice: " ]
       , HH.select
           [ HP.class_ $ H.ClassName "selection"
-          , HP.id_  "voice-menu"
+          , HP.id "voice-menu"
           , HP.value (voiceNamePrefix <> currentVoice)
           , HE.onValueChange
-              (Just <<<  HandleChangeVoice)
+              HandleChangeVoice
           ]
           (voiceOptions voices currentVoice)
       ]
@@ -383,11 +383,11 @@ component =
   renderScore :: State -> H.ComponentHTML Action ChildSlots Aff
   renderScore state =
     HH.div
-      [ HP.id_ "score"]
+      [ HP.id "score"]
       [ renderTuneTitle state
         , HH.div
            [ HP.class_ (H.ClassName "canvasDiv")
-           , HP.id_ "vexflow"
+           , HP.id "vexflow"
            ] []
       ]   
 
@@ -405,7 +405,7 @@ component =
       case (hush state.tuneResult >>= getTitle) of
         Just title ->
           HH.h2
-            [HP.id_ "tune-title" ]
+            [HP.id "tune-title" ]
             [HH.text (title <> voiceName)]
         _ ->
           HH.text ""
@@ -430,16 +430,18 @@ component =
             [ HP.class_ (H.ClassName "labelAlignment") ]
             [ HH.text instruction ]
           , HH.button
-              [ HE.onClick \_ -> Just HandleMonophonyToggle
+              [ HE.onClick \_ -> HandleMonophonyToggle
               , HP.class_ $ ClassName "hoverable"
               ]
               [ HH.text "toggle" ]
          ]
   
+  {-
   renderDebug :: State -> H.ComponentHTML Action ChildSlots Aff 
   renderDebug state = 
     HH.div_
       [ HH.text ("current voice:" <> (fromMaybe "none" state.currentVoice)) ]
+  -}
 
 -- helpers
 -- | get the file name
@@ -461,7 +463,7 @@ getFileName state =
 -- Generate the possibly polyphonic PSoM DSL
 -- if the user selects just one voice or there is only once voice in the tune anyway 
 -- then this defaults to a monophonic tune DSL
-generatePsom :: State -> Maybe String -> AbcTune -> Either PositionedParseError PSoM
+generatePsom :: State -> Maybe String -> AbcTune -> Either ParseError PSoM
 generatePsom state mCurrentVoice tune =     
   let
     instrumentNames = map fst state.instruments
@@ -514,7 +516,7 @@ displayScore mRenderer vexScore =
       let 
         justifiedScore = rightJustify vexConfig.width vexConfig.scale vexScore
       _ <- H.liftEffect $ Score.clearCanvas $ renderer
-      rendered <- H.liftEffect $ Score.renderScore vexConfig renderer justifiedScore
+      _ <- H.liftEffect $ Score.renderScore vexConfig renderer justifiedScore
       pure unit
 
 reloadPlayer ::  ∀ o.
@@ -524,8 +526,8 @@ reloadPlayer state =
   case state.tuneResult of
     Right tune -> do
       let 
-        voicesMap = getVoiceMap tune
-        voiceNames = getVoiceNames voicesMap
+        -- voicesMap = getVoiceMap tune
+        -- voiceNames = getVoiceNames voicesMap
         ePsom = generatePsom state state.currentVoice tune
       refreshPlayerState ePsom
     _ ->
@@ -535,11 +537,16 @@ reloadPlayer state =
 -- refresh the state of the player by passing it the tune result
 -- (if it had parsed OK)
 refreshPlayerState :: ∀ o.
-       Either PositionedParseError PSoM
+       Either ParseError PSoM
     -> H.HalogenM State Action ChildSlots o Aff Unit
 refreshPlayerState tuneResult = do
   _ <- either
+     {-}
      (\_ -> H.query _player unit $ H.tell PC.StopMelody)
      (\psom -> H.query _player unit $ H.tell (PC.HandleNewPlayable (PlayablePSoM psom)))
+     tuneResult
+     -}
+     (\_ -> H.tell _player unit PC.StopMelody)
+     (\psom -> H.tell _player unit (PC.HandleNewPlayable (PlayablePSoM psom)))
      tuneResult
   pure unit

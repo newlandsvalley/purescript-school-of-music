@@ -7,7 +7,8 @@ import Audio.SoundFont (Instrument, loadRemoteSoundFonts)
 import Effect.Aff (Aff)
 import Data.Array (cons, null)
 import Data.Either (Either(..), either)
-import Data.Euterpea.DSL.Parser (PSoM, PositionedParseError(..))
+import Data.Euterpea.DSL.Parser (PSoM)
+import Text.Parsing.StringParser (ParseError)
 import Data.Foldable (foldl)
 import Data.List (List(..))
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -18,7 +19,6 @@ import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames,
     readGleitzman)
 import Data.Abc.PSoM.Polyphony (generateDSL)
 import Data.Abc.Parser (parse) as ABC
-import Data.Symbol (SProxy(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Properties as HP
@@ -30,10 +30,11 @@ import Halogen.PlayerComponent as PC
 import Halogen.MultipleSelectComponent as MSC
 import JS.FileIO (Filespec, saveTextFile)
 import SampleText (frereJacques)
+import Type.Proxy (Proxy(..))
 
 type State =
   { instruments :: Array Instrument
-  , tuneResult :: Either PositionedParseError PSoM
+  , tuneResult :: Either ParseError PSoM
   , fileName :: Maybe String
   }
 
@@ -78,15 +79,15 @@ initialMultipleSelectState _ =
   }
 
 -- | there is no tune yet
-nullTune :: Either PositionedParseError PSoM
+nullTune :: Either ParseError PSoM
 nullTune =
-  Left (PositionedParseError { pos : 0, error : "" })
+  Left { error : "", pos : 0 }
 
-parseError :: Either PositionedParseError PSoM -> String
+parseError :: Either ParseError PSoM -> String
 parseError tuneResult =
   case tuneResult of
     Right _ -> "no errors"
-    Left (PositionedParseError ppe) -> "parse error: " <> ppe.error
+    Left { error, pos } -> "parse error: " <> error <> " at " <> (show pos)
 
 type ChildSlots =
   ( editor :: ED.Slot Unit
@@ -99,17 +100,17 @@ type ChildSlots =
   , player :: (PC.Slot PlayablePSoM) Unit
   )
 
-_editor = SProxy :: SProxy "editor"
-_psomfile = SProxy :: SProxy "psomfile"
-_abcfile = SProxy :: SProxy "abcfile"
-_instrument = SProxy :: SProxy "instrument"
-_clear = SProxy :: SProxy "clear"
-_savefile = SProxy :: SProxy "savefile"
-_sample = SProxy :: SProxy "sample"
-_player = SProxy :: SProxy "player"
+_editor = Proxy :: Proxy "editor"
+_psomfile = Proxy :: Proxy "psomfile"
+_abcfile = Proxy :: Proxy "abcfile"
+_instrument = Proxy :: Proxy "instrument"
+_clear = Proxy :: Proxy "clear"
+_savefile = Proxy :: Proxy "savefile"
+_sample = Proxy :: Proxy "sample"
+_player = Proxy :: Proxy "player"
 
 
-component :: forall q i o. H.Component HH.HTML q i o Aff
+component :: forall q i o. H.Component q i o Aff
 component =
   H.mkComponent
     { initialState
@@ -137,8 +138,8 @@ component =
       pure unit
     HandlePSoMFile (FIC.FileLoaded filespec) -> do
       _ <- H.modify (\st -> st { fileName = Just filespec.name } )
-      _ <- H.query _editor unit $ H.tell (ED.UpdateContent filespec.contents)
-      _ <- H.query _player unit $ H.tell PC.StopMelody
+      _ <- H.tell _editor unit $ (ED.UpdateContent filespec.contents)
+      _ <- H.tell _player unit $ PC.StopMelody
       pure unit
     HandleABCFile (FIC.FileLoaded filespec) -> do
       state <- H.get
@@ -152,16 +153,16 @@ component =
                 generateDSL tune instrumentNames
             Left err ->
               "\"" <> filespec.name <> "\"\r\n" <> "-- error in ABC: " <> (show err)
-      _ <- H.query _editor unit $ H.tell (ED.UpdateContent psomText)
-      _ <- H.query _player unit $ H.tell PC.StopMelody
+      _ <- H.tell _editor unit $ (ED.UpdateContent psomText)
+      _ <- H.tell _player unit  PC.StopMelody
       pure unit
     HandleClearButton (Button.Toggled _) -> do
       _ <- H.modify (\st -> st { fileName = Nothing
                                } )
-      _ <- H.query _editor unit $ H.tell (ED.UpdateContent "")
+      _ <- H.tell _editor unit $ (ED.UpdateContent "")
       pure unit
     HandleSaveButton (Button.Toggled _) -> do
-      maybeText <- H.query _editor unit $ H.request ED.GetText
+      maybeText <- H.request _editor unit $ ED.GetText
       state <- H.get
       let
         fileName = getFileName state
@@ -170,8 +171,8 @@ component =
       _ <- H.liftEffect $ saveTextFile fsp
       pure unit
     HandleSampleButton (Button.Toggled _) -> do
-      _ <- H.query _editor unit $ H.tell (ED.UpdateContent frereJacques)
-      _ <- H.query _player unit $ H.tell PC.StopMelody
+      _ <- H.tell _editor unit $  (ED.UpdateContent frereJacques)
+      _ <- H.tell _player unit  PC.StopMelody
       pure unit
     HandleNewTuneText (ED.TuneResult r) -> do
       _ <- refreshPlayerState r
@@ -186,10 +187,10 @@ component =
         instrumentNames :: Array InstrumentName
         instrumentNames = foldl f [] pendingInstrumentNames
       instruments <- H.liftAff $ loadRemoteSoundFonts instrumentNames
-      _ <- H.query _player unit $ H.tell (PC.SetInstruments instruments)
+      _ <- H.tell _player unit $ (PC.SetInstruments instruments)
       _ <- H.modify (\st -> st { instruments = instruments})
       pure unit
-    HandleTuneIsPlaying (PC.IsPlaying p) -> do
+    HandleTuneIsPlaying (PC.IsPlaying _) -> do
       -- we ignore this message, but if we wanted to we could
       -- disable any button that can alter the editor contents whilst the player
       -- is playing and re-enable when it stops playing
@@ -215,8 +216,8 @@ component =
          [ HH.label
             [ HP.class_ (H.ClassName "labelAlignment") ]
             [ HH.text "load PSoM:" ]
-         , HH.slot _psomfile unit (FIC.component psomFileInputCtx) unit (Just <<< HandlePSoMFile)
-         , HH.slot _sample unit (Button.component "example") unit (Just <<< HandleSampleButton)
+         , HH.slot _psomfile unit (FIC.component psomFileInputCtx) unit HandlePSoMFile
+         , HH.slot _sample unit (Button.component "example") unit HandleSampleButton
          ]
         -- import
       , HH.div
@@ -224,7 +225,7 @@ component =
          [  HH.label
             [ HP.class_ (H.ClassName "labelAlignment") ]
             [ HH.text "import ABC:" ]
-         , HH.slot _abcfile unit (FIC.component abcFileInputCtx) unit (Just <<< HandleABCFile)
+         , HH.slot _abcfile unit (FIC.component abcFileInputCtx) unit HandleABCFile
          ]
       , HH.div
           -- save
@@ -232,16 +233,16 @@ component =
           [ HH.label
              [ HP.class_ (H.ClassName "labelAlignment") ]
              [ HH.text "save or clear:" ]
-          , HH.slot _savefile unit (Button.component "save") unit (Just <<< HandleSaveButton)
+          , HH.slot _savefile unit (Button.component "save") unit HandleSaveButton
           -- clear
-          , HH.slot _clear unit (Button.component "clear") unit (Just <<< HandleClearButton)
+          , HH.slot _clear unit (Button.component "clear") unit HandleClearButton
           ]
         -- load instruments
       , HH.div
           [ HP.class_ (H.ClassName "leftPanelComponent")]
           [
             HH.slot _instrument unit
-               (MSC.component multipleSelectCtx initialMultipleSelectState) unit (Just <<< NewInstrumentsSelection)
+               (MSC.component multipleSelectCtx initialMultipleSelectState) unit NewInstrumentsSelection
           ]
         -- display instruments
       , renderInstruments state
@@ -252,7 +253,7 @@ component =
       , HH.div
           [ HP.class_ (H.ClassName "rightPane") ]
           [
-            HH.slot _editor unit ED.component unit (Just <<< HandleNewTuneText)
+            HH.slot _editor unit ED.component unit HandleNewTuneText
           ]
     ]
 
@@ -263,9 +264,9 @@ component =
         HH.div
           [ HP.class_ (H.ClassName "leftPanelComponent")]
           [
-            HH.slot _player unit (PC.component (PlayablePSoM psom) state.instruments) unit (Just <<< HandleTuneIsPlaying)
+            HH.slot _player unit (PC.component (PlayablePSoM psom) state.instruments) unit HandleTuneIsPlaying
           ]
-      Left err ->
+      Left _ ->
         HH.div_
           [  ]
 
@@ -298,19 +299,19 @@ getFileName state =
       name
     _ ->
       case state.tuneResult of
-        Right { title, music } ->
-          title <> ".psom"
+        Right tm ->
+          tm.title <> ".psom"
         _ ->
           "untitled.psom"
 
 -- refresh the state of the player by passing it the tune result
 -- (if it had parsed OK)
 refreshPlayerState :: ∀ o.
-       Either PositionedParseError PSoM
+       Either ParseError PSoM
     -> H.HalogenM State Action ChildSlots o Aff Unit
 refreshPlayerState tuneResult = do
   _ <- either
-     (\_ -> H.query _player unit $ H.tell PC.StopMelody)
-     (\psom -> H.query _player unit $ H.tell (PC.HandleNewPlayable (PlayablePSoM psom)))
+     (\_ -> H.tell _player unit PC.StopMelody)
+     (\psom -> H.tell _player unit $ (PC.HandleNewPlayable (PlayablePSoM psom)))
      tuneResult
   pure unit

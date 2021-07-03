@@ -106,8 +106,8 @@ in  upstream
 -}
 
 
-let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.14.0-20210324/packages.dhall sha256:b4564d575da6aed1c042ca7936da97c8b7a29473b63f4515f09bb95fae8dddab
+let upstream =     
+      https://github.com/purescript/package-sets/releases/download/psc-0.14.1-20210613/packages.dhall sha256:5f10380b3ca7d3a32ea5c2b7535e4814a5e3f3590c70692f76e596d6ab0687b3
 
 in  upstream
   with abc-parser =
@@ -157,3 +157,6 @@ in  upstream
     , repo = "https://github.com/newlandsvalley/purescript-abc-scores.git"
     , version = "ps014"
     }
+  with school-of-music = 
+    ./spago.dhall as Location
+

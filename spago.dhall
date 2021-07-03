@@ -4,11 +4,20 @@ You can edit this file as you like.
 -}
 { name = "school-of-music"
 , dependencies =
-  [ "effect"
+  [ "arrays"
+  , "control"
+  , "either"
   , "foldable-traversable"
-  , "math"
+  , "integers"
+  , "lists"
+  , "maybe"
+  , "ordered-collections"
+  , "prelude"
   , "midi"
   , "rationals"
+  , "string-parsers"
+  , "strings"
+  , "tuples"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs" ]

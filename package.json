@@ -9,7 +9,8 @@
   },
   "devDependencies": {
     "pulp": "^15.0.0",
-    "purescript": "^0.14.0",
+    "spago": "^0.20.3",
+    "purescript": "^0.14.1",
     "purescript-psa": "^0.5.1",
     "webpack": "^3.6.0"
   }
