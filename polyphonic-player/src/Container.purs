@@ -34,9 +34,8 @@ import Halogen.HTML.Properties as HP
 import Halogen.MultipleSelectComponent as MSC
 import Halogen.PlayerComponent as PC
 import Halogen.SimpleButtonComponent as Button
-import VexFlow.Abc.Alignment (rightJustify)
-import VexFlow.Score (Renderer, clearCanvas, createScore, renderScore, initialiseCanvas) as Score
-import VexFlow.Types (Config, VexScore)
+import VexFlow.Score (Renderer, clearCanvas, renderFinalTune, initialiseCanvas) as Score
+import VexFlow.Types (Config)
 import Type.Proxy (Proxy(..))
 
 
@@ -48,7 +47,6 @@ type State =
   , ePsom  :: Either ParseError PSoM
   , fileName :: Maybe String
   , vexRenderer :: Maybe Score.Renderer
-  , vexScore :: VexScore
   , playAllVoices :: Boolean
   }
 
@@ -72,6 +70,7 @@ vexConfig =
   , height : 700
   , scale : 0.8
   , isSVG : true
+  , titled : false
   }
 
 abcFileInputCtx :: FIC.Context
@@ -103,6 +102,10 @@ nullAbcTune =
 nullPsomTune :: Either ParseError PSoM
 nullPsomTune =
   Left { error : "", pos : 0 }
+
+emptyTune :: AbcTune 
+emptyTune = 
+  { headers : Nil, body: Nil }
 
 parseError :: Either ParseError AbcTune -> String
 parseError tuneResult =
@@ -146,7 +149,6 @@ component =
     , ePsom: nullPsomTune
     , fileName: Nothing
     , vexRenderer: Nothing
-    , vexScore: Left ""
     , playAllVoices: true
     }
 
@@ -169,7 +171,6 @@ component =
       _ <- H.modify (\st -> st { fileName = Nothing
                                , tuneResult = nullAbcTune
                                , voicesMap = empty :: Map String AbcTune
-                               , vexScore = Left ""
                                , currentVoice = Nothing
                                , ePsom = nullPsomTune
                                , playAllVoices = true
@@ -190,16 +191,14 @@ component =
             voicesMap = getVoiceMap tune
             voiceNames = getVoiceNames voicesMap
             currentVoice = head voiceNames
-            ePsom = generatePsom state currentVoice tune
+            ePsom = generatePsom state currentVoice tune          
             -- render the score 
-            vexScore = generateScore currentVoice voicesMap tune
-          _ <- displayScore state.vexRenderer vexScore
+          _ <- displayRenderdScore state.vexRenderer currentVoice voicesMap tune
           _ <- refreshPlayerState ePsom
           _ <- H.modify (\st -> st { tuneResult = eTuneResult
                                    , voicesMap = voicesMap
                                    , currentVoice = currentVoice
                                    , ePsom = ePsom
-                                   , vexScore = vexScore
                                    , playAllVoices = true } )
           pure unit
         Left _ -> 
@@ -230,17 +229,13 @@ component =
       state <- H.get
       -- strip the 'voice: ' prefix from the voice name we get from the menu
       let 
+        currentVoice :: Maybe String
         currentVoice = stripPrefix (Pattern voiceNamePrefix) voice
-        vexScore = 
-          case state.tuneResult of 
-            Right tune ->
-              generateScore currentVoice state.voicesMap tune
-            Left _ ->
-              Left ""
-      _ <- displayScore state.vexRenderer vexScore
+        tune :: AbcTune
+        tune = either (const emptyTune) identity state.tuneResult
+      _ <- displayRenderdScore state.vexRenderer currentVoice state.voicesMap tune
       reloadPlayer (state { currentVoice = currentVoice} )
-      _ <- H.modify (\st -> st { currentVoice = currentVoice
-                               , vexScore = vexScore })
+      _ <- H.modify (\st -> st { currentVoice = currentVoice })
       pure unit
     HandleChangePlaybackMode playMode -> do     
       state <- H.get
@@ -507,35 +502,35 @@ generatePsom state mCurrentVoice tune =
 
 getVoiceNames :: Map String AbcTune -> Array String 
 getVoiceNames voicesMap = 
-  fromFoldable (keys voicesMap)       
-
-generateScore :: Maybe String -> Map String AbcTune -> AbcTune -> VexScore
-generateScore mCurrentVoice voicesMap tune = 
-  if (size voicesMap) <= 1 then
-    Score.createScore vexConfig tune
-  else 
-    let 
-      currentVoice = fromMaybe "nothing" mCurrentVoice
-      -- _ = spy "current voice" currentVoice
-      voiceTune = fromMaybe tune $ lookup currentVoice voicesMap 
-    in
-      Score.createScore vexConfig voiceTune
+  fromFoldable (keys voicesMap)    
 
 
-displayScore :: ∀ o.
+displayRenderdScore :: ∀ o.
        Maybe Score.Renderer
-    -> VexScore
+    -> Maybe String 
+    -> Map String AbcTune 
+    -> AbcTune
     -> H.HalogenM State Action ChildSlots o Aff Unit
-displayScore mRenderer vexScore = 
+displayRenderdScore mRenderer mCurrentVoice voicesMap tune =
   case mRenderer of 
     Nothing -> 
       pure unit
     Just renderer -> do
-      let 
-        justifiedScore = rightJustify vexConfig.width vexConfig.scale vexScore
-      _ <- H.liftEffect $ Score.clearCanvas $ renderer
-      _ <- H.liftEffect $ Score.renderScore vexConfig renderer justifiedScore
-      pure unit
+      -- render the whole tune if only one voice
+      if (size voicesMap) <= 1 then do
+        _ <- H.liftEffect $ Score.clearCanvas $ renderer
+        _ <- H.liftEffect $ Score.renderFinalTune vexConfig renderer tune
+        pure unit
+      -- otherwise render the selected voice
+      else       
+        let 
+          currentVoice = fromMaybe "nothing" mCurrentVoice
+          -- _ = spy "current voice" currentVoice
+          voiceTune = fromMaybe tune $ lookup currentVoice voicesMap 
+        in do
+          _ <- H.liftEffect $ Score.clearCanvas $ renderer
+          _ <- H.liftEffect $ Score.renderFinalTune vexConfig renderer voiceTune
+          pure unit
 
 reloadPlayer ::  ∀ o.
        State 
