@@ -10,19 +10,22 @@ import Data.Abc (AbcTune)
 import Data.Abc.Metadata (getTitle)
 import Data.Abc.PSoM.Polyphony (generateDSL, generateDSL')
 import Data.Abc.Voice (getVoiceMap)
-import Data.Array (cons, head, null, fromFoldable, mapWithIndex)
-import Data.Either (Either(..), either, hush)
+import Data.Array (cons, index, null, fromFoldable, mapWithIndex, range)
+import Effect (Effect)
+import Data.Either (Either(..), either)
 import Data.Euterpea.DSL.Parser (PSoM, parse)
 import Data.Foldable (foldl)
+import Data.FoldableWithIndex (traverseWithIndex_)
 import Data.List (List(..))
-import Data.Map (Map, empty, keys, lookup, size, values)
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Map (Map, empty, keys, lookup, size, toUnfoldable, values)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType (MediaType(..))
 import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames, readGleitzman)
 import Data.Set (toUnfoldable) as Set
 import Data.String (stripPrefix)
 import Data.String.Pattern (Pattern(..))
-import Data.Tuple (fst)
+import Data.Traversable (traverse)
+import Data.Tuple (Tuple, fst, snd)
 import Effect.Aff (Aff)
 import Halogen as H
 import Halogen.EditorComponent as ED
@@ -34,7 +37,7 @@ import Halogen.HTML.Properties as HP
 import Halogen.MultipleSelectComponent as MSC
 import Halogen.PlayerComponent as PC
 import Halogen.SimpleButtonComponent as Button
-import VexFlow.Score (Renderer, clearCanvas, renderFinalTune, initialiseCanvas) as Score
+import VexFlow.Score (Renderer, clearCanvas, renderFinalTune, resizeCanvas, initialiseCanvas) as Score
 import VexFlow.Types (Config)
 import Type.Proxy (Proxy(..))
 
@@ -46,8 +49,7 @@ type State =
   , currentVoice :: Maybe String
   , ePsom  :: Either ParseError PSoM
   , fileName :: Maybe String
-  , vexRenderer :: Maybe Score.Renderer
-  , playAllVoices :: Boolean
+  , vexRenderers :: Array Score.Renderer
   }
 
 data Action =
@@ -58,19 +60,24 @@ data Action =
   | HandleTuneIsPlaying PC.Message
   | NewInstrumentsSelection MSC.Message
   | HandleChangeVoice String
-  | HandleChangePlaybackMode Boolean
+
+maxVoices :: Int 
+maxVoices = 5
+
+allVoices :: String 
+allVoices = "all voices"
 
 voiceNamePrefix :: String 
 voiceNamePrefix = "voice: "
-
-vexConfig :: Config
-vexConfig =
-  { parentElementId : "vexflow"
+  
+vexConfig :: Int -> Config
+vexConfig index =
+  { parentElementId : ("vexflow" <> show index)
   , width : 1300
-  , height : 700
+  , height : 10
   , scale : 0.8
   , isSVG : true
-  , titled : false
+  , titled : true
   }
 
 abcFileInputCtx :: FIC.Context
@@ -148,17 +155,20 @@ component =
     , currentVoice : Nothing
     , ePsom: nullPsomTune
     , fileName: Nothing
-    , vexRenderer: Nothing
-    , playAllVoices: true
+    , vexRenderers: []
     }
 
   handleAction ∷ Action → H.HalogenM State Action ChildSlots o Aff Unit
   handleAction = case _ of
     Init -> do
       instruments <- H.liftAff $  loadRemoteSoundFonts  [AcousticGrandPiano, Vibraphone, Viola]
-      renderer <- H.liftEffect $ Score.initialiseCanvas vexConfig
+      let
+        rows :: Array Int
+        rows = range 0 (maxVoices - 1)
+      renderers <- H.liftEffect $ traverse (\r -> Score.initialiseCanvas $ vexConfig r) rows
+      H.modify_ (\st -> st { vexRenderers = renderers } )
       _ <- H.modify (\st -> st { instruments = instruments
-                               , vexRenderer = Just renderer } )
+                               , vexRenderers = renderers } )
       pure unit
     HandleABCFile (FIC.FileLoaded filespec) -> do
 
@@ -173,33 +183,25 @@ component =
                                , voicesMap = empty :: Map String AbcTune
                                , currentVoice = Nothing
                                , ePsom = nullPsomTune
-                               , playAllVoices = true
                                } )
       _ <- H.tell _editor unit $ (ED.UpdateContent "")
       _ <- H.tell _player unit $ PC.StopMelody
-      case state.vexRenderer of 
-        Just renderer -> do
-          _ <- H.liftEffect $ Score.clearCanvas renderer
-          pure unit
-        _ -> 
-          pure unit
+      H.liftAff $ clearScores state
     HandleNewTuneText (ED.TuneResult eTuneResult) -> 
       case eTuneResult of
         Right tune -> do
           state <- H.get
           let 
             voicesMap = getVoiceMap tune
-            voiceNames = getVoiceNames voicesMap
-            currentVoice = head voiceNames
-            ePsom = generatePsom state currentVoice tune          
-            -- render the score 
-          _ <- displayRenderdScore state.vexRenderer currentVoice voicesMap tune
+            currentVoice = Just allVoices
+            ePsom = generatePsom state currentVoice tune  
+          _ <- displayRenderedScores state voicesMap tune
           _ <- refreshPlayerState ePsom
           _ <- H.modify (\st -> st { tuneResult = eTuneResult
                                    , voicesMap = voicesMap
                                    , currentVoice = currentVoice
                                    , ePsom = ePsom
-                                   , playAllVoices = true } )
+                                   } )
           pure unit
         Left _ -> 
           pure unit
@@ -230,19 +232,12 @@ component =
       -- strip the 'voice: ' prefix from the voice name we get from the menu
       let 
         currentVoice :: Maybe String
-        currentVoice = stripPrefix (Pattern voiceNamePrefix) voice
-        tune :: AbcTune
-        tune = either (const emptyTune) identity state.tuneResult
-      _ <- displayRenderdScore state.vexRenderer currentVoice state.voicesMap tune
-      reloadPlayer (state { currentVoice = currentVoice} )
+        currentVoice = 
+          if ( voice == allVoices ) then Just allVoices
+          else 
+            stripPrefix (Pattern voiceNamePrefix) voice
+      reloadPlayer (state { currentVoice = currentVoice } )
       _ <- H.modify (\st -> st { currentVoice = currentVoice })
-      pure unit
-    HandleChangePlaybackMode playMode -> do     
-      state <- H.get
-      let 
-        newState = state { playAllVoices = playMode }
-      reloadPlayer (newState)
-      _ <- H.put newState
       pure unit
 
 
@@ -264,8 +259,8 @@ component =
          , HH.slot _abcfile unit (FIC.component abcFileInputCtx) unit HandleABCFile
          , HH.slot _clear unit (Button.component "clear") unit HandleClearButton
          ]
-        -- render voice menus if we have more than 1 voice
-      , renderPossibleVoiceMenus state
+        -- render voice menu if we have more than 1 voice
+      , renderPossibleVoiceMenu state
         -- load instruments
       , HH.div
           [ HP.class_ (H.ClassName "leftPanelComponent")]
@@ -284,7 +279,10 @@ component =
           [
             HH.slot _editor unit ED.component unit HandleNewTuneText
           ]
-      , renderScore state
+      , HH.div_
+          [ HH.ul_ $
+            renderScores
+          ]
       --, renderDebug state
     ]
 
@@ -322,29 +320,27 @@ component =
       [ HP.class_ $ ClassName "msListItemLabel" ]
       [ HH.text $ (gleitzmanName <<< fst) instrument ]
 
-  -- we only render these menus if we have more than 1 voice
-  renderPossibleVoiceMenus :: State -> H.ComponentHTML Action ChildSlots Aff 
-  renderPossibleVoiceMenus state = 
+  -- we only render this menu if we have more than 1 voice
+  renderPossibleVoiceMenu :: State -> H.ComponentHTML Action ChildSlots Aff 
+  renderPossibleVoiceMenu state = 
     if (size state.voicesMap <= 1) then
       HH.div_
         []
     else
       let 
-        voiceNames = Set.toUnfoldable (keys state.voicesMap)
-        currentVoice = fromMaybe "none" state.currentVoice
+        voiceNames = cons allVoices (Set.toUnfoldable (keys state.voicesMap)) 
+        currentVoice = fromMaybe allVoices state.currentVoice
       in
         HH.div_ 
-          [ renderVoiceMenu currentVoice voiceNames
-          , renderPlaybackMenu state.playAllVoices
-          ]
-  
+          [ renderVoiceMenu currentVoice voiceNames ]  
+
   renderVoiceMenu :: String -> Array String ->  H.ComponentHTML Action ChildSlots Aff
   renderVoiceMenu currentVoice voices =   
     HH.div
       [ HP.class_ (H.ClassName "leftPanelComponent")]
       [ HH.label
          [ HP.class_ (H.ClassName "labelAlignment") ]
-         [ HH.text "voice preferences: " ]
+         [ HH.text "preferences:" ]
       , HH.div_ $ mapWithIndex (addVoiceRadio currentVoice) voices
       ]
 
@@ -365,77 +361,44 @@ component =
         [ HP.for voiceId
         , HP.class_ (H.ClassName "radio-label")
         ] 
-        [ HH.text ("show " <> label) ]
+        [ HH.text ("play " <> label) ]
       ]
     where 
       isChecked = selected == voiceName
-      label =  (voiceNamePrefix <> voiceName)
+      label =  
+        if (voiceName == allVoices) then
+          allVoices
+        else 
+          (voiceNamePrefix <> voiceName)
       voiceId = "voice" <> show id
 
 
-  renderPlaybackMenu :: Boolean -> H.ComponentHTML Action ChildSlots Aff
-  renderPlaybackMenu currentPlayback =   
-    HH.div
-      [ HP.class_ (H.ClassName "leftPanelComponent")]
-      [ 
-        HH.div_ $ map (addPlaybackRadio currentPlayback) [true, false]
-      ]  
-
-  addPlaybackRadio :: Boolean -> Boolean -> H.ComponentHTML Action ChildSlots Aff
-  addPlaybackRadio selected playMode =
-    HH.div_
-      [
-        HH.input
-          [ HP.type_ HP.InputRadio
-          , HP.class_ (H.ClassName "playback-radio")
-          , HP.name "playback-radio"
-          , HP.value value
-          , HP.id label
-          , HP.checked isChecked
-          , HE.onValueInput (toBool >>> HandleChangePlaybackMode)
-          ]
-      , HH.label 
-        [ HP.for label
-        , HP.class_ (H.ClassName "radio-label")
-        ] 
-        [ HH.text label ]
-      ]
-    where 
-      isChecked = selected == playMode
-      label = 
-        if playMode then 
-          "play all voices"
-        else 
-          "play one voice"
-      value = 
-        if playMode then 
-          "true"
-        else 
-          "false"
-      toBool str = (str == "true") 
   {-}
-  renderScore :: ∀ m
+  renderScores :: ∀ m
     . MonadAff m
-    => State
-    -> H.ComponentHTML Action ChildSlots m
+    => Array (H.ComponentHTML Action ChildSlots m)
   -}
-  renderScore :: State -> H.ComponentHTML Action ChildSlots Aff
-  renderScore state =
-    HH.div
-      [ HP.id "score"]
-      [ renderTuneTitle state
-        , HH.div
-           [ HP.class_ (H.ClassName "canvasDiv")
-           , HP.id "vexflow"
-           ] []
-      ]   
+  renderScores :: Array (H.ComponentHTML Action ChildSlots Aff)
+  renderScores =
+    map renderScoreItem (range 0 (maxVoices -1))
+
+  --renderScoreItem :: ∀ i p. State -> Int -> HH.HTML i p
+  renderScoreItem idx =
+    HH.li
+      [ HP.class_ (H.ClassName "scoreItem") ]
+      [ HH.div
+        [ HP.id ("vexflow" <> show idx)
+        , HP.class_ (H.ClassName "canvasDiv")
+        ]
+        []
+      ]
+
 
   {-}
   renderTuneTitle :: ∀ m
     . MonadAff m
     => State
     -> H.ComponentHTML Action ChildSlots m
-  -}
   renderTuneTitle :: State -> H.ComponentHTML Action ChildSlots Aff
   renderTuneTitle state =
     let 
@@ -448,6 +411,7 @@ component =
             [HH.text (title <> voiceName)]
         _ ->
           HH.text ""
+  -}
  
   {-
   renderDebug :: State -> H.ComponentHTML Action ChildSlots Aff 
@@ -482,14 +446,14 @@ generatePsom state mCurrentVoice tune =
     instrumentNames = map fst state.instruments
     voicesMap = getVoiceMap tune
     dsl = 
-      -- polyphony
-      if state.playAllVoices then
+      -- polyphony or only one voice anyway
+      if mCurrentVoice == Nothing || mCurrentVoice == Just allVoices || (size state.voicesMap <= 1) then
         let
           voices = fromFoldable (values voicesMap)
           title = fromMaybe "unnamed" $ getTitle tune 
         in
           generateDSL' voices instrumentNames title
-      -- monophony
+      -- monophony - choose one out of a set of voices
       else
         let 
           currentVoice = fromMaybe "nothing" mCurrentVoice
@@ -504,33 +468,40 @@ getVoiceNames :: Map String AbcTune -> Array String
 getVoiceNames voicesMap = 
   fromFoldable (keys voicesMap)    
 
-
-displayRenderdScore :: ∀ o.
-       Maybe Score.Renderer
-    -> Maybe String 
+displayRenderedScores :: ∀ o.
+       State
     -> Map String AbcTune 
     -> AbcTune
     -> H.HalogenM State Action ChildSlots o Aff Unit
-displayRenderdScore mRenderer mCurrentVoice voicesMap tune =
-  case mRenderer of 
-    Nothing -> 
-      pure unit
-    Just renderer -> do
-      -- render the whole tune if only one voice
-      if (size voicesMap) <= 1 then do
-        _ <- H.liftEffect $ Score.clearCanvas $ renderer
-        _ <- H.liftEffect $ Score.renderFinalTune vexConfig renderer tune
+displayRenderedScores state voicesMap tune =
+  -- render the whole tune if only one voice
+  if (size voicesMap) <= 1 then 
+    case (index state.vexRenderers 0) of 
+      Just renderer -> do
+        -- _ <- H.liftEffect $ Score.clearCanvas $ renderer
+        _ <- H.liftAff $ clearScores state
+        _ <- H.liftEffect $ Score.renderFinalTune (vexConfig 0) renderer tune
         pure unit
-      -- otherwise render the selected voice
-      else       
-        let 
-          currentVoice = fromMaybe "nothing" mCurrentVoice
-          -- _ = spy "current voice" currentVoice
-          voiceTune = fromMaybe tune $ lookup currentVoice voicesMap 
-        in do
-          _ <- H.liftEffect $ Score.clearCanvas $ renderer
-          _ <- H.liftEffect $ Score.renderFinalTune vexConfig renderer voiceTune
-          pure unit
+      _ -> 
+        pure unit
+  -- otherwise render the selected voice
+  else       
+    let 
+      -- displayVoice :: Int -> Tuple String AbcTune -> H.HalogenM State Action ChildSlots o Aff Unit
+      displayVoice idx voices =
+        case (index state.vexRenderers idx) of 
+          Just renderer -> do
+            -- _ <- H.liftEffect $ Score.clearCanvas $ renderer
+            _ <- H.liftEffect $ Score.renderFinalTune (vexConfig idx) renderer (snd voices)
+            pure unit
+          _ -> pure unit
+      voiceNamesAndTunes :: Array (Tuple String AbcTune)
+      voiceNamesAndTunes = toUnfoldable voicesMap
+    in do
+      _ <- H.liftAff $ clearScores state
+      _ <- H.liftEffect $ traverseWithIndex_ displayVoice voiceNamesAndTunes
+      pure unit
+
 
 reloadPlayer ::  ∀ o.
        State 
@@ -554,12 +525,16 @@ refreshPlayerState :: ∀ o.
     -> H.HalogenM State Action ChildSlots o Aff Unit
 refreshPlayerState tuneResult = do
   _ <- either
-     {-}
-     (\_ -> H.query _player unit $ H.tell PC.StopMelody)
-     (\psom -> H.query _player unit $ H.tell (PC.HandleNewPlayable (PlayablePSoM psom)))
-     tuneResult
-     -}
      (\_ -> H.tell _player unit PC.StopMelody)
      (\psom -> H.tell _player unit (PC.HandleNewPlayable (PlayablePSoM psom)))
      tuneResult
+  pure unit
+
+clearScores :: State -> Aff Unit
+clearScores state = do
+  let
+    f :: Int -> Score.Renderer -> Effect Score.Renderer
+    f i renderer = Score.resizeCanvas renderer (vexConfig i)
+  _ <- H.liftEffect $ traverseWithIndex_ f state.vexRenderers
+  _ <- H.liftEffect $ traverse (Score.clearCanvas) state.vexRenderers      
   pure unit
