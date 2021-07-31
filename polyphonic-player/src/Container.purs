@@ -181,14 +181,14 @@ component =
       pure unit
     HandleClear -> do
       state <- H.get
+      _ <- H.tell _editor unit $ (ED.UpdateContent "")
+      _ <- H.tell _player unit $ PC.StopMelody
       _ <- H.modify (\st -> st { fileName = Nothing
                                , tuneResult = nullAbcTune
                                , voicesMap = empty :: Map String AbcTune
                                , currentVoice = Nothing
                                , ePsom = nullPsomTune
                                } )
-      _ <- H.tell _editor unit $ (ED.UpdateContent "")
-      _ <- H.tell _player unit $ PC.StopMelody
       H.liftAff $ clearScores state
     HandlePrint -> do
       _ <-  H.liftEffect print
