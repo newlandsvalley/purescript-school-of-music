@@ -12,7 +12,7 @@ import Data.Abc.PSoM.Polyphony (generateDSL, generateDSL')
 import Data.Abc.Voice (getVoiceMap)
 import Data.Array (cons, index, null, fromFoldable, mapWithIndex, range)
 import Effect (Effect)
-import Data.Either (Either(..), either)
+import Data.Either (Either(..), either, hush)
 import Data.Euterpea.DSL.Parser (PSoM, parse)
 import Data.Foldable (foldl)
 import Data.FoldableWithIndex (traverseWithIndex_)
@@ -279,6 +279,7 @@ component =
           [
             HH.slot _editor unit ED.component unit HandleNewTuneText
           ]
+      , possiblyRenderTuneTitle state
       , HH.div_
           [ HH.ul_ $
             renderScores
@@ -393,25 +394,21 @@ component =
         []
       ]
 
-
-  {-}
-  renderTuneTitle :: ∀ m
-    . MonadAff m
-    => State
-    -> H.ComponentHTML Action ChildSlots m
-  renderTuneTitle :: State -> H.ComponentHTML Action ChildSlots Aff
-  renderTuneTitle state =
-    let 
-      voiceName = maybe "" (\v -> " (voice " <> v <> ")") state.currentVoice
-    in
+  -- render the overall tune title in those cases where we have more than 
+  -- one voice which will be titled separately in each score
+  possiblyRenderTuneTitle :: State -> H.ComponentHTML Action ChildSlots Aff
+  possiblyRenderTuneTitle state =
+    if (size state.voicesMap <= 1) then 
+      HH.text ""
+    else
       case (hush state.tuneResult >>= getTitle) of
         Just title ->
           HH.h2
             [HP.id "tune-title" ]
-            [HH.text (title <> voiceName)]
+            [HH.text title ]
         _ ->
           HH.text ""
-  -}
+  
  
   {-
   renderDebug :: State -> H.ComponentHTML Action ChildSlots Aff 
