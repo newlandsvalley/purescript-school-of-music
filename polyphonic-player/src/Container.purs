@@ -39,6 +39,7 @@ import Halogen.PlayerComponent as PC
 import VexFlow.Score (Renderer, clearCanvas, renderFinalTune, resizeCanvas, initialiseCanvas) as Score
 import VexFlow.Types (Config)
 import Type.Proxy (Proxy(..))
+import Window (print)
 
 type State =
   { instruments :: Array Instrument
@@ -190,6 +191,7 @@ component =
       _ <- H.tell _player unit $ PC.StopMelody
       H.liftAff $ clearScores state
     HandlePrint -> do
+      _ <-  H.liftEffect print
       pure unit
     HandleNewTuneText (ED.TuneResult eTuneResult) -> 
       case eTuneResult of
@@ -261,8 +263,15 @@ component =
             [ HP.class_ (H.ClassName "labelAlignment") ]
             [ HH.text "ABC:" ]
          , HH.slot _abcfile unit (FIC.component abcFileInputCtx) unit HandleABCFile
-         --, HH.slot _clear unit (Button.component "clear") unit HandleClear
          , renderSimpleButton Clear state
+         ]
+         -- print
+      , HH.div
+         [ HP.class_ (H.ClassName "leftPanelComponent") ]
+         [  HH.label
+            [ HP.class_ (H.ClassName "labelAlignment") ]
+            [ HH.text "score:" ]
+         , renderSimpleButton Print state
          ]
         -- render voice menu if we have more than 1 voice
       , renderPossibleVoiceMenu state
@@ -284,8 +293,9 @@ component =
           [
             HH.slot _editor unit ED.component unit HandleNewTuneText
           ]
+      -- score rendering
       , possiblyRenderTuneTitle state
-      , HH.ul_ $ renderScores
+      , HH.ul [ HP.id "score"] renderScores
       --, renderDebug state
     ]
 
