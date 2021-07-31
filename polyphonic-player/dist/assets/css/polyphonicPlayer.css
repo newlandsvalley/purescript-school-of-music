@@ -89,12 +89,6 @@ input[type='radio']:checked:after {
   font-size: 1.2em;
 }
 
-#tune-title {
-  width: 800px;
-  float: left;
-  text-align: left;
-  margin: 12px 0px 0px 0px;
-}
 
 .fileInputLabel {
   /* the label for a file input */
@@ -131,7 +125,10 @@ input[type='radio']:checked:after {
   list-style-type: none;
 }
 
-.voiceMenu {
+#tune-title {  
+  margin: 10px 0 0 48px;
+  width: 800px;
+  font-size: 2.0em;
+  text-align: left;
   float: left;
-  display: block;
 }
