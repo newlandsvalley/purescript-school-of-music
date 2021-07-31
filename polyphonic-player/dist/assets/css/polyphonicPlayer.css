@@ -122,11 +122,16 @@ input[type='radio']:checked:after {
 
 .leftPanelComponent {
   /* align items in the LHS panel */
-  margin: 10px 0 0 0;
+  margin: 0 0 10px 0;
   font-size: 1.2em;
   font-family: Georgia, serif;
 }
 
 .scoreItem {
   list-style-type: none;
+}
+
+.voiceMenu {
+  float: left;
+  display: block;
 }

@@ -36,11 +36,9 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.MultipleSelectComponent as MSC
 import Halogen.PlayerComponent as PC
-import Halogen.SimpleButtonComponent as Button
 import VexFlow.Score (Renderer, clearCanvas, renderFinalTune, resizeCanvas, initialiseCanvas) as Score
 import VexFlow.Types (Config)
 import Type.Proxy (Proxy(..))
-
 
 type State =
   { instruments :: Array Instrument
@@ -55,11 +53,17 @@ type State =
 data Action =
     Init
   | HandleABCFile FIC.Message
-  | HandleClearButton Button.Message
+  | HandleClear 
+  | HandlePrint
   | HandleNewTuneText ED.Message
   | HandleTuneIsPlaying PC.Message
   | NewInstrumentsSelection MSC.Message
   | HandleChangeVoice String
+
+-- | a simple button has no parameters and is greyed if there's no valid tune
+data SimpleButtonType =
+    Clear
+  | Print  
 
 maxVoices :: Int 
 maxVoices = 5
@@ -124,14 +128,12 @@ type ChildSlots =
   ( editor :: ED.Slot Unit
   , abcfile :: FIC.Slot Unit
   , instrument :: MSC.Slot Unit
-  , clear :: Button.Slot Unit
   , player :: (PC.Slot PlayablePSoM) Unit
   )
 
 _editor = Proxy :: Proxy "editor"
 _abcfile = Proxy :: Proxy "abcfile"
 _instrument = Proxy :: Proxy "instrument"
-_clear = Proxy :: Proxy "clear"
 _player = Proxy :: Proxy "player"
 
 component :: forall q i o. H.Component q i o Aff
@@ -176,7 +178,7 @@ component =
       _ <- H.tell _editor unit $ (ED.UpdateContent filespec.contents)
       _ <- H.tell _player unit PC.StopMelody
       pure unit
-    HandleClearButton (Button.Toggled _) -> do
+    HandleClear -> do
       state <- H.get
       _ <- H.modify (\st -> st { fileName = Nothing
                                , tuneResult = nullAbcTune
@@ -187,6 +189,8 @@ component =
       _ <- H.tell _editor unit $ (ED.UpdateContent "")
       _ <- H.tell _player unit $ PC.StopMelody
       H.liftAff $ clearScores state
+    HandlePrint -> do
+      pure unit
     HandleNewTuneText (ED.TuneResult eTuneResult) -> 
       case eTuneResult of
         Right tune -> do
@@ -257,7 +261,8 @@ component =
             [ HP.class_ (H.ClassName "labelAlignment") ]
             [ HH.text "ABC:" ]
          , HH.slot _abcfile unit (FIC.component abcFileInputCtx) unit HandleABCFile
-         , HH.slot _clear unit (Button.component "clear") unit HandleClearButton
+         --, HH.slot _clear unit (Button.component "clear") unit HandleClear
+         , renderSimpleButton Clear state
          ]
         -- render voice menu if we have more than 1 voice
       , renderPossibleVoiceMenu state
@@ -280,10 +285,7 @@ component =
             HH.slot _editor unit ED.component unit HandleNewTuneText
           ]
       , possiblyRenderTuneTitle state
-      , HH.div_
-          [ HH.ul_ $
-            renderScores
-          ]
+      , HH.ul_ $ renderScores
       --, renderDebug state
     ]
 
@@ -332,17 +334,21 @@ component =
         voiceNames = cons allVoices (Set.toUnfoldable (keys state.voicesMap)) 
         currentVoice = fromMaybe allVoices state.currentVoice
       in
-        HH.div_ 
-          [ renderVoiceMenu currentVoice voiceNames ]  
+        renderVoiceMenu currentVoice voiceNames
 
   renderVoiceMenu :: String -> Array String ->  H.ComponentHTML Action ChildSlots Aff
   renderVoiceMenu currentVoice voices =   
     HH.div
       [ HP.class_ (H.ClassName "leftPanelComponent")]
-      [ HH.label
+      [ 
+        
+        {- HH.label
          [ HP.class_ (H.ClassName "labelAlignment") ]
          [ HH.text "preferences:" ]
-      , HH.div_ $ mapWithIndex (addVoiceRadio currentVoice) voices
+      , -}
+        HH.div 
+         [ HP.class_ (H.ClassName "voiceMenu")] 
+         $ mapWithIndex (addVoiceRadio currentVoice) voices
       ]
 
   addVoiceRadio :: String -> Int -> String -> H.ComponentHTML Action ChildSlots Aff
@@ -409,7 +415,32 @@ component =
         _ ->
           HH.text ""
   
- 
+  
+  -- rendering functions
+  renderSimpleButton :: 
+       SimpleButtonType
+    -> State
+    -> H.ComponentHTML Action ChildSlots Aff
+  renderSimpleButton buttonType state =
+    let
+      label = case buttonType of
+        Clear -> "clear"
+        Print -> "print"
+      action = case buttonType of
+        Clear -> HandleClear
+        Print -> HandlePrint
+      enabled =
+        either (\_ -> false) (\_ -> true) state.tuneResult
+      className =
+          either (\_ -> "unhoverable") (\_ -> "hoverable") state.tuneResult
+    in
+      HH.button
+        [ HE.onClick \_ -> action
+        , HP.class_ $ ClassName className
+        , HP.enabled enabled
+        ]
+        [ HH.text label ]
+
   {-
   renderDebug :: State -> H.ComponentHTML Action ChildSlots Aff 
   renderDebug state = 
