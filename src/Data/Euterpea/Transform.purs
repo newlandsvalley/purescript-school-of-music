@@ -72,7 +72,7 @@ forever m  = m :+: forever m
 -- | how do I pattern match on Rationals?
 -- | how do I return an error?
 lineToList :: ∀ a. Music a -> List (Music a)
-lineToList (Prim (Rest du)) = Nil
+lineToList (Prim (Rest _)) = Nil
 lineToList (n :+: ns) = n : lineToList ns
 lineToList _ =
      -- error "lineToList: argument not created by function line"
@@ -95,7 +95,7 @@ invert m =
       _ ->
         m
   where
-    pFun (Note d p) = singleton p
+    pFun (Note _ p) = singleton p
     pFun _ = Nil
 
 invert1 :: ∀ a. Music (Tuple Pitch a) -> Music (Tuple Pitch a)

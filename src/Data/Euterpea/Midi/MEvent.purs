@@ -173,9 +173,11 @@ phraseToMEvents :: MContext -> List PhraseAttribute -> Music1 -> Tuple Performan
 phraseToMEvents c Nil m = musicToMEvents c m
 phraseToMEvents c@(MContext mctx) (pa:pas) m =
   let
+      {-
       t = mctx.mcTime
-      i = mctx.mcInst
+      i = mctx.mcInst      
       -- dt = mctx.mcDur ??? not used???
+      -}
       pfd           =  phraseToMEvents c pas m
       Tuple pf dur  =  pfd
       loud x        =  phraseToMEvents c (Dyn (Loudness x) : pas) m
