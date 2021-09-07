@@ -83,6 +83,7 @@ vexConfig index =
   , scale : 0.8
   , isSVG : true
   , titled : true
+  , showChordSymbols : false
   }
 
 abcFileInputCtx :: FIC.Context
