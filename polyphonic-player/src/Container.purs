@@ -91,7 +91,7 @@ abcFileInputCtx =
   { componentId : "abcinput"
   , isBinary : false
   , prompt : "load"
-  , accept : mediaType (MediaType ".abc")
+  , accept : mediaType (MediaType ".abc, .txt")
   }
 
 multipleSelectCtx :: MSC.Context
@@ -165,7 +165,7 @@ component =
   handleAction ∷ Action → H.HalogenM State Action ChildSlots o Aff Unit
   handleAction = case _ of
     Init -> do
-      instruments <- H.liftAff $  loadRemoteSoundFonts  [AcousticGrandPiano, Vibraphone, Viola]
+      instruments <- H.liftAff $  loadRemoteSoundFonts  [AcousticGrandPiano, Vibraphone, AcousticBass]
       let
         rows :: Array Int
         rows = range 0 (maxVoices - 1)
