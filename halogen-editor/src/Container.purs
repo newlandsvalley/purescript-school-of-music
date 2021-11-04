@@ -9,7 +9,7 @@ import Data.Array (cons, null)
 import Data.Either (Either(..), either)
 import Data.Euterpea.DSL.Parser (PSoM)
 import Text.Parsing.StringParser (ParseError)
-import Data.Foldable (foldl)
+import Data.Foldable (foldr)
 import Data.List (List(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (fst)
@@ -180,12 +180,12 @@ component =
       pure unit
     NewInstrumentsSelection (MSC.CommittedSelections pendingInstrumentNames) -> do
       let
-        f acc s =
+        f s acc =
           case readGleitzman s of
             Just inst -> cons inst acc
             _ -> acc
         instrumentNames :: Array InstrumentName
-        instrumentNames = foldl f [] pendingInstrumentNames
+        instrumentNames = foldr f [] pendingInstrumentNames
       instruments <- H.liftAff $ loadRemoteSoundFonts instrumentNames
       _ <- H.tell _player unit $ (PC.SetInstruments instruments)
       _ <- H.modify (\st -> st { instruments = instruments})

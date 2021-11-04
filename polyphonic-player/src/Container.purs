@@ -14,7 +14,7 @@ import Data.Array (cons, index, null, fromFoldable, mapWithIndex, range)
 import Effect (Effect)
 import Data.Either (Either(..), either, hush)
 import Data.Euterpea.DSL.Parser (PSoM, parse)
-import Data.Foldable (foldl)
+import Data.Foldable (foldr)
 import Data.FoldableWithIndex (traverseWithIndex_)
 import Data.List (List(..))
 import Data.Map (Map, empty, keys, lookup, size, toUnfoldable, values)
@@ -214,12 +214,12 @@ component =
           pure unit
     NewInstrumentsSelection (MSC.CommittedSelections pendingInstrumentNames) -> do
       let
-        f acc s =
+        f s acc =
           case readGleitzman s of
             Just inst -> cons inst acc
             _ -> acc
         instrumentNames :: Array InstrumentName
-        instrumentNames = foldl f [] pendingInstrumentNames
+        instrumentNames = foldr f [] pendingInstrumentNames
       instruments <- H.liftAff $ loadRemoteSoundFonts instrumentNames
       _ <- H.tell _player unit $ (PC.SetInstruments instruments)
       _ <- H.modify (\st -> st { instruments = instruments})
