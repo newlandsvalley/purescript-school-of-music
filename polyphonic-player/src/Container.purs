@@ -8,6 +8,7 @@ import DOM.HTML.Indexed.InputAcceptType (mediaType)
 import Text.Parsing.StringParser (ParseError)
 import Data.Abc (AbcTune)
 import Data.Abc.Metadata (getTitle)
+import Data.Abc.Parser (parse) as ABC
 import Data.Abc.PSoM.Polyphony (generateDSL, generateDSL')
 import Data.Abc.Voice (getVoiceMap)
 import Data.Array (cons, index, null, fromFoldable, mapWithIndex, range)
@@ -28,7 +29,6 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple, fst, snd)
 import Effect.Aff (Aff)
 import Halogen as H
-import Halogen.EditorComponent as ED
 import Halogen.FileInputComponent as FIC
 import Halogen.HTML as HH
 import Halogen.HTML.Core (ClassName(..))
@@ -56,7 +56,6 @@ data Action =
   | HandleABCFile FIC.Message
   | HandleClear 
   | HandlePrint
-  | HandleNewTuneText ED.Message
   | HandleTuneIsPlaying PC.Message
   | NewInstrumentsSelection MSC.Message
   | HandleChangeVoice String
@@ -65,6 +64,11 @@ data Action =
 data SimpleButtonType =
     Clear
   | Print  
+
+
+data Query a =
+    HandleNewTuneText a
+  | ClearOldTune a
 
 maxVoices :: Int 
 maxVoices = 5
@@ -127,24 +131,23 @@ parseError tuneResult =
     Left { error, pos } -> "parse error: " <> error <> " at " <> (show pos)
 
 type ChildSlots =
-  ( editor :: ED.Slot Unit
-  , abcfile :: FIC.Slot Unit
+  ( abcfile :: FIC.Slot Unit
   , instrument :: MSC.Slot Unit
   , player :: (PC.Slot PlayablePSoM) Unit
   )
 
-_editor = Proxy :: Proxy "editor"
 _abcfile = Proxy :: Proxy "abcfile"
 _instrument = Proxy :: Proxy "instrument"
 _player = Proxy :: Proxy "player"
 
-component :: forall q i o. H.Component q i o Aff
+component :: forall i o. H.Component Query i o Aff
 component =
   H.mkComponent
     { initialState
     , render
     , eval: H.mkEval $ H.defaultEval
         { handleAction = handleAction
+        , handleQuery = handleQuery
         , initialize = Just Init
         , finalize = Nothing
         }
@@ -175,43 +178,25 @@ component =
                                , vexRenderers = renderers } )
       pure unit
     HandleABCFile (FIC.FileLoaded filespec) -> do
-
-      _ <- H.modify (\st -> st { fileName = Just filespec.name } )
-      _ <- H.tell _editor unit $ (ED.UpdateContent filespec.contents)
-      _ <- H.tell _player unit PC.StopMelody
-      pure unit
+      let 
+        tuneResult = parseTune filespec.contents
+      _ <- H.modify (\st -> st { tuneResult = tuneResult
+                               , fileName = Just filespec.name } )
+      case tuneResult of 
+        Right _tune -> do
+          _ <- H.tell _player unit PC.StopMelody
+          _ <- handleQuery (HandleNewTuneText unit)
+          pure unit
+        Left _err -> do
+          _ <- handleQuery (ClearOldTune unit)
+          pure unit
     HandleClear -> do
-      state <- H.get
-      _ <- H.tell _editor unit $ (ED.UpdateContent "")
-      _ <- H.tell _player unit $ PC.StopMelody
-      _ <- H.modify (\st -> st { fileName = Nothing
-                               , tuneResult = nullAbcTune
-                               , voicesMap = empty :: Map String AbcTune
-                               , currentVoice = Nothing
-                               , ePsom = nullPsomTune
-                               } )
-      H.liftAff $ clearScores state
+      _ <- H.modify (\st -> st { fileName = Nothing } )
+      _ <- handleQuery (ClearOldTune unit)
+      pure unit
     HandlePrint -> do
       _ <-  H.liftEffect print
       pure unit
-    HandleNewTuneText (ED.TuneResult eTuneResult) -> 
-      case eTuneResult of
-        Right tune -> do
-          state <- H.get
-          let 
-            voicesMap = getVoiceMap tune
-            currentVoice = Just allVoices
-            ePsom = generatePsom state currentVoice tune  
-          _ <- displayRenderedScores state voicesMap tune
-          _ <- refreshPlayerState ePsom
-          _ <- H.modify (\st -> st { tuneResult = eTuneResult
-                                   , voicesMap = voicesMap
-                                   , currentVoice = currentVoice
-                                   , ePsom = ePsom
-                                   } )
-          pure unit
-        Left _ -> 
-          pure unit
     NewInstrumentsSelection (MSC.CommittedSelections pendingInstrumentNames) -> do
       let
         f s acc =
@@ -228,7 +213,6 @@ component =
       -- we ignore this message, but if we wanted to we could
       -- disable any button that can alter the editor contents whilst the player
       -- is playing and re-enable when it stops playing
-      -- _ <- H.query _editor unit $ H.tell (ED.UpdateEnabled (not p))
       -- _ <- H.query _psomfile unit $ H.tell (FIC.UpdateEnabled (not p))
       -- _ <- H.query _abcfile unit $ H.tell (FIC.UpdateEnabled (not p))
       -- _ <- H.query _clear unit $ H.tell (Button.UpdateEnabled (not p))
@@ -247,20 +231,73 @@ component =
       _ <- H.modify (\st -> st { currentVoice = currentVoice })
       pure unit
 
+  handleQuery :: ∀ a. Query a -> H.HalogenM State Action ChildSlots o Aff (Maybe a)
+  handleQuery = case _ of    
+    HandleNewTuneText next -> do
+      state <- H.get
+      case state.tuneResult of
+        Right tune -> do
+          let 
+            voicesMap = getVoiceMap tune
+            currentVoice = Just allVoices
+            ePsom = generatePsom state currentVoice tune  
+          _ <- displayRenderedScores state voicesMap tune
+          _ <- refreshPlayerState ePsom
+          _ <- H.modify (\st -> st { voicesMap = voicesMap
+                                   , currentVoice = currentVoice
+                                   , ePsom = ePsom
+                                   } )
+          pure (Just next)
+        Left _ -> 
+          pure (Just next)
+    ClearOldTune next -> do
+      state <- H.get
+      _ <- H.tell _player unit $ PC.StopMelody
+      _ <- H.modify (\st -> st { tuneResult = nullAbcTune
+                               , voicesMap = empty :: Map String AbcTune
+                               , currentVoice = Nothing
+                               , ePsom = nullPsomTune
+                               } )
+      _ <- H.liftAff $ clearScores state
+      pure (Just next)
+
 
   render :: State -> H.ComponentHTML Action ChildSlots Aff
   render state = HH.div_
     [ HH.h1
       [HP.class_ (H.ClassName "center") ]
-      [HH.text "Polyphonic ABC Player"]
+      [HH.text "Polyphonic ABC Player"]  
+
+      -- left pane - instruments
     , HH.div
-      -- left pane
-      [ HP.class_ (H.ClassName "leftPane") ]
+        [ HP.class_ (H.ClassName "leftPane") ]
+        [ 
+          -- load instruments
+          HH.div
+            [ HP.class_ (H.ClassName "panelComponent")]
+            [ HH.h2 
+                []
+                [HH.text "Instruments"]  
+            , HH.slot _instrument unit
+               (MSC.component multipleSelectCtx initialMultipleSelectState) unit NewInstrumentsSelection
+            ]
+          -- display instruments
+          , renderInstruments state
+          -- player
+          , renderPlayer state
+        ]
+        
+    , HH.div
+      -- right pane - ABC
+      [ HP.class_ (H.ClassName "rightPane") ]
       [
         -- load and clear
         HH.div
-         [ HP.class_ (H.ClassName "leftPanelComponent") ]
-         [  HH.label
+         [ HP.class_ (H.ClassName "panelComponent") ]
+         [ HH.h2 
+                []
+                [HH.text "Tune"]  
+         , HH.label
             [ HP.class_ (H.ClassName "labelAlignment") ]
             [ HH.text "ABC:" ]
          , HH.slot _abcfile unit (FIC.component abcFileInputCtx) unit HandleABCFile
@@ -268,7 +305,7 @@ component =
          ]
          -- print
       , HH.div
-         [ HP.class_ (H.ClassName "leftPanelComponent") ]
+         [ HP.class_ (H.ClassName "panelComponent") ]
          [  HH.label
             [ HP.class_ (H.ClassName "labelAlignment") ]
             [ HH.text "score:" ]
@@ -276,28 +313,15 @@ component =
          ]
         -- render voice menu if we have more than 1 voice
       , renderPossibleVoiceMenu state
-        -- load instruments
-      , HH.div
-          [ HP.class_ (H.ClassName "leftPanelComponent")]
-          [
-            HH.slot _instrument unit
-               (MSC.component multipleSelectCtx initialMultipleSelectState) unit NewInstrumentsSelection
-          ]
-        -- display instruments
-      , renderInstruments state
-        -- player
-      , renderPlayer state
       ]
-      -- right pane - editor
-      , HH.div
-          [ HP.class_ (H.ClassName "rightPane") ]
-          [
-            HH.slot _editor unit ED.component unit HandleNewTuneText
-          ]
+
+    
+      
       -- score rendering
-      , possiblyRenderTuneTitle state
-      , HH.ul [ HP.id "score"] renderScores
-      --, renderDebug state
+    , possiblyRenderTuneTitle state
+    , HH.ul [ HP.id "score"] renderScores   
+    , renderParseError state
+    --, renderDebug state
     ]
 
   renderPlayer :: State -> H.ComponentHTML Action ChildSlots Aff
@@ -305,7 +329,7 @@ component =
     case state.ePsom of
       Right psom ->
         HH.div
-          [ HP.class_ (H.ClassName "leftPanelComponent")]
+          [ HP.class_ (H.ClassName "panelComponent")]
           [
              HH.slot _player unit (PC.component (PlayablePSoM psom) state.instruments) unit (HandleTuneIsPlaying)
           ]
@@ -316,10 +340,12 @@ component =
   renderInstruments :: State -> H.ComponentHTML Action ChildSlots Aff
   renderInstruments state =
     if (null state.instruments) then
-      HH.div_ [ HH.text "wait for instruments to load"]
+      HH.div
+        [ HP.class_ (H.ClassName "panelComponent") ]
+        [ HH.text "wait for instruments to load"]
     else
       HH.div
-        [ HP.class_ (H.ClassName "leftPanelComponent") ]
+        [ HP.class_ (H.ClassName "panelComponent") ]
         [ HH.div
            [ HP.class_ (H.ClassName "longLabel") ]
            [ HH.text "loaded instruments:" ]
@@ -350,7 +376,7 @@ component =
   renderVoiceMenu :: String -> Array String ->  H.ComponentHTML Action ChildSlots Aff
   renderVoiceMenu currentVoice voices =   
     HH.div
-      [ HP.class_ (H.ClassName "leftPanelComponent")]
+      [ HP.class_ (H.ClassName "panelComponent")]
       [ 
         
         {- HH.label
@@ -426,6 +452,19 @@ component =
         _ ->
           HH.text ""
   
+  renderParseError :: 
+       State
+    -> H.ComponentHTML Action ChildSlots Aff
+  renderParseError state =
+    case (hush state.tuneResult) of 
+      Just _tune -> 
+        HH.text ""
+      _ ->
+        case state.fileName of 
+          Just _name -> 
+            HH.text ("ABC file failed to parse") 
+          _ ->
+            HH.text ""
   
   -- rendering functions
   renderSimpleButton :: 
@@ -475,6 +514,11 @@ getFileName state =
             title <> ".abc"
         _ ->
           "untitled.abc"
+
+parseTune :: String -> Either ParseError AbcTune
+parseTune text = 
+  -- we need to add a terminating bar line
+  ABC.parse (text <> "|\r\n")
 
 -- Generate the possibly polyphonic PSoM DSL
 -- if the user selects just one voice or there is only once voice in the tune anyway 

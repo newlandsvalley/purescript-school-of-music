@@ -106,7 +106,7 @@ input[type='radio']:checked:after {
 }
 
 .leftPane {
-  width: 420px;
+  width: 480px;
   float: left;
 }
 
@@ -114,9 +114,9 @@ input[type='radio']:checked:after {
   float: left;
 }
 
-.leftPanelComponent {
+.panelComponent {
   /* align items in the LHS panel */
-  margin: 0 0 10px 0;
+  margin: 0 0 10px 70px;
   font-size: 1.2em;
   font-family: Georgia, serif;
 }
