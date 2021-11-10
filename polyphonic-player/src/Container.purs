@@ -313,9 +313,7 @@ component =
          ]
         -- render voice menu if we have more than 1 voice
       , renderPossibleVoiceMenu state
-      ]
-
-    
+      ]   
       
       -- score rendering
     , possiblyRenderTuneTitle state
