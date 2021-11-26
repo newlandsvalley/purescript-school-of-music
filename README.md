@@ -24,7 +24,7 @@ Melodies are presented to the browser using a [DSL](https://github.com/newlandsv
 Editor
 ------
 
-The editor hase been developed using Halogen and allows you to enter PSoM text and will parse the text after every keystroke. If it is valid, a player will appear, otherwise an error message is shown. On startup, it loads a pre-selected set of instrument soundfonts which you can later change if you prefer. It also allows you to import an ABC file as PSoM and to load or save the PSoM text.
+The editor has been developed using Halogen and allows you to enter PSoM text and will parse the text after every keystroke. If it is valid, a player will appear, otherwise an error message is shown. On startup, it loads a pre-selected set of instrument soundfonts which you can later change if you prefer. It also allows you to import an ABC file as PSoM and to load or save the PSoM text.
 
 There is also a deprecated Pux editor and a set of sample tunes using Pux which will not be maintained beyond PureScript 0.11.
 
@@ -33,9 +33,9 @@ Polyphonic ABC Player
 
 Try it [here](http://www.tradtunedb.org.uk:8605/).
 
-This player is essentially identical to the editor, except that it allows ABC to be loaded and viewed in the editor window.  If the tune is polyphonic, the user can choose to play the polyphonic melody or just one of the parts and can also see the score of each part.  Monophonic tunes just play normally. 
+This player is essentially identical to the editor in that, when the ABC is loaded, the tune can be played and the score viewed. Monophonic tunes just play normally. However, if the tune is polyphonic, the user can choose to play the entire polyphonic melody or just one of the parts. The scores for the various parts are displayed separately.
 
-Because the transformation to PSoM is relatively expensive, we can no longer regenerate the output after each keystroke as we can for the monophonic ABC editor.  For this reason, editing the ABC text is disallowed.
+Because the transformation to PSoM is relatively expensive, there is no editor window. It would no longer be possible to update the melody and the score after each keystroke and have reasonable responsiveness. 
 
 To build
 --------
