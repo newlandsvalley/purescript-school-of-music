@@ -5,7 +5,7 @@ import Prelude
 import Audio.Euterpea.Playable (PlayablePSoM(..))
 import Audio.SoundFont (Instrument, loadRemoteSoundFonts)
 import DOM.HTML.Indexed.InputAcceptType (mediaType)
-import Text.Parsing.StringParser (ParseError)
+import StringParser (ParseError)
 import Data.Abc (AbcTune)
 import Data.Abc.Metadata (getTitle)
 import Data.Abc.Parser (parse) as ABC
