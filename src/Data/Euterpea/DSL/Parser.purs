@@ -20,9 +20,9 @@ import Data.Array (fromFoldable)
 import Data.Tuple (Tuple(..))
 import Data.Foldable (class Foldable)
 import Data.Rational (Rational, fromInt, (%))
-import Text.Parsing.StringParser (Parser, ParseError, runParser, try, fail)
-import Text.Parsing.StringParser.CodePoints (anyDigit, char, string, regex, skipSpaces)
-import Text.Parsing.StringParser.Combinators (between, choice, many1, sepBy1, optional, optionMaybe, (<?>))
+import StringParser (Parser, ParseError, runParser, try, fail)
+import StringParser.CodePoints (anyDigit, char, string, regex, skipSpaces)
+import StringParser.Combinators (between, choice, many1, sepBy1, optional, optionMaybe, (<?>))
 import Data.Euterpea.Music (Dur, Octave, Pitch(..), PitchClass(..), Primitive(..), Music (..),
        NoteAttribute(..), PhraseAttribute(..), Control(..), Tempo(..), Articulation(..)) as Eut
 import Data.Euterpea.Dynamics (Dynamic(..), StdLoudness, read) as Dyn

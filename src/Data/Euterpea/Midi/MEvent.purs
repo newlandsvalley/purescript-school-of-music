@@ -102,9 +102,9 @@ merge a@(e1:es1)  b@(e2:es2)  =
     e2 : merge a es2
 
 musicToMEvents :: MContext -> Music1 -> Tuple Performance DurT
-musicToMEvents c@(MContext {mcTime:t, mcDur:dt}) (Prim (Note d p)) =
+musicToMEvents c@(MContext {mcTime:_t, mcDur:dt}) (Prim (Note d p)) =
   Tuple (singleton (noteToMEvent c d p)) (d*dt)
-musicToMEvents c@(MContext {mcTime:t, mcDur:dt}) (Prim (Rest d)) =
+musicToMEvents (MContext {mcTime:_t, mcDur:dt}) (Prim (Rest d)) =
   Tuple Nil (d*dt)
 musicToMEvents (MContext c) (m1 :+: m2) =
     let t = c.mcTime
@@ -121,11 +121,11 @@ musicToMEvents (MContext c) (Modify (Instrument i) m) =
    musicToMEvents (MContext (c { mcInst=i })) m
 musicToMEvents c (Modify (Phrase pas) m) =
    phraseToMEvents c pas m
-musicToMEvents c (Modify (KeySig x y) m) =
+musicToMEvents c (Modify (KeySig _ _) m) =
   musicToMEvents c m            -- KeySig causes no change
-musicToMEvents c (Modify (Custom x) m) =
+musicToMEvents c (Modify (Custom _) m) =
   musicToMEvents c m              -- Custom causes no change
-musicToMEvents c m@(Modify x m') =
+musicToMEvents c m@(Modify _ _) =
   musicToMEvents c $ applyControls m    -- Transpose and Tempo addressed by applyControls
 
 -- | I don't yet understand the original HSoM noteToMEvent shown here
@@ -155,7 +155,7 @@ noteToMEvent (MContext { mcTime:ct, mcInst:ci, mcDur:cdur, mcVol:cvol }) d (Note
 -}
 
 noteToMEvent :: MContext -> Dur ->  Note1 -> MEvent
-noteToMEvent (MContext { mcTime:ct, mcInst:ci, mcDur:cdur, mcVol:cvol }) d (Note1 p nas) =
+noteToMEvent (MContext { mcTime:ct, mcInst:ci, mcDur:cdur, mcVol:cvol }) d (Note1 p _) =
   MEvent {eTime:ct, ePitch:absPitch p, eInst:ci, eDur:d*cdur, eVol:cvol, eParams:Nil }
 
 applyControls :: Music1 -> Music1

@@ -109,7 +109,7 @@ invert1 m =
       _ ->
         m
   where
-    pFun (Note d (Tuple p x)) = singleton p
+    pFun (Note d (Tuple p _)) = singleton p
     pFun _ = Nil
 
 retro :: ∀ a. Music a -> Music a
@@ -227,7 +227,7 @@ minL (d:ds) d' =
     d'
 
 cutL :: ∀ a. LazyDur -> Music a -> Music a
-cutL Nil m                       = rest (fromInt 0)
+cutL Nil _                       = rest (fromInt 0)
 cutL (d:ds) m | d <= (fromInt 0) = cutL ds m
 cutL ld (Prim (Note oldD p))     = note (minL ld oldD) p
 cutL ld (Prim (Rest oldD))       = rest (minL ld oldD)
@@ -286,7 +286,7 @@ changeInstrument :: ∀ a. InstrumentName -> Music a -> Music a
 changeInstrument i m = Modify (Instrument i) $ removeInstruments m
 
 removeInstruments :: ∀ a. Music a -> Music a
-removeInstruments (Modify (Instrument i) m) = removeInstruments m
+removeInstruments (Modify (Instrument _) m) = removeInstruments m
 removeInstruments (Modify c m) = Modify c $ removeInstruments m
 removeInstruments (m1 :+: m2) = removeInstruments m1 :+: removeInstruments m2
 removeInstruments (m1 :=: m2) = removeInstruments m1 :=: removeInstruments m2
