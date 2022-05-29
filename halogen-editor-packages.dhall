@@ -106,8 +106,8 @@ in  upstream
 -}
 
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.14.7-20220321/packages.dhall
-        sha256:dff91304260c1196273badf7d8141e66ab16bed147b95aa175dd8a84ec87d58f
+      https://github.com/purescript/package-sets/releases/download/psc-0.15.0-20220527/packages.dhall
+        sha256:15dd8041480502850e4043ea2977ed22d6ab3fc24d565211acde6f8c5152a799
       
 in  upstream
   with abc-parser =
@@ -128,7 +128,7 @@ in  upstream
     , "tuples"
     ]
     , repo = "https://github.com/newlandsvalley/purescript-abc-parser.git"
-    , version = "ps014"
+    , version = "ps015"
     }
   with halogen-components =
      { dependencies =
@@ -143,7 +143,7 @@ in  upstream
      , repo =
          "https://github.com/newlandsvalley/purescript-halogen-components.git"
      , version =
-         "ps014"
+         "ps015"
      }
   with abc2psom =
      { dependencies =
@@ -151,7 +151,7 @@ in  upstream
      , repo =
          "https://github.com/newlandsvalley/purescript-abc2psom.git"
      , version =
-         "ps014"
+         "ps015"
      }
   with halogen-css =
       { dependencies =
