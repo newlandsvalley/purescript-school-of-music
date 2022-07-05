@@ -20,7 +20,7 @@ import Data.Foldable (foldr)
 import Data.FoldableWithIndex (traverseWithIndex_)
 import Data.List (List(..))
 import Data.Map (Map, empty, keys, lookup, size, toUnfoldable, values)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromJust, fromMaybe, isJust)
 import Data.MediaType (MediaType(..))
 import Data.Midi.Instrument (InstrumentName(..), gleitzmanName, gleitzmanNames, readGleitzman)
 import Data.Set (toUnfoldable) as Set
@@ -37,6 +37,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Halogen.MultipleSelectComponent as MSC
 import Halogen.PlayerComponent as PC
+import Partial.Unsafe (unsafePartial)
 import VexFlow.Score (Renderer, clearCanvas, renderFinalTune, resizeCanvas, initialiseCanvas) as Score
 import VexFlow.Types (Config)
 import Type.Proxy (Proxy(..))
@@ -555,31 +556,36 @@ displayRenderedScores :: ∀ o.
     -> Map String AbcTune 
     -> AbcTune
     -> H.HalogenM State Action ChildSlots o Aff Unit
-displayRenderedScores state voicesMap tune =
-  -- render the whole tune if only one voice
-  if (size voicesMap) <= 1 then 
-    case (index state.vexRenderers 0) of 
-      Just renderer -> do
-        -- _ <- H.liftEffect $ Score.clearCanvas $ renderer
-        _ <- H.liftAff $ clearScores state
-        _ <- H.liftEffect $ Score.renderFinalTune (vexConfig 0) renderer tune
-        pure unit
-      _ -> 
-        pure unit
+displayRenderedScores state voicesMap tune = do
+  let 
+     -- single renderer is used unless we have multiple voices that 
+     -- cannot be rendered in an ensemble score (maybe because parts don't match)
+     singleRenderer = unsafePartial $ fromJust $ index state.vexRenderers 0
+    -- render the whole tune if only one voice
+  if (size voicesMap) <= 1 then do
+    _ <- H.liftAff $ clearScores state
+    _ <- H.liftEffect $ Score.renderFinalTune (vexConfig 0) singleRenderer tune
+    pure unit
   -- otherwise render the selected voice
-  else       
+  else do 
+    -- first try to render the ensemble score
     let 
-      -- displayVoice :: Int -> Tuple String AbcTune -> H.HalogenM State Action ChildSlots o Aff Unit
-      displayVoice idx voices =
-        case (index state.vexRenderers idx) of 
-          Just renderer -> do
-            -- _ <- H.liftEffect $ Score.clearCanvas $ renderer
-            _ <- H.liftEffect $ Score.renderFinalTune (vexConfig idx) renderer (snd voices)
-            pure unit
-          _ -> pure unit
-      voiceNamesAndTunes :: Array (Tuple String AbcTune)
-      voiceNamesAndTunes = toUnfoldable voicesMap
-    in do
+      ensembleConfig = (vexConfig 0) { scale = 0.6}
+    _ <- H.liftAff $ clearScores state
+    mError <- H.liftEffect $ renderPolyphonicTune ensembleConfig singleRenderer tune
+    -- but fall back to displaying the voices individually
+    when (isJust mError) do
+      let 
+        -- displayVoice :: Int -> Tuple String AbcTune -> H.HalogenM State Action ChildSlots o Aff Unit
+        displayVoice idx voices =
+          case (index state.vexRenderers idx) of 
+            Just renderer -> do
+              _ <- H.liftEffect $ Score.clearCanvas $ renderer
+              _ <- H.liftEffect $ Score.renderFinalTune (vexConfig idx) renderer (snd voices)
+              pure unit
+            _ -> pure unit
+        voiceNamesAndTunes :: Array (Tuple String AbcTune)
+        voiceNamesAndTunes = toUnfoldable voicesMap
       _ <- H.liftAff $ clearScores state
       _ <- H.liftEffect $ traverseWithIndex_ displayVoice voiceNamesAndTunes
       pure unit

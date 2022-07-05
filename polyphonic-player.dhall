@@ -16,6 +16,7 @@ in conf // {
                                      , "halogen-css"
                                      , "halogen-components"
                                      , "media-types"
+                                     , "partial"
                                      , "school-of-music"
                                      , "soundfonts" ],
   packages = ./polyphonic-player-packages.dhall
