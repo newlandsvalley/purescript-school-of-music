@@ -11,6 +11,7 @@ in conf // {
                                      , "debug"
                                      , "dom-indexed"
                                      , "effect"
+                                     , "ensemble-scores"
                                      , "halogen"
                                      , "halogen-css"
                                      , "halogen-components"

@@ -2,6 +2,7 @@ module Container where
 
 import Prelude
 
+import Abc.EnsembleScore.Renderer
 import Audio.Euterpea.Playable (PlayablePSoM(..))
 import Audio.SoundFont (Instrument, loadRemoteSoundFonts)
 import DOM.HTML.Indexed.InputAcceptType (mediaType)

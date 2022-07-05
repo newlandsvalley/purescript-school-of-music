@@ -12,4 +12,4 @@ var wrapper = function() {
 
 }();
 
-exports.print = wrapper.print;
+export var print = wrapper.print;

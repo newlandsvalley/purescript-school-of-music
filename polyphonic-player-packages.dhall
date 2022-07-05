@@ -158,6 +158,27 @@ in  upstream
     , repo = "https://github.com/newlandsvalley/purescript-abc-scores.git"
     , version = "ps015"
     }
+  with ensemble-scores =
+    { dependencies = 
+      [ "abc-parser"
+      , "abc-scores"
+      , "arrays"
+      , "console"
+      , "debug"
+      , "effect"
+      , "either"
+      , "foldable-traversable"
+      , "integers"
+      , "maybe"
+      , "newtype"
+      , "partial"
+      , "prelude"
+      , "strings"
+      , "transformers"
+      ]
+    , repo = "https://github.com/newlandsvalley/ensemble-scores.git"
+    , version = "main"
+    }
   with school-of-music = 
     ./spago.dhall as Location
 

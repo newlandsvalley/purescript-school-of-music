@@ -26,8 +26,6 @@ Editor
 
 The editor has been developed using Halogen and allows you to enter PSoM text and will parse the text after every keystroke. If it is valid, a player will appear, otherwise an error message is shown. On startup, it loads a pre-selected set of instrument soundfonts which you can later change if you prefer. It also allows you to import an ABC file as PSoM and to load or save the PSoM text.
 
-There is also a deprecated Pux editor and a set of sample tunes using Pux which will not be maintained beyond PureScript 0.11.
-
 Polyphonic ABC Player
 ---------------------
 
