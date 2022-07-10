@@ -7,6 +7,7 @@ in conf // {
                                      , "abc2psom"
                                      , "aff"
                                      , "colors"
+                                     , "console"
                                      , "css"
                                      , "debug"
                                      , "dom-indexed"

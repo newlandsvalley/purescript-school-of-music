@@ -2,18 +2,16 @@ module Container where
 
 import Prelude
 
-import Abc.EnsembleScore.Renderer
+import Abc.EnsembleScore.Renderer (renderPolyphonicTune)
 import Audio.Euterpea.Playable (PlayablePSoM(..))
 import Audio.SoundFont (Instrument, loadRemoteSoundFonts)
 import DOM.HTML.Indexed.InputAcceptType (mediaType)
-import StringParser (ParseError)
 import Data.Abc (AbcTune)
 import Data.Abc.Metadata (getTitle)
-import Data.Abc.Parser (parse) as ABC
 import Data.Abc.PSoM.Polyphony (generateDSL, generateDSL')
+import Data.Abc.Parser (parse) as ABC
 import Data.Abc.Voice (getVoiceMap)
 import Data.Array (cons, index, null, fromFoldable, mapWithIndex, range)
-import Effect (Effect)
 import Data.Either (Either(..), either, hush)
 import Data.Euterpea.DSL.Parser (PSoM, parse)
 import Data.Foldable (foldr)
@@ -28,7 +26,9 @@ import Data.String (stripPrefix)
 import Data.String.Pattern (Pattern(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple, fst, snd)
+import Effect (Effect)
 import Effect.Aff (Aff)
+import Effect.Console (log)
 import Halogen as H
 import Halogen.FileInputComponent as FIC
 import Halogen.HTML as HH
@@ -38,9 +38,10 @@ import Halogen.HTML.Properties as HP
 import Halogen.MultipleSelectComponent as MSC
 import Halogen.PlayerComponent as PC
 import Partial.Unsafe (unsafePartial)
+import StringParser (ParseError)
+import Type.Proxy (Proxy(..))
 import VexFlow.Score (Renderer, clearCanvas, renderFinalTune, resizeCanvas, initialiseCanvas) as Score
 import VexFlow.Types (Config)
-import Type.Proxy (Proxy(..))
 import Window (print)
 
 type State =
@@ -576,6 +577,7 @@ displayRenderedScores state voicesMap tune = do
     -- but fall back to displaying the voices individually
     when (isJust mError) do
       let 
+        error = fromMaybe "none"  mError         
         -- displayVoice :: Int -> Tuple String AbcTune -> H.HalogenM State Action ChildSlots o Aff Unit
         displayVoice idx voices =
           case (index state.vexRenderers idx) of 
@@ -586,9 +588,10 @@ displayRenderedScores state voicesMap tune = do
             _ -> pure unit
         voiceNamesAndTunes :: Array (Tuple String AbcTune)
         voiceNamesAndTunes = toUnfoldable voicesMap
+      
+      _ <- H.liftEffect $ log ("ensemble score error: " <> error)
       _ <- H.liftAff $ clearScores state
-      _ <- H.liftEffect $ traverseWithIndex_ displayVoice voiceNamesAndTunes
-      pure unit
+      H.liftEffect $ traverseWithIndex_ displayVoice voiceNamesAndTunes
 
 
 reloadPlayer ::  ∀ o.
