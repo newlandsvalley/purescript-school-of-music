@@ -12,6 +12,7 @@ import Data.Abc.PSoM.Polyphony (generateDSL, generateDSL')
 import Data.Abc.Parser (parse) as ABC
 import Data.Abc.Voice (getVoiceMap)
 import Data.Array (cons, index, null, fromFoldable, mapWithIndex, range)
+import Data.Array.NonEmpty.Internal (NonEmptyArray(..)) as Unsafe
 import Data.Either (Either(..), either, hush)
 import Data.Euterpea.DSL.Parser (PSoM, parse)
 import Data.Foldable (foldr)
@@ -533,7 +534,8 @@ generatePsom state mCurrentVoice tune =
       -- polyphony or only one voice anyway
       if mCurrentVoice == Nothing || mCurrentVoice == Just allVoices || (size state.voicesMap <= 1) then
         let
-          voices = fromFoldable (values voicesMap)
+          -- the user has by now selected a voice so the coice map cannot be empty
+          voices = Unsafe.NonEmptyArray $ fromFoldable (values voicesMap)
           title = fromMaybe "unnamed" $ getTitle tune 
         in
           generateDSL' voices instrumentNames title
