@@ -7,7 +7,7 @@ import Audio.Euterpea.Playable (PlayablePSoM(..))
 import Audio.SoundFont (Instrument, loadRemoteSoundFonts)
 import DOM.HTML.Indexed.InputAcceptType (mediaType)
 import Data.Abc (AbcTune)
-import Data.Abc.Metadata (getTitle)
+import Data.Abc.Utils (getTitle)
 import Data.Abc.PSoM.Polyphony (generateDSL, generateDSL')
 import Data.Abc.Parser (parse) as ABC
 import Data.Abc.Voice (getVoiceMap)
@@ -43,6 +43,7 @@ import StringParser (ParseError)
 import Type.Proxy (Proxy(..))
 import VexFlow.Score (Renderer, clearCanvas, renderFinalTune, resizeCanvas, initialiseCanvas) as Score
 import VexFlow.Types (Config)
+import VexFlow.Abc.TickableContext (defaultNoteSeparation)
 import Window (print)
 
 type State =
@@ -91,6 +92,7 @@ vexConfig index =
   , scale : 0.8
   , isSVG : true
   , titled : true
+  , noteSeparation: defaultNoteSeparation
   , showChordSymbols : false
   }
 

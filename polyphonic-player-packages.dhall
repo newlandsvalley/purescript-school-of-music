@@ -179,6 +179,25 @@ in  upstream
     , repo = "https://github.com/newlandsvalley/ensemble-scores.git"
     , version = "main"
     }
+  with arrays =
+    { dependencies =
+    [ "bifunctors"
+    , "control"
+    , "foldable-traversable"
+    , "maybe"
+    , "nonempty"
+    , "partial"
+    , "prelude"
+    , "safe-coerce"
+    , "st"
+    , "tailrec"
+    , "tuples"
+    , "unfoldable"
+    , "unsafe-coerce"
+    ]
+    , repo = "https://github.com/purescript/purescript-arrays.git"
+    , version = "v7.1.0"
+    }
   with school-of-music = 
     ./spago.dhall as Location
 
