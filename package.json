@@ -4,12 +4,11 @@
     "build": "spago build",
     "test": "spago -x ./test.dhall test",
     "halogen-editor": "spago -x ./halogen-editor.dhall bundle-app --to halogen-editor/dist/app.js",
-    "polyphonic-player": "spago -x ./polyphonic-player.dhall bundle-app --to polyphonic-player/dist/app.js",
-    "pulp build": "pulp build"
+    "polyphonic-player": "spago -x ./polyphonic-player.dhall bundle-app --to polyphonic-player/dist/app.js"
   },
   "devDependencies": {
     "spago": "^0.20.9",
-    "purescript": "^0.15.0",
+    "purescript": "^0.15.4",
     "purescript-psa": "^0.5.1"
   }
 }

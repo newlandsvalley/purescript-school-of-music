@@ -8,7 +8,6 @@ module Data.Euterpea.DSL.Parser
 import Prelude (pure, ($), (<$>), (<$), (<*>), (<*), (*>), (<<<), (<>), (>>=), (-))
 import Control.Alt ((<|>))
 import Control.Lazy (fix)
-import Data.String.CodeUnits (fromCharArray)
 import Data.String.CodePoints (codePointFromChar, singleton)
 import Data.Int (fromString)
 import Data.Either (Either(..))
@@ -16,9 +15,7 @@ import Data.List (singleton) as L
 import Data.List.NonEmpty as Nel
 import Data.Map (Map, empty, fromFoldable, lookup, union) as Map
 import Data.Maybe (Maybe(Just), fromMaybe)
-import Data.Array (fromFoldable)
 import Data.Tuple (Tuple(..))
-import Data.Foldable (class Foldable)
 import Data.Rational (Rational, fromInt, (%))
 import StringParser (Parser, ParseError, runParser, try, fail)
 import StringParser.CodePoints (anyDigit, char, string, regex, skipSpaces)
@@ -71,21 +68,21 @@ simpleMusic bnds =
 
 bindings :: Parser BindingMap
 bindings =
-  (fix \unit ->
+  (fix \_ ->
     buildBindings <$>
       keyWord("Let") <*> (many1 bind) <*> keyWord("In")
   ) <?> "bindings"
 
 bind :: Parser Binding
 bind =
-  (fix \unit ->
+  (fix \_ ->
     buildBinding <$>
       identifier <*> (keyWord "=") <*> (music Map.empty)
   )  <?> "bind"
 
 music :: BindingMap -> Parser Eut1.Music1
 music bnds =
-  fix \unit ->
+  fix \_ ->
     (choice
       [
         prim
@@ -103,7 +100,7 @@ bracketedMusic bnds =
 
 voices :: BindingMap -> Parser Eut1.Music1
 voices bnds =
-  fix \unit ->
+  fix \_ ->
     Eutt.chord1 <$> ((keyWord "Par") *> (try $ optional comment) *> many1 (procedureOrVariable bnds))
 
 procedureOrVariable :: BindingMap -> Parser Eut1.Music1
@@ -120,7 +117,7 @@ variable bnds =
 -- | setting the instrument name
 control :: BindingMap -> Parser Eut1.Music1
 control bnds =
-  fix \unit ->
+  fix \_ ->
     Eut.Modify <$>
       (choice
         [
@@ -477,8 +474,10 @@ octave :: Parser Eut.Octave
 octave =
   (digit <|> ten) <* skipSpaces
 
+{-
 volume :: Parser Int
 volume = int <* skipSpaces
+-}
 
 separator :: Parser Char
 separator =
@@ -512,9 +511,6 @@ dynamicMarking =
   (regex "[A-Z]+" <* skipSpaces >>= (\name ->
     checkDynamicMarking name)
   ) <?> "dynamic marking"
-
-fromCharList :: forall f. Foldable f => f Char -> String
-fromCharList = fromCharArray <<< fromFoldable
 
 keyWord :: String -> Parser String
 keyWord target =
