@@ -40,11 +40,6 @@ To build
 
      spago build
 
-or
-
-     bower install
-     pulp build
-
 To test
 -------
 

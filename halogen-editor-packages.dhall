@@ -106,45 +106,24 @@ in  upstream
 -}
 
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.15.0-20220527/packages.dhall
-        sha256:15dd8041480502850e4043ea2977ed22d6ab3fc24d565211acde6f8c5152a799
+      https://github.com/purescript/package-sets/releases/download/psc-0.15.4-20221012/packages.dhall
+        sha256:31c6db01ae45b911bf529c3ab731b02d114d14115938009b0c72a231589bfffd
       
 in  upstream
-  with abc-parser =
-    { dependencies = 
-    [ "bifunctors"
-    , "effect"
-    , "either"
-    , "foldable-traversable"
-    , "maybe"
-    , "midi"
-    , "ordered-collections"
-    , "profunctor-lenses"
-    , "rationals"
-    , "strings"
-    , "stringutils"
-    , "string-parsers"
-    , "transformers"
-    , "tuples"
-    ]
-    , repo = "https://github.com/newlandsvalley/purescript-abc-parser.git"
-    , version = "ps015"
-    }
   with halogen-components =
-     { dependencies =
-         [ "console"
-         , "css"
-         , "effect"
-         , "js-fileio"
-         , "halogen"
-         , "halogen-css"
-         , "soundfonts"
-         ]
-     , repo =
-         "https://github.com/newlandsvalley/purescript-halogen-components.git"
-     , version =
-         "ps015"
-     }
+    { dependencies =
+      [ "console"
+      , "css"
+      , "effect"
+      , "js-fileio"
+      , "halogen"
+      , "halogen-css"
+      , "soundfonts"
+      ]
+    , repo =
+        "https://github.com/newlandsvalley/purescript-halogen-components.git"
+    , version = "v0.6.0"
+    }
   with abc2psom =
      { dependencies =
          [ "abc-parser", "school-of-music", "soundfonts" ]

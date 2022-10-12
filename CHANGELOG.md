@@ -1,5 +1,9 @@
 # Changelog
 
+### Version 1.3.0
+
+*  Update to PS 0.15.4
+
 ### Version 1.2.3
 
 * Add spago  (ps 0.13.8)
