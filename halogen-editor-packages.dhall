@@ -126,11 +126,28 @@ in  upstream
     }
   with abc2psom =
      { dependencies =
-         [ "abc-parser", "school-of-music", "soundfonts" ]
+       [ "abc-parser"
+       , "arrays"
+       , "either"
+       , "foldable-traversable"
+       , "integers"
+       , "lists"
+       , "maybe"
+       , "midi"
+       , "newtype"
+       , "ordered-collections"
+       , "prelude"
+       , "rationals"
+       , "school-of-music"
+       , "soundfonts"
+       , "transformers"
+       , "tuples"
+       , "unfoldable"
+       ]
      , repo =
          "https://github.com/newlandsvalley/purescript-abc2psom.git"
      , version =
-         "ps015"
+         "v0.1.0"
      }
   with school-of-music = 
     ./spago.dhall as Location
