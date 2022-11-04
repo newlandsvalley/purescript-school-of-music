@@ -10,7 +10,7 @@ import Control.Alt ((<|>))
 import Control.Lazy (fix)
 import Data.String.CodePoints (codePointFromChar, singleton)
 import Data.Int (fromString)
-import Data.Either (Either(..))
+import Data.Either (Either)
 import Data.List (singleton) as L
 import Data.List.NonEmpty as Nel
 import Data.Map (Map, empty, fromFoldable, lookup, union) as Map
@@ -46,8 +46,9 @@ defaultVolume = 100
 
 psom ::Parser PSoM
 psom =
-  buildPSoM <$>
-    quotedString <*> (try $ optional comment *> musicProcedure Map.empty)
+  { title:_, music:_ } 
+    <$> quotedString 
+    <*> (try $ optional comment *> musicProcedure Map.empty)
 
 -- | a music procedure (the top level music production)
 musicProcedure :: BindingMap -> Parser Eut1.Music1
@@ -73,12 +74,23 @@ bindings =
       keyWord("Let") <*> (many1 bind) <*> keyWord("In")
   ) <?> "bindings"
 
+  where 
+  buildBindings :: String -> Nel.NonEmptyList Binding -> String -> BindingMap
+  buildBindings  _ bnds _ =
+    Map.fromFoldable bnds
+
 bind :: Parser Binding
 bind =
   (fix \_ ->
     buildBinding <$>
       identifier <*> (keyWord "=") <*> (music Map.empty)
   )  <?> "bind"
+
+  where    
+  buildBinding :: String -> String -> Eut1.Music1 -> Binding
+  buildBinding name _ mus =
+    Tuple name mus
+
 
 music :: BindingMap -> Parser Eut1.Music1
 music bnds =
@@ -236,6 +248,11 @@ primNote1 = Eut.Prim <$> note1
 note1 :: Parser (Eut.Primitive Eut1.Note1)
 note1 =
   buildNote1 <$> keyWord "Note" <*> duration <*> pitch
+
+  where    
+  buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Eut.Primitive Eut1.Note1
+  buildNote1 _ dur p  =
+    Eut.Note dur $ Eut1.Note1 p $ L.singleton (Eut.Volume defaultVolume)
 
 rest :: ∀ a. Parser (Eut.Primitive a)
 rest =
@@ -493,6 +510,13 @@ signedInt :: Parser Int
 signedInt =
   buildSignedInt <$> optionMaybe (string "-" <|> string "+") <*> int <* skipSpaces
 
+  where
+  buildSignedInt :: Maybe String -> Int -> Int
+  buildSignedInt sign val =
+    case sign of
+      Just "-" -> (0 - val)
+      _ -> val
+
 anyInt :: Parser String
 anyInt =
   regex "0|[1-9][0-9]*"
@@ -547,30 +571,6 @@ digit = (fromMaybe 0 <<< fromString <<< singleton <<< codePointFromChar) <$> any
 ten :: Parser Int
 ten = 10 <$ string "10"
 
-buildBinding :: String -> String -> Eut1.Music1 -> Binding
-buildBinding name _ mus =
-  Tuple name mus
-
-buildBindings :: String -> Nel.NonEmptyList Binding -> String -> BindingMap
-buildBindings  _ bnds _ =
-  Map.fromFoldable bnds
-
-buildNote1 :: String -> Eut.Dur -> Eut.Pitch -> Eut.Primitive Eut1.Note1
-buildNote1 _ dur p  =
-  Eut.Note dur $ Eut1.Note1 p $ L.singleton (Eut.Volume defaultVolume)
-
-buildSignedInt :: Maybe String -> Int -> Int
-buildSignedInt sign val =
-  case sign of
-    Just "-" -> (0 - val)
-    _ -> val
-
-buildPSoM :: String -> Eut1.Music1 -> PSoM
-buildPSoM title mus =
-  { title : title
-  , music : mus
-  }
-
 -- | macro expand a 'function' name to give the function
 -- | contents (which is Music).  Fail if the name is unknown
 macroExpand :: String -> BindingMap -> Parser Eut1.Music1
@@ -596,9 +596,4 @@ checkDynamicMarking name  =
 -- | Entry point - Parse a Euterpea DSL score.
 parse :: String -> Either ParseError PSoM
 parse s =
-  case runParser psom s of
-    Right n ->
-      Right n
-
-    Left err ->
-      Left err
+  runParser psom s
