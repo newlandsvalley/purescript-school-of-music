@@ -29,9 +29,11 @@ The editor has been developed using Halogen and allows you to enter PSoM text an
 Polyphonic ABC Player
 ---------------------
 
+This is now deprecated in favour of[share-a-tune](https://github.com/newlandsvalley/share-a-tune) which has used this code as a starting point and then added tune URL sharing facilities.
+
 Try it [here](http://www.tradtunedb.org.uk:8605/).
 
-This player is essentially identical to the editor in that, when the ABC is loaded, the tune can be played and the score viewed. Monophonic tunes just play normally. However, if the tune is polyphonic, the user can choose to play the entire polyphonic melody or just one of the parts. The scores for the various parts are displayed separately.
+The player is essentially identical to the editor in that, when the ABC is loaded, the tune can be played and the score viewed. Monophonic tunes just play normally. However, if the tune is polyphonic, the user can choose to play the entire polyphonic melody or just one of the parts. The scores for the various parts are displayed separately.
 
 Because the transformation to PSoM is relatively expensive, there is no editor window. It would no longer be possible to update the melody and the score after each keystroke and have reasonable responsiveness. 
 
