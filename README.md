@@ -29,7 +29,7 @@ The editor has been developed using Halogen and allows you to enter PSoM text an
 Polyphonic ABC Player
 ---------------------
 
-This is now deprecated in favour of[share-a-tune](https://github.com/newlandsvalley/share-a-tune) which has used this code as a starting point and then added tune URL sharing facilities.
+This is now deprecated in favour of [share-a-tune](https://github.com/newlandsvalley/share-a-tune) which has used this code as a starting point and then added tune URL sharing facilities.
 
 Try it [here](http://www.tradtunedb.org.uk:8605/).
 
