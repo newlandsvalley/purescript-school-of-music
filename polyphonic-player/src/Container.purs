@@ -42,7 +42,7 @@ import Partial.Unsafe (unsafePartial)
 import StringParser (ParseError)
 import Type.Proxy (Proxy(..))
 import VexFlow.Score (Renderer, clearCanvas, renderFinalTune, resizeCanvas, initialiseCanvas) as Score
-import VexFlow.Types (Config)
+import VexFlow.Types (Config, Titling(..))
 import VexFlow.Abc.TickableContext (defaultNoteSeparation)
 import Window (print)
 
@@ -91,7 +91,7 @@ vexConfig index =
   , height : 10
   , scale : 0.8
   , isSVG : true
-  , titled : true
+  , titling : TitlePlusOrigin
   , noteSeparation: defaultNoteSeparation
   , showChordSymbols : false
   }

@@ -1,0 +1,10 @@
+package:
+  name: halogen-editor
+  dependencies:
+    - aff
+    - console
+    - effect
+    - halogen
+    - halogen-components
+    - school-of-music
+    - abc2psom

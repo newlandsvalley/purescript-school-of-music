@@ -1,0 +1,119 @@
+package:
+  dependencies:
+    - arrays
+    - control
+    - either
+    - foldable-traversable
+    - integers
+    - lists
+    - maybe
+    - midi
+    - ordered-collections
+    - prelude
+    - rationals
+    - string-parsers
+    - strings
+    - tuples
+  name: school-of-music
+  test:
+    main: Test.Main
+    dependencies:
+      - console
+      - effect
+      - test-unit
+workspace:
+  extraPackages: 
+    halogen-components:
+      dependencies:
+        - console
+        - css
+        - effect
+        - halogen
+        - halogen-css
+        - js-fileio
+        - soundfonts
+      git: https://github.com/newlandsvalley/purescript-halogen-components.git
+      ref: e0934e4da0afd7d813de1f31760888aa48b7c4df
+    abc-parser:
+      dependencies:
+        - bifunctors
+        - effect
+        - either
+        - foldable-traversable
+        - maybe
+        - midi
+        - ordered-collections
+        - profunctor-lenses
+        - rationals
+        - string-parsers
+        - strings
+        - stringutils
+        - transformers
+        - tuples
+      git: https://github.com/newlandsvalley/purescript-abc-parser.git
+      ref: cf9d80458a11f5775471e345d44802823982724c
+    abc2psom:
+      dependencies:
+        - abc-parser
+        - arrays
+        - either
+        - foldable-traversable
+        - integers
+        - lists
+        - maybe
+        - midi
+        - newtype
+        - ordered-collections
+        - prelude
+        - rationals
+        - school-of-music
+        - soundfonts
+        - transformers
+        - tuples
+        - unfoldable
+      git: https://github.com/newlandsvalley/purescript-abc2psom.git
+      ref: 683be495754b856e7c3d7721b7586eb12d4aec56
+    abc-scores:
+      dependencies:
+        - abc-parser
+        - arrays
+        - console
+        - effect
+        - either
+        - foldable-traversable
+        - integers
+        - lists
+        - maybe
+        - newtype
+        - ordered-collections
+        - prelude
+        - profunctor-lenses
+        - rationals
+        - strings
+        - stringutils
+        - transformers
+        - tuples
+        - unfoldable
+      git: https://github.com/newlandsvalley/purescript-abc-scores.git
+      ref: 10118be4551f899ce343fa05f0273b191dc10429
+    ensemble-scores:
+      dependencies:
+        - abc-parser
+        - abc-scores
+        - arrays
+        - console
+        - debug
+        - effect
+        - either
+        - foldable-traversable
+        - integers
+        - maybe
+        - newtype
+        - partial
+        - prelude
+        - strings
+        - transformers
+      git: https://github.com/newlandsvalley/ensemble-scores.git
+      ref: 632c620abae6172c76ca6e1fd963a32c41b86abe
+  packageSet:
+    registry: 63.0.0

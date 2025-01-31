@@ -2,13 +2,16 @@
   "private": true,
   "scripts": {
     "build": "spago build",
-    "test": "spago -x ./test.dhall test",
-    "halogen-editor": "spago -x ./halogen-editor.dhall bundle-app --to halogen-editor/dist/app.js",
-    "polyphonic-player": "spago -x ./polyphonic-player.dhall bundle-app --to polyphonic-player/dist/app.js"
+    "test": "spago test",
+    "halogen-editor": "spago bundle --package halogen-editor --outfile dist/app.js --bundle-type app --platform browser",
+    "polyphonic-player": "spago bundle --package polyphonic-player --outfile dist/app.js --bundle-type app --platform browser",
+    "halogen-editor-legacy": "spago -x ./halogen-editor.dhall bundle-app --to halogen-editor/dist/app.js",
+    "polyphonic-player-legacy": "spago -x ./polyphonic-player.dhall bundle-app --to polyphonic-player/dist/app.js"
   },
   "devDependencies": {
-    "spago": "^0.20.9",
-    "purescript": "^0.15.4",
-    "purescript-psa": "^0.5.1"
+    "esbuild": "^0.24.2",
+    "purescript": "^0.15.15",
+    "purescript-psa": "^0.5.1",
+    "spago": "^0.93.42"
   }
 }
