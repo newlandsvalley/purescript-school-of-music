@@ -40,7 +40,7 @@ Because the transformation to PSoM is relatively expensive, there is no editor w
 To build
 --------
 
-     spago build
+     mpm run build
 
 To test
 -------

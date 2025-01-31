@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build": "spago build",
+    "build": "spago --package school-of-music build",
     "test": "spago test",
     "halogen-editor": "spago bundle --package halogen-editor --outfile dist/app.js --bundle-type app --platform browser",
     "polyphonic-player": "spago bundle --package polyphonic-player --outfile dist/app.js --bundle-type app --platform browser",
