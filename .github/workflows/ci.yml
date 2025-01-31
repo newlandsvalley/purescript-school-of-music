@@ -26,7 +26,7 @@ jobs:
             output
 
       - name: Build source
-        run: spago --package school-of-music build
+        run: spago build --package school-of-music
 
       - name: Run tests
         run: spago test --pure
