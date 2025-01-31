@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "spago build --package school-of-music",
-    "test": "spago test",
+    "test": "spago test --package school-of-music",
     "halogen-editor": "spago bundle --package halogen-editor --outfile dist/app.js --bundle-type app --platform browser",
     "polyphonic-player": "spago bundle --package polyphonic-player --outfile dist/app.js --bundle-type app --platform browser",
     "halogen-editor-legacy": "spago -x ./halogen-editor.dhall bundle-app --to halogen-editor/dist/app.js",

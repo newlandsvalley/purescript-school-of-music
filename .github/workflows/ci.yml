@@ -29,4 +29,4 @@ jobs:
         run: spago build --package school-of-music
 
       - name: Run tests
-        run: spago test --pure
+        run: spago test --package school-of-music
