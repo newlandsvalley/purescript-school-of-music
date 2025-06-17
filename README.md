@@ -5,7 +5,7 @@ Purescript School of Music (PSoM)
 
 [![Build Status](https://github.com/newlandsvalley/purescript-school-of-music/workflows/CI/badge.svg)](https://github.com/newlandsvalley/purescript-school-of-music/actions)
 
-Try it out [here](http://www.tradtunedb.org.uk:8600/).
+Try it out [here](https://www.tradtunedb.org.uk:8600/).
 
 This is another attempt at porting the music notation part of the [Haskell School of Music](https://github.com/Euterpea/Euterpea2) (HSoM) to the browser. It consists of a PSoM library (ported from HSoM) together with an editor that runs in the browser. This allows you to enter melodies using a DSL and then play them.
 
@@ -29,9 +29,7 @@ The editor has been developed using Halogen and allows you to enter PSoM text an
 Polyphonic ABC Player
 ---------------------
 
-This is now deprecated in favour of [share-a-tune](https://github.com/newlandsvalley/share-a-tune) which has used this code as a starting point and then added tune URL sharing facilities.
-
-Try it [here](http://www.tradtunedb.org.uk:8605/).
+This is now deprecated in favour of [share-a-tune](https://github.com/newlandsvalley/share-a-tune) which has used this code as a starting point and then added tune URL sharing facilities.s
 
 The player is essentially identical to the editor in that, when the ABC is loaded, the tune can be played and the score viewed. Monophonic tunes just play normally. However, if the tune is polyphonic, the user can choose to play the entire polyphonic melody or just one of the parts. The scores for the various parts are displayed separately.
 
