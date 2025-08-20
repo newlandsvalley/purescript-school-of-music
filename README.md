@@ -5,7 +5,7 @@ Purescript School of Music (PSoM)
 
 [![Build Status](https://github.com/newlandsvalley/purescript-school-of-music/workflows/CI/badge.svg)](https://github.com/newlandsvalley/purescript-school-of-music/actions)
 
-Try it out [here](https://www.tradtunedb.org.uk:8600/).
+Try it out [here](https://tunebank.org.uk:8600/).
 
 This is another attempt at porting the music notation part of the [Haskell School of Music](https://github.com/Euterpea/Euterpea2) (HSoM) to the browser. It consists of a PSoM library (ported from HSoM) together with an editor that runs in the browser. This allows you to enter melodies using a DSL and then play them.
 
