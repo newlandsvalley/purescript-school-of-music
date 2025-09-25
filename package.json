@@ -9,7 +9,7 @@
     "polyphonic-player-legacy": "spago -x ./polyphonic-player.dhall bundle-app --to polyphonic-player/dist/app.js"
   },
   "devDependencies": {
-    "esbuild": "^0.24.2",
+    "esbuild": "^0.25.0",
     "purescript": "^0.15.15",
     "purescript-psa": "^0.5.1",
     "spago": "^0.93.42"
